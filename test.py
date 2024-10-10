@@ -202,7 +202,6 @@ mass=mass_profile[:,8]
 s=np.loadtxt('results/profile/structure_'+str(int(save_t[0]))+'.txt')
 T_max=max(s[:,2])+50.0
 R_max=max(s[:,0])+0.05
-Fconv_max=max(s[:,5])+max(s[:,5])*0.01
 s=np.loadtxt('results/profile/structure_'+str(int(save_t[N_PLOTS-1]))+'.txt')
 p=np.loadtxt('results/profile/property_'+str(int(save_t[0]))+'.txt')
 T_min=min(s[:,2])-50.0
@@ -341,6 +340,3 @@ for i in range(len(filefolders)):
         # https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html#gif
         img.save(fp=fp_out, format='GIF', append_images=imgs,
                  save_all=True, duration=20, loop=0)
-
-    # move it to parent folder
-    os.rename(fp_out, folder + '.gif')

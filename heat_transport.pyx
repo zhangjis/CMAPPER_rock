@@ -381,7 +381,7 @@ previous=np.loadtxt('initial/previous0.txt')
 load_file=np.loadtxt('input.txt')
 
 cdef double t=0.0#previous[0]
-cdef double dt=1e6#previous[1]
+cdef double dt=1.0#previous[1]
 cdef double P_center=previous[2]
 cdef double delta_P_center=previous[3]
 cdef double T_cmb=previous[4]
