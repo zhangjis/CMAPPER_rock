@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 os.makedirs('initial', exist_ok=True)
+os.makedirs('results/profile', exist_ok=True)
 
 # filepaths
 filefolders = [
