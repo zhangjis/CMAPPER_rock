@@ -341,3 +341,5 @@ for i in range(len(filefolders)):
         img.save(fp=fp_out, format='GIF', append_images=imgs,
                  save_all=True, duration=20, loop=0)
 
+    # move it to parent folder
+    os.rename(fp_out, folder + '.gif')
