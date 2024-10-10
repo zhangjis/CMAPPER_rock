@@ -25,32 +25,32 @@ import time
 load_file=np.loadtxt('input.txt') # read in input files.
 
 print('Read EoS tables')
-T_liq=np.loadtxt('mixture_table/map_en_pv_ppv/T_liq_Py_1500GPa.txt')
-rho_liq=np.loadtxt('mixture_table/map_en_pv_ppv/rho_liq_Py_1500GPa.txt')
-CP_liq=np.loadtxt('mixture_table/map_en_pv_ppv/CP_liq_Py_1500GPa.txt')
-alpha_liq=np.loadtxt('mixture_table/map_en_pv_ppv/alpha_liq_Py_1500GPa.txt')
-dTdP_liq=np.loadtxt('mixture_table/map_en_pv_ppv/dTdP_liq_Py_1500GPa.txt')
-dqdy_liq=np.loadtxt('mixture_table/map_en_pv_ppv/dqdy_liq_Py_1500GPa.txt')
-y_grid=np.loadtxt('mixture_table/map_en_pv_ppv/y.txt')
-P_solidus_liquidus=np.loadtxt('mixture_table/map_en_pv_ppv/solid_P.txt')
+T_liq=np.loadtxt('mixture_table/T_liq_Py_1500GPa.txt')
+rho_liq=np.loadtxt('mixture_table/rho_liq_Py_1500GPa.txt')
+CP_liq=np.loadtxt('mixture_table/CP_liq_Py_1500GPa.txt')
+alpha_liq=np.loadtxt('mixture_table/alpha_liq_Py_1500GPa.txt')
+dTdP_liq=np.loadtxt('mixture_table/dTdP_liq_Py_1500GPa.txt')
+dqdy_liq=np.loadtxt('mixture_table/dqdy_liq_Py_1500GPa.txt')
+y_grid=np.loadtxt('mixture_table/y.txt')
+P_solidus_liquidus=np.loadtxt('mixture_table/solid_P.txt')
 S_liq_array=P_solidus_liquidus[:,2][:1500].copy()
 S_sol_array=P_solidus_liquidus[:,1][:1500].copy()
 
-P_grid_pv=np.loadtxt('mixture_table/map_en_pv_ppv/P_pv.txt')
-P_grid_ppv=np.loadtxt('mixture_table/map_en_pv_ppv/P_ppv.txt')
-P_grid_en=np.loadtxt('mixture_table/map_en_pv_ppv/P_en.txt')
+P_grid_pv=np.loadtxt('mixture_table/P_pv.txt')
+P_grid_ppv=np.loadtxt('mixture_table/P_ppv.txt')
+P_grid_en=np.loadtxt('mixture_table/P_en.txt')
 P_grid=P_solidus_liquidus[:,0][:1500].copy()
 
-rho_Fel=np.loadtxt('EoS/paper2/rho_Fel.txt')
-alpha_Fel=np.loadtxt('EoS/paper2/alpha_Fel.txt')
-dqdy_Fel=np.loadtxt('EoS/paper2/dqdy_Fel.txt')
-T_Fel=np.loadtxt('EoS/paper2/T_Fel.txt')
-P_Fel=np.loadtxt('EoS/paper2/P_Fel.txt')
-rho_Fea=np.loadtxt('EoS/paper2/rho_Fe16Si.txt')
-alpha_Fea=np.loadtxt('EoS/paper2/alpha_Fe16Si.txt')
-dqdy_Fea=np.loadtxt('EoS/paper2/dqdy_Fe16Si.txt')
-T_Fea=np.loadtxt('EoS/paper2/T_Fe16Si.txt')
-P_Fea=np.loadtxt('EoS/paper2/P_Fe16Si.txt')
+rho_Fel=np.loadtxt('EoS/rho_Fel.txt')
+alpha_Fel=np.loadtxt('EoS/alpha_Fel.txt')
+dqdy_Fel=np.loadtxt('EoS/dqdy_Fel.txt')
+T_Fel=np.loadtxt('EoS/T_Fel.txt')
+P_Fel=np.loadtxt('EoS/P_Fel.txt')
+rho_Fea=np.loadtxt('EoS/rho_Fe16Si.txt')
+alpha_Fea=np.loadtxt('EoS/alpha_Fe16Si.txt')
+dqdy_Fea=np.loadtxt('EoS/dqdy_Fe16Si.txt')
+T_Fea=np.loadtxt('EoS/T_Fe16Si.txt')
+P_Fea=np.loadtxt('EoS/P_Fe16Si.txt')
 
 Tlg,Plg=np.meshgrid(T_Fel,P_Fel,sparse=True)
 Tag,Pag=np.meshgrid(T_Fea,P_Fea,sparse=True)
@@ -61,58 +61,58 @@ f_alpha_Fea=interpolate.RectBivariateSpline(P_Fea,T_Fea,alpha_Fea)
 f_dqdy_Fel=interpolate.RectBivariateSpline(P_Fel,T_Fel,dqdy_Fel)
 f_dqdy_Fea=interpolate.RectBivariateSpline(P_Fea,T_Fea,dqdy_Fea)
 
-loaded_T=np.loadtxt('EoS/paper2/Fe_adiabat.txt')
+loaded_T=np.loadtxt('EoS/Fe_adiabat.txt')
 load_original_T=loaded_T.reshape(loaded_T.shape[0],loaded_T.shape[1]//989,989)#141
-x_core_grid=np.loadtxt('EoS/paper2/Fe_adiabat_xgrid.txt')
-Tref_core_grid=np.loadtxt('EoS/paper2/Fe_adiabat_Tgrid.txt')
-pre_adiabat_pressure=np.loadtxt('EoS/paper2/Fe_adiabat_Pgrid.txt')
+x_core_grid=np.loadtxt('EoS/Fe_adiabat_xgrid.txt')
+Tref_core_grid=np.loadtxt('EoS/Fe_adiabat_Tgrid.txt')
+pre_adiabat_pressure=np.loadtxt('EoS/Fe_adiabat_Pgrid.txt')
 f_adiabat=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, pre_adiabat_pressure), load_original_T)
 
-loaded_dTdT0=np.loadtxt('EoS/paper2/Fe_dTdT0.txt')
+loaded_dTdT0=np.loadtxt('EoS/Fe_dTdT0.txt')
 load_original_dTdT0=loaded_dTdT0.reshape(loaded_dTdT0.shape[0],loaded_dTdT0.shape[1]//989,989)
-loaded_dT0dP=np.loadtxt('EoS/paper2/Fe_dT0dP.txt')
+loaded_dT0dP=np.loadtxt('EoS/Fe_dT0dP.txt')
 load_original_dT0dP=loaded_dT0dP.reshape(loaded_dT0dP.shape[0],loaded_dT0dP.shape[1]//826,826)
-Tgrid_core_grid=np.loadtxt('EoS/paper2/Fe_adiabat_P_Tgridgrid.txt')
+Tgrid_core_grid=np.loadtxt('EoS/Fe_adiabat_P_Tgridgrid.txt')
 f_dT0dP=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, Tgrid_core_grid), load_original_dT0dP)
 
-T_sol_pv=np.loadtxt('mixture_table/map_en_pv_ppv/T_sol_pv_Py.txt')
-rho_sol_pv=np.loadtxt('mixture_table/map_en_pv_ppv/rho_sol_pv_Py.txt')
-alpha_sol_pv=np.loadtxt('mixture_table/map_en_pv_ppv/alpha_sol_pv_Py.txt')
-dTdP_sol_pv=np.loadtxt('mixture_table/map_en_pv_ppv/dTdP_sol_pv_Py.txt')
-dqdy_sol_pv=np.loadtxt('mixture_table/map_en_pv_ppv/dqdy_sol_pv_Py.txt')
+T_sol_pv=np.loadtxt('mixture_table/T_sol_pv_Py.txt')
+rho_sol_pv=np.loadtxt('mixture_table/rho_sol_pv_Py.txt')
+alpha_sol_pv=np.loadtxt('mixture_table/alpha_sol_pv_Py.txt')
+dTdP_sol_pv=np.loadtxt('mixture_table/dTdP_sol_pv_Py.txt')
+dqdy_sol_pv=np.loadtxt('mixture_table/dqdy_sol_pv_Py.txt')
 
-T_sol_ppv=np.loadtxt('mixture_table/map_en_pv_ppv/T_sol_ppv_Py.txt')
-rho_sol_ppv=np.loadtxt('mixture_table/map_en_pv_ppv/rho_sol_ppv_Py.txt')
-alpha_sol_ppv=np.loadtxt('mixture_table/map_en_pv_ppv/alpha_sol_ppv_Py.txt')
-dTdP_sol_ppv=np.loadtxt('mixture_table/map_en_pv_ppv/dTdP_sol_ppv_Py.txt')
-dqdy_sol_ppv=np.loadtxt('mixture_table/map_en_pv_ppv/dqdy_sol_ppv_Py.txt')
+T_sol_ppv=np.loadtxt('mixture_table/T_sol_ppv_Py.txt')
+rho_sol_ppv=np.loadtxt('mixture_table/rho_sol_ppv_Py.txt')
+alpha_sol_ppv=np.loadtxt('mixture_table/alpha_sol_ppv_Py.txt')
+dTdP_sol_ppv=np.loadtxt('mixture_table/dTdP_sol_ppv_Py.txt')
+dqdy_sol_ppv=np.loadtxt('mixture_table/dqdy_sol_ppv_Py.txt')
 
-T_sol_en=np.loadtxt('mixture_table/map_en_pv_ppv/T_sol_en_Py.txt')
-rho_sol_en=np.loadtxt('mixture_table/map_en_pv_ppv/rho_sol_en_Py.txt')
-alpha_sol_en=np.loadtxt('mixture_table/map_en_pv_ppv/alpha_sol_en_Py.txt')
-dTdP_sol_en=np.loadtxt('mixture_table/map_en_pv_ppv/dTdP_sol_en_Py.txt')
-dqdy_sol_en=np.loadtxt('mixture_table/map_en_pv_ppv/dqdy_sol_en_Py.txt')
+T_sol_en=np.loadtxt('mixture_table/T_sol_en_Py.txt')
+rho_sol_en=np.loadtxt('mixture_table/rho_sol_en_Py.txt')
+alpha_sol_en=np.loadtxt('mixture_table/alpha_sol_en_Py.txt')
+dTdP_sol_en=np.loadtxt('mixture_table/dTdP_sol_en_Py.txt')
+dqdy_sol_en=np.loadtxt('mixture_table/dqdy_sol_en_Py.txt')
 
-T_mix_pv=np.loadtxt('mixture_table/map_en_pv_ppv/T_mix_pv_Py.txt')
-rho_mix_pv=np.loadtxt('mixture_table/map_en_pv_ppv/rho_mix_pv_Py.txt')
-alpha_mix_pv=np.loadtxt('mixture_table/map_en_pv_ppv/alpha_mix_pv_Py.txt')
-dTdP_mix_pv=np.loadtxt('mixture_table/map_en_pv_ppv/dTdP_mix_pv_Py.txt')
-dqdy_mix_pv=np.loadtxt('mixture_table/map_en_pv_ppv/dqdy_mix_pv_Py.txt')
-CP_mix_pv=np.loadtxt('mixture_table/map_en_pv_ppv/CP_mix_pv_Py.txt')
+T_mix_pv=np.loadtxt('mixture_table/T_mix_pv_Py.txt')
+rho_mix_pv=np.loadtxt('mixture_table/rho_mix_pv_Py.txt')
+alpha_mix_pv=np.loadtxt('mixture_table/alpha_mix_pv_Py.txt')
+dTdP_mix_pv=np.loadtxt('mixture_table/dTdP_mix_pv_Py.txt')
+dqdy_mix_pv=np.loadtxt('mixture_table/dqdy_mix_pv_Py.txt')
+CP_mix_pv=np.loadtxt('mixture_table/CP_mix_pv_Py.txt')
 
-T_mix_ppv=np.loadtxt('mixture_table/map_en_pv_ppv/T_mix_ppv_Py.txt')
-rho_mix_ppv=np.loadtxt('mixture_table/map_en_pv_ppv/rho_mix_ppv_Py.txt')
-alpha_mix_ppv=np.loadtxt('mixture_table/map_en_pv_ppv/alpha_mix_ppv_Py.txt')
-dTdP_mix_ppv=np.loadtxt('mixture_table/map_en_pv_ppv/dTdP_mix_ppv_Py.txt')
-dqdy_mix_ppv=np.loadtxt('mixture_table/map_en_pv_ppv/dqdy_mix_ppv_Py.txt')
-CP_mix_ppv=np.loadtxt('mixture_table/map_en_pv_ppv/CP_mix_ppv_Py.txt')
+T_mix_ppv=np.loadtxt('mixture_table/T_mix_ppv_Py.txt')
+rho_mix_ppv=np.loadtxt('mixture_table/rho_mix_ppv_Py.txt')
+alpha_mix_ppv=np.loadtxt('mixture_table/alpha_mix_ppv_Py.txt')
+dTdP_mix_ppv=np.loadtxt('mixture_table/dTdP_mix_ppv_Py.txt')
+dqdy_mix_ppv=np.loadtxt('mixture_table/dqdy_mix_ppv_Py.txt')
+CP_mix_ppv=np.loadtxt('mixture_table/CP_mix_ppv_Py.txt')
 
-T_mix_en=np.loadtxt('mixture_table/map_en_pv_ppv/T_mix_en_Py.txt')
-rho_mix_en=np.loadtxt('mixture_table/map_en_pv_ppv/rho_mix_en_Py.txt')
-alpha_mix_en=np.loadtxt('mixture_table/map_en_pv_ppv/alpha_mix_en_Py.txt')
-dTdP_mix_en=np.loadtxt('mixture_table/map_en_pv_ppv/dTdP_mix_en_Py.txt')
-dqdy_mix_en=np.loadtxt('mixture_table/map_en_pv_ppv/dqdy_mix_en_Py.txt')
-CP_mix_en=np.loadtxt('mixture_table/map_en_pv_ppv/CP_mix_en_Py.txt')
+T_mix_en=np.loadtxt('mixture_table/T_mix_en_Py.txt')
+rho_mix_en=np.loadtxt('mixture_table/rho_mix_en_Py.txt')
+alpha_mix_en=np.loadtxt('mixture_table/alpha_mix_en_Py.txt')
+dTdP_mix_en=np.loadtxt('mixture_table/dTdP_mix_en_Py.txt')
+dqdy_mix_en=np.loadtxt('mixture_table/dqdy_mix_en_Py.txt')
+CP_mix_en=np.loadtxt('mixture_table/CP_mix_en_Py.txt')
 
 S_liq_P=interpolate.interp1d(P_grid,S_liq_array)
 S_sol_P=interpolate.interp1d(P_grid,S_sol_array)
@@ -219,7 +219,10 @@ cdef double[:] k_array=np.zeros(zone)
 cdef double[:] phase=np.zeros(zone)
 for i in range(zone):
     k_array[i]=k_l
-    phase[i]=0.0
+    if i<c_z:
+        phase[i]=1.0
+    else:
+        phase[i]=4.0
 
 cdef class c_initial_profile:
     cdef double M_pl
@@ -483,7 +486,7 @@ cdef class c_initial_profile:
                     s_liq_val=S_liq_P(pressure[i]).tolist()
                     s_array[i]=s_array[i-1]+dsdr_c*(radius[i]-radius[i-1])
                     if s_array[i]>=s_liq_val:
-                        phase[i]=0.0
+                        phase[i]=4.0
                         y=(s_array[i]-s_liq_val)/(S_max-s_liq_val)
                         rho[i]=rho_Py_liq(pressure[i],y)[0][0]
                         alpha[i]=alpha_Py_liq(pressure[i],y)[0][0]
@@ -767,872 +770,7 @@ cdef class c_henyey:
             results['s_cell']=s_cell.copy()
 
         return results
-
-cdef class heat_transport:
-    # heat transport in the core and mantle
-    cdef double[:] mass 
-    cdef double[:] h
-    cdef double[:] x_m
-    cdef double[:] radius
-    cdef double[:] r_cell 
-    cdef double[:] pressure 
-    cdef double[:] p_cell
-    cdef double[:] rho
-    cdef double[:] g
-    cdef double[:] dqdy 
-    cdef double[:] Area        
-    cdef double[:] s_array
-    cdef double[:] s_cell 
-    cdef double[:] T
-    cdef double[:] T_cell
-    cdef double[:] phase 
-    cdef double[:] alpha 
-    cdef double[:] cP
-    cdef double[:] k_array 
-    cdef double[:] dTdP
-    cdef double M_pl
-    cdef double Teq
-    cdef dict qrad
-    cdef double t
-    cdef double dt
-    cdef double epsilon
-    cdef double tauK
-    cdef double tauTh
-    cdef double tauU8
-    cdef double tauU5
-    cdef double qKE
-    cdef double qThE
-    cdef double qU8E
-    cdef double qU5E
-    cdef double[:] phase_c
-    cdef double P_c, rho_c, dqdy_c
-    cdef double Q_rad_c_0
-    cdef int c_z, m_z
-    cdef double CMF
-    cdef double Mic, Pic, Ric, alpha_ic, rho_ic, Tic, x_core, min_pre_adia_T, T_cmb
-    cdef int solid_index
-    cdef double l_alpha
-    cdef double l_beta
-
-    def __cinit__(self, double[:] mass, double[:] h, double[:] radius, double[:] r_cell, double[:] pressure, double[:] p_cell, double[:] rho, double[:] g, double[:] dqdy, double[:] Area, 
-                 double[:] s_array, double[:] s_cell, double[:] T, double[:] T_cell, double[:] x_m, double[:] phase, double[:] phase_c, double[:] alpha, double[:] cP, double[:] k_array, double[:] dTdP, 
-                 double Mic, double Pic, double Ric, double alpha_ic, double rho_ic, double Tic, int solid_index, double x_core, double min_pre_adia_T, double T_cmb,
-                 double P_c, double rho_c, double dqdy_c ,double Q_rad_c_0, double Teq, dict qrad, double t, double dt, int c_z, int m_z, double M_pl, double CMF):
-        self.mass = mass
-        self.h = h
-        self.radius = radius
-        self.r_cell = r_cell
-        self.pressure = pressure
-        self.P_c = P_c
-        self.p_cell = p_cell
-        self.rho = rho
-        self.rho_c = rho_c
-        self.g = g
-        self.dqdy = dqdy
-        self.dqdy_c = dqdy_c
-        self.Area = Area
-        self.s_array = s_array
-        self.s_cell = s_cell
-        self.T = T
-        self.T_cell = T_cell
-        self.x_m = x_m
-        self.phase = phase # list of phases, 'liquid MgSiO3', 'ppv', 'pv', 'en', 'melt MgSiO3' 
-        self.phase_c = phase_c
-        self.alpha = alpha
-        self.cP = cP
-        self.k_array = k_array
-        self.dTdP = dTdP
-        
-        self.Mic = Mic
-        self.Pic = Pic
-        self.Ric = Ric
-        self.Tic = Tic
-        self.alpha_ic = alpha_ic
-        self.rho_ic = rho_ic
-        self.solid_index = solid_index
-        self.x_core = self.x_core
-        self.min_pre_adia_T = min_pre_adia_T # same as T_an_c
-        self.T_cmb = T_cmb
-        
-        self.M_pl = M_pl
-        self.Teq = Teq
-        self.CMF = CMF
-        self.Q_rad_c_0 = Q_rad_c_0
-        
-        self.qrad = qrad # a dictionary of qK, qTh, qU8, qU5. Values are ratios to Earth concentration at current day
-        self.t = t
-        self.dt = dt
-        
-        self.c_z = c_z
-        self.m_z = m_z
-        
-        # mixing length parameter for the mantle
-        self.l_alpha = 0.82
-        self.l_beta = 1.0
-        
-        # tau is in Gyr
-        self.tauK = 1.25 
-        self.tauTh = 14.0 
-        self.tauU8 = 4.47
-        self.tauU5 = 0.704
-        # q is in W/kg for current Earth concentration
-        self.qKE = 8.69e-13
-        self.qThE = 2.24e-12
-        self.qU8E = 1.97e-12
-        self.qU5E = 8.48e-14
-        
-    cpdef double[:] penta_solver(self,double[:] a, double[:] b, double[:] c, double[:] d, double[:] e, double[:] y, int zone): # a,e->n-2; b,d->n-1; c->n; y->n or f; zone->n
-        cdef Py_ssize_t i
-        cdef double[:] alpha=np.zeros(zone) #1,2,3,...,n-1; n-1
-        cdef double[:] beta=np.zeros(zone) #1,2,3,...,n-2; n-2
-        cdef double[:] z=np.zeros(zone) #1,2,3,...,n; n
-        cdef double[:] gamma=np.zeros(zone) #2,3,4,...,n; n-1
-        cdef double[:] mu=np.zeros(zone) #1,2,3,...,n; n
-
-        #i=0
-        mu[0]=c[0]
-        gamma[0]=0.0 # book keeping
-        alpha[0]=d[0]/mu[0]
-        beta[0]=e[0]/mu[0]
-        z[0]=y[0]/mu[0]
-
-        #i=1
-        gamma[1]=b[1]
-        mu[1]=c[1]-alpha[0]*gamma[1]
-        alpha[1]=(d[1]-beta[0]*gamma[1])/mu[1]
-        beta[1]=e[1]/mu[1]
-        z[1]=(y[1]-z[0]*gamma[1])/mu[1]
-
-        #i 2<->n-3
-        for i in range(2, zone-2):
-            gamma[i]=b[i]-alpha[i-2]*a[i]
-            mu[i]=c[i]-beta[i-2]*a[i]-alpha[i-1]*gamma[i]
-            alpha[i]=(d[i]-beta[i-1]*gamma[i])/mu[i]
-            beta[i]=e[i]/mu[i]
-            z[i]=(y[i]-z[i-2]*a[i]-z[i-1]*gamma[i])/mu[i]
-
-        #i=n-2
-        i=zone-2
-        gamma[i]=b[i]-alpha[i-2]*a[i]
-        mu[i]=c[i]-beta[i-2]*a[i]-alpha[i-1]*gamma[i]
-        alpha[i]=(d[i]-beta[i-1]*gamma[i])/mu[i]
-        beta[i]=0.0
-        z[i]=(y[i]-z[i-2]*a[i]-z[i-1]*gamma[i])/mu[i]
-
-        #i=n-1
-        i=zone-1
-        gamma[i]=b[i]-alpha[i-2]*a[i]
-        mu[i]=c[i]-beta[i-2]*a[i]-alpha[i-1]*gamma[i]
-        alpha[i]=0.0
-        beta[i]=0.0
-        z[i]=(y[i]-z[i-2]*a[i]-z[i-1]*gamma[i])/mu[i]
-
-        # solving for x
-        cdef double[:] solution=np.zeros(zone)
-        solution[zone-1]=z[zone-1]
-        solution[zone-2]=z[zone-2]-alpha[zone-2]*solution[zone-1]
-        for i in range(zone-3,-1,-1):
-            solution[i]=z[i]-alpha[i]*solution[i+1]-beta[i]*solution[i+2]
-
-        return solution
     
-    cpdef int find_nearest(self, double[:] array, double value):
-        cdef int idx = np.searchsorted(array, value, side="left")
-        if idx > 0 and (idx == len(array) or math.fabs(value - array[idx-1]) < math.fabs(value - array[idx])):
-            return idx-1
-        else:
-            return idx
-    
-    cpdef double f_qrad(self):
-        # return radiogenic heating in W/kg
-        cdef double oneGyr = 1e9*365.0*86400.0
-        cdef double v_log2 = math.log(2.0)
-        cdef double a = self.qrad['K']*self.qKE*math.exp(v_log2*(4.5-self.t/oneGyr)/self.tauK)
-        cdef double b = self.qrad['Th']*self.qThE*math.exp(v_log2*(4.5-self.t/oneGyr)/self.tauTh)
-        cdef double c = self.qrad['U8']*self.qU8E*math.exp(v_log2*(4.5-self.t/oneGyr)/self.tauU8)
-        cdef double d = self.qrad['U5']*self.qU5E*math.exp(v_log2*(4.5-self.t/oneGyr)/self.tauU5)
-        return a+b+c+d 
-    
-    cpdef double f_Qrad(self, double m):
-        # return radoiogenic heating in W
-        return self.f_qrad()*m
-
-    cpdef double[:] f_viscosity(self):
-        cdef double A=1.67
-        cdef double B=7.4e-17
-        cdef double n=3.5
-        cdef double E=5.0e+5
-        cdef double V=1.0e-5
-        cdef double R=8.314
-        cdef double epsilon=1.0e-15
-        cdef double y=0.0
-        cdef double z=0.0
-        cdef double[:] value=np.ones(len(self.radius))
-        cdef double[:] eta_s=np.zeros(len(self.radius))
-        cdef double[:] eta_m=np.zeros(len(self.radius))
-        cdef double eta_m_0=100.0
-        cdef Py_ssize_t i
-        cdef double eta0, p_decay
-        for i in range(self.c_z+1, self.c_z+self.m_z):
-            if self.pressure[i]<125e9:
-                if self.pressure[i]<23.0*10.0**9.0:
-                    B=3.5e-15; n=3.0; E=4.3e+5
-                eta_s[i]=0.5*(1.0/B**(1.0/n))*math.exp((E+self.pressure[i]*V)/(n*R*self.T[i]))*epsilon**((1.0-n)/n)/self.rho[i]
-            else:
-                eta0=1.9e21; E=1.62e5; p_decay=1610e9
-                V=1.4e-6*math.exp(-self.pressure[i]/p_decay)
-                eta_s[i]=eta0*math.exp((E+self.pressure[i]*V)/(R*self.T[i])-E/(R*1600.0))/self.rho[i]
-            eta_m[i]=eta_m_0/self.rho[i]
-           
-            y=(self.x_m[i]-0.4)/0.15
-            z=0.5*(1.0+math.tanh(y))
-            value[i]=10.0**(z*math.log10(eta_m[i])+(1.0-z)*math.log10(eta_s[i]))
-        return value  
-
-    cpdef double f_viscosity_single(self,double Pres,double Temp):
-        cdef double A=1.67
-        cdef double B=7.4e-17
-        cdef double n=3.5
-        cdef double E=5.0e+5
-        cdef double V=1.0e-5
-        cdef double R=8.314
-        cdef double epsilon=1.0e-15
-        cdef double y=0.0
-        cdef double z=0.0
-        cdef double eta_m_0=100.0
-        cdef double eta0, p_decay
-        if Pres<125e9:
-            if Pres<23e9:
-                B=3.5e-15; n=3.0; E=4.3e+5
-            eta_s=0.5*(1.0/B**(1.0/n))*math.exp((E+Pres*V)/(n*R*Temp))*epsilon**((1.0-n)/n)/self.rho[self.c_z]
-        else:
-            eta0=1.9e21; E=1.62e5; p_decay=1610e9
-            V=1.4e-6*math.exp(-Pres/p_decay)
-            eta_s=eta0*math.exp((E+Pres*V)/(R*Temp)-E/(R*1600.0))/self.rho[self.c_z]
-        eta_m=eta_m_0/self.rho[self.c_z]
-        y=(self.x_m[self.c_z]-0.4)/0.15
-        z=0.5*(1.0+math.tanh(y))
-        return 10.0**(z*math.log10(eta_m)+(1.0-z)*math.log10(eta_s))
-       
-    cpdef double[:] f_dsdr(self):
-        # return the entropy gradient at the top boundaries of each zone
-        cdef Py_ssize_t i
-        cdef double[:] dsdr=np.zeros(len(self.radius))
-        for i in range(self.c_z,self.c_z+self.m_z-1):
-            dsdr[i]=(self.s_cell[i]-self.s_cell[i+1])/(self.r_cell[i]-self.r_cell[i+1])
-        for i in range(self.c_z+self.m_z,len(self.radius)-1):
-            dsdr[i]=(self.s_cell[i]-self.s_cell[i+1])/(self.r_cell[i]-self.r_cell[i+1])
-        return dsdr
-    
-    cpdef double[:] f_convection(self,double[:] dsdr):
-        # determine whether the individual zones are convecting using the Schwarzschild criterion
-        # yes convection if ds/dr<0
-        cdef Py_ssize_t i
-        cdef double[:] convection=np.zeros(len(self.radius))
-        for i in range(len(self.radius)):
-            if dsdr[i]<0.0:
-                convection[i]=1.0
-            else:
-                convection[i]=0.0
-        return convection
-        
-    cpdef double[:] f_l(self,double[:] convection):
-        # calculate the mixing length parameter (F. Wagner). 
-        # give user options to use different l_alpha and l_beta in the future
-        cdef Py_ssize_t i
-        cdef double[:] l_mlt=np.zeros(len(self.radius))
-        for i in range(self.c_z,len(self.radius)):
-            if convection[i]==1.0:
-                if i>self.c_z+self.m_z:
-                    l_mlt[i]=self.pressure[i]/(self.rho[i]*self.g[i])
-                else:
-                    if (self.radius[i]-self.radius[self.c_z-1])<=(self.radius[self.c_z+self.m_z-1]-self.radius[self.c_z-1])/2.0*self.l_beta:
-                        l_mlt[i]=self.l_alpha*(self.radius[i]-self.radius[self.c_z-1])/self.l_beta
-                    else:
-                        l_mlt[i]=self.l_alpha*(self.radius[self.c_z+self.m_z-1]-self.radius[i])/(2.0-self.l_beta)
-        return l_mlt
-        
-    cpdef double[:] f_eddy_T_low_nu(self,double[:] l,double[:] dsdr):
-        # eddy diffusivity with low viscosity. convective velocity is limited by the terminal velocity of falling parcel.
-        cdef Py_ssize_t i
-        cdef double[:] value=np.zeros(len(self.radius))
-        for i in range(self.c_z,len(self.radius)):
-            value[i]=(self.alpha[i]*self.g[i]*l[i]**4.0*self.T[i]/(16.0*self.cP[i])*(-dsdr[i]))**0.5
-        return value#(np.asarray(self.alpha)*np.asarray(self.g)*np.asarray(l)**4.0*np.asarray(self.T)/(16.0*np.asarray(self.cP))*(-np.asarray(dsdr)))**0.5
- 
-    cpdef double[:] f_eddy_T_high_nu(self,double[:] l,double[:] v,double[:] dsdr):
-        # eddy diffusivity with high viscosity. convective velocity is limited by viscous drag force. 
-        cdef Py_ssize_t i
-        cdef double[:] value=np.zeros(len(self.radius))
-        for i in range(self.c_z,len(self.radius)):
-            value[i]=(self.alpha[i]*self.g[i]*l[i]**4.0*self.T[i]/(16.0*self.cP[i])*(-dsdr[i]))**0.5
-        return np.asarray(self.alpha)*np.asarray(self.g)*np.asarray(l)**4.0*np.asarray(self.T)/(18.0*np.asarray(v)*np.asarray(self.cP))*(-np.asarray(dsdr))
-
-    cpdef double[:] f_kappa(self):
-        # thermal diffusivity
-        cdef Py_ssize_t i
-        cdef double[:] value=np.zeros(len(self.radius))
-        for i in range(self.c_z,len(self.radius)):
-            value[i]=self.k_array[i]/(self.rho[i]*self.cP[i])
-        return value#np.asarray(self.k_array)/(np.asarray(self.rho)*np.asarray(self.cP))
-
-    cpdef double[:] f_eddy_k(self,double[:] eddy_low,double[:] eddy_high,double[:] v):
-        # eddy diffusivity
-        cdef double[:] eddy_k=np.zeros(len(self.radius))
-        for i in range(self.c_z,self.c_z+self.m_z):
-            if eddy_low[i]/v[i]>9.0/8.0:
-                eddy_k[i]=eddy_low[i]
-            else:
-                eddy_k[i]=eddy_high[i]
-        return eddy_k
-    
-    cpdef double[:] f_dPdr(self):
-        # returns dP/dr
-        cdef Py_ssize_t i
-        cdef double[:] value=np.zeros(len(self.radius))
-        for i in range(len(self.radius)):
-            value[i]=-G*self.mass[i]*self.rho[i]/self.radius[i]**2.0
-        return value#-G*np.asarray(self.mass)*np.asarray(self.rho)/np.asarray(self.radius)**2.0
-    
-    # f_matrix completes the matrix to be inverted in penta_solver (a backward euler method)
-    # We use a finite volume method to discretize the zones
-
-    cpdef tuple f_matrix(self,double[:] eddy_k,double[:] kappa,double[:] dPdr):
-        cdef double[:,:] mat = np.zeros((5,len(self.radius)))
-        cdef double[:] yy = np.zeros(len(self.radius))
-        cdef Py_ssize_t i
-        cdef double vm1, vm3
-        for i in range(self.c_z+1, self.c_z+self.m_z-1):
-            vm1=(self.Area[i-1]/(self.h[i]*self.T_cell[i])*self.rho[i-1]*self.T[i-1]*
-                 (kappa[i-1]+eddy_k[i-1])/(self.r_cell[i-1]-self.r_cell[i]))
-            vm3=(self.Area[i]/(self.h[i]*self.T_cell[i])*self.rho[i]*self.T[i]*
-                 (kappa[i]+eddy_k[i])/(self.r_cell[i]-self.r_cell[i+1]))
-            mat[1][i]=vm1
-            mat[2][i]=1.0/self.dt-vm1-vm3
-            mat[3][i]=vm3
-            yy[i]=(self.s_cell[i]/self.dt
-                   -self.Area[i-1]/(self.h[i]*self.T_cell[i])*self.k_array[i]*self.dTdP[i-1]*dPdr[i-1]
-                   +self.Area[i]/(self.h[i]*self.T_cell[i])*self.k_array[i]*self.dTdP[i]*dPdr[i]
-                   +self.f_qrad()/self.T_cell[i])
-
-        cdef double Fcmb=-self.k_array[self.c_z]*(self.T[self.c_z-1]-self.T[self.c_z])/(self.radius[self.c_z-1]-self.radius[self.c_z])
-        cdef double Fsurf=sigma*(self.T[self.c_z+self.m_z-1]**4.0-self.Teq**4.0)
-        cdef double v_b=4.0/self.cP[self.c_z+self.m_z-1]
-        cdef double v_a=v_b*sigma*self.Teq**4.0 
-
-        i=self.c_z+self.m_z-1
-        mat[1][i]=(self.Area[i-1]/(self.h[i]*self.T_cell[i])*self.rho[i-1]*self.T[i-1]
-                *(kappa[i-1]+eddy_k[i-1])/(self.r_cell[i-1]-self.r_cell[i]))
-        mat[2][i]=1.0/self.dt-mat[1][i]+self.Area[i]/(self.h[i]*self.T_cell[i])*(v_b*Fsurf+v_a)
-        yy[i]=(self.s_cell[i]/self.dt 
-           -self.Area[i-1]/(self.h[i]*self.T_cell[i])*self.k_array[i]*self.dTdP[i-1]*dPdr[i-1]
-           -self.Area[i]*(Fsurf-(v_b*Fsurf+v_a)*self.s_cell[i])/(self.h[i]*self.T_cell[i])
-           +self.f_qrad()/self.T_cell[i]) 
-
-        i = self.c_z
-        mat[3][i]= (self.Area[i]/(self.h[i]*self.T_cell[i])*self.rho[i]*self.T[i]
-                *(kappa[i]+eddy_k[i])/(self.r_cell[i]-self.r_cell[i+1]))
-        mat[2][i]=1.0/self.dt-mat[3][i]
-        yy[i]=(self.s_cell[i]/self.dt+self.Area[i]/(self.h[i]*self.T_cell[i])*self.k_array[i]*self.dTdP[i]*dPdr[i]
-            +self.Area[i-1]*Fcmb/self.h[i]/self.T_cell[i]+self.f_qrad()/self.T_cell[i])
-
-        return mat, yy, Fcmb, Fsurf
-    
-    cpdef tuple f_y(self,double[:] s_liq,double[:] s_liq_c,double[:] s_sol,double[:] s_sol_c):
-        cdef double[:] y=np.zeros(len(self.radius))
-        cdef double[:] y_c=np.zeros(len(self.radius))
-        cdef Py_ssize_t i
-        for i in range(self.c_z,self.c_z+self.m_z):
-            if self.s_cell[i]>=s_liq_c[i]:
-                y_c[i]=(self.s_cell[i]-s_liq_c[i])/(S_max-s_liq_c[i])
-                self.phase_c[i]=0.0
-            elif self.s_cell[i]<=s_sol_c[i]:
-                y_c[i]=(self.s_cell[i]-S_min)/(s_sol_c[i]-S_min)
-                self.phase_c[i]=2.0
-            else:
-                y_c[i]=(self.s_cell[i]-s_sol_c[i])/(s_liq_c[i]-s_sol_c[i])
-                self.phase_c[i]=1.0
-                
-            if self.s_array[i]>=s_liq[i]:
-                y[i]=(self.s_array[i]-s_liq[i])/(S_max-s_liq[i]) 
-                self.phase[i]=0.0
-                self.x_m[i]=1.0
-            elif self.s_array[i]<=s_sol[i]:
-                y[i]=(self.s_array[i]-S_min)/(s_sol[i]-S_min)
-                self.phase[i]=2.0
-                self.x_m[i]=0.0
-            else:
-                y[i]=(self.s_array[i]-s_sol[i])/(s_liq[i]-s_sol[i])
-                self.phase[i]=1.0
-                self.x_m[i]=y[i]
-        return y, y_c, self.phase, self.phase_c,self.x_m
-    
-    cpdef tuple f_update(self,double[:] y_array,double[:] y_c_array):
-        cdef Py_ssize_t i
-
-        T_c_l=np.zeros(len(self.radius))
-        T_c_pv=np.zeros(len(self.radius))
-        T_c_ppv=np.zeros(len(self.radius))
-        T_c_en=np.zeros(len(self.radius))
-        T_c_pv_m=np.zeros(len(self.radius))
-        T_c_ppv_m=np.zeros(len(self.radius))
-        T_c_en_m=np.zeros(len(self.radius))
-        
-        T_l=np.zeros(len(self.radius))
-        T_pv=np.zeros(len(self.radius))
-        T_ppv=np.zeros(len(self.radius))
-        T_en=np.zeros(len(self.radius))
-        T_pv_m=np.zeros(len(self.radius))
-        T_ppv_m=np.zeros(len(self.radius))
-        T_en_m=np.zeros(len(self.radius))
-        
-        dqdy_l=np.zeros(len(self.radius))
-        dqdy_pv=np.zeros(len(self.radius))
-        dqdy_ppv=np.zeros(len(self.radius))
-        dqdy_en=np.zeros(len(self.radius))
-        dqdy_pv_m=np.zeros(len(self.radius))
-        dqdy_ppv_m=np.zeros(len(self.radius))
-        dqdy_en_m=np.zeros(len(self.radius))
-        
-        rho_l=np.zeros(len(self.radius))
-        rho_pv=np.zeros(len(self.radius))
-        rho_ppv=np.zeros(len(self.radius))
-        rho_en=np.zeros(len(self.radius))
-        rho_pv_m=np.zeros(len(self.radius))
-        rho_ppv_m=np.zeros(len(self.radius))
-        rho_en_m=np.zeros(len(self.radius))
-        
-        cP_l=np.zeros(len(self.radius))
-        cP_pv=np.zeros(len(self.radius))
-        cP_ppv=np.zeros(len(self.radius))
-        cP_en=np.zeros(len(self.radius))
-        cP_pv_m=np.zeros(len(self.radius))
-        cP_ppv_m=np.zeros(len(self.radius))
-        cP_en_m=np.zeros(len(self.radius))
-        
-        alpha_l=np.zeros(len(self.radius))
-        alpha_pv=np.zeros(len(self.radius))
-        alpha_ppv=np.zeros(len(self.radius))
-        alpha_en=np.zeros(len(self.radius))
-        alpha_pv_m=np.zeros(len(self.radius))
-        alpha_ppv_m=np.zeros(len(self.radius))
-        alpha_en_m=np.zeros(len(self.radius))
-        
-        dTdP_l=np.zeros(len(self.radius))
-        dTdP_pv=np.zeros(len(self.radius))
-        dTdP_ppv=np.zeros(len(self.radius))
-        dTdP_en=np.zeros(len(self.radius))
-        dTdP_pv_m=np.zeros(len(self.radius))
-        dTdP_ppv_m=np.zeros(len(self.radius))
-        dTdP_en_m=np.zeros(len(self.radius))
-
-        p_cell_np=np.asarray(self.p_cell)
-        pressure_np=np.asarray(self.pressure)
-        y_c_np=np.asarray(y_c_array)
-        y_np=np.asarray(y_array)
-        
-        T_c_l[self.c_z:self.c_z+self.m_z]=interpolate2d(p_cell_np[self.c_z:self.c_z+self.m_z],y_c_np[self.c_z:self.c_z+self.m_z], P_grid, y_grid, T_liq)
-        T_c_pv[self.c_z:self.c_z+self.m_z]=interpolate2d(p_cell_np[self.c_z:self.c_z+self.m_z],y_c_np[self.c_z:self.c_z+self.m_z], P_grid_pv, y_grid, T_sol_pv)
-        T_c_ppv[self.c_z:self.c_z+self.m_z]=interpolate2d(p_cell_np[self.c_z:self.c_z+self.m_z],y_c_np[self.c_z:self.c_z+self.m_z], P_grid_ppv, y_grid, T_sol_ppv)
-        T_c_en[self.c_z:self.c_z+self.m_z]=interpolate2d(p_cell_np[self.c_z:self.c_z+self.m_z],y_c_np[self.c_z:self.c_z+self.m_z], P_grid_en, y_grid, T_sol_en)
-        T_c_pv_m[self.c_z:self.c_z+self.m_z]=interpolate2d(p_cell_np[self.c_z:self.c_z+self.m_z],y_c_np[self.c_z:self.c_z+self.m_z], P_grid_pv, y_grid, T_mix_pv)
-        T_c_ppv_m[self.c_z:self.c_z+self.m_z]=interpolate2d(p_cell_np[self.c_z:self.c_z+self.m_z],y_c_np[self.c_z:self.c_z+self.m_z], P_grid_ppv, y_grid, T_mix_ppv)
-        T_c_en_m[self.c_z:self.c_z+self.m_z]=interpolate2d(p_cell_np[self.c_z:self.c_z+self.m_z],y_c_np[self.c_z:self.c_z+self.m_z], P_grid_en, y_grid, T_mix_en)
-        
-        T_l[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid, y_grid, T_liq)
-        T_pv[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_pv, y_grid, T_sol_pv)
-        T_ppv[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_ppv, y_grid, T_sol_ppv)
-        T_en[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid, y_grid, T_sol_en)
-        T_pv_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_pv, y_grid, T_mix_pv)
-        T_ppv_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_ppv, y_grid, T_mix_ppv)
-        T_en_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_en, y_grid, T_mix_en)
-
-        dqdy_l[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid, y_grid, dqdy_liq)
-        dqdy_pv[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_pv, y_grid, dqdy_sol_pv)
-        dqdy_ppv[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_ppv, y_grid, dqdy_sol_ppv)
-        dqdy_en[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_en, y_grid, dqdy_sol_en)
-        dqdy_pv_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_pv, y_grid, dqdy_mix_pv)
-        dqdy_ppv_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_ppv, y_grid, dqdy_mix_ppv)
-        dqdy_en_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_en, y_grid, dqdy_mix_en)
-
-        rho_l[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid, y_grid, rho_liq)
-        rho_pv[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_pv, y_grid, rho_sol_pv)
-        rho_ppv[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_ppv, y_grid, rho_sol_ppv)
-        rho_en[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_en, y_grid, rho_sol_en)
-        rho_pv_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_pv, y_grid, rho_mix_pv)
-        rho_ppv_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_ppv, y_grid, rho_mix_ppv)
-        rho_en_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_en, y_grid, rho_mix_en)
-
-        cP_l[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid, y_grid, CP_liq)
-        cP_pv[self.c_z:self.c_z+self.m_z]=CP_m_s*np.ones(self.m_z)
-        cP_ppv[self.c_z:self.c_z+self.m_z]=CP_m_s*np.ones(self.m_z)
-        cP_en[self.c_z:self.c_z+self.m_z]=CP_m_s*np.ones(self.m_z)
-        cP_pv_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_pv, y_grid, CP_mix_pv)
-        cP_ppv_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_ppv, y_grid, CP_mix_ppv)
-        cP_en_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_en, y_grid, CP_mix_en)
-
-        alpha_l[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid, y_grid, alpha_liq)
-        alpha_pv[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_pv, y_grid, alpha_sol_pv)
-        alpha_ppv[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_ppv, y_grid, alpha_sol_ppv)
-        alpha_en[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_en, y_grid, alpha_sol_en)
-        alpha_pv_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_pv, y_grid, alpha_mix_pv)
-        alpha_ppv_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_ppv, y_grid, alpha_mix_ppv)
-        alpha_en_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_en, y_grid, alpha_mix_en)
-
-        dTdP_l[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid, y_grid, dTdP_liq)
-        dTdP_pv[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_pv, y_grid, dTdP_sol_pv)
-        dTdP_ppv[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_ppv, y_grid, dTdP_sol_ppv)
-        dTdP_en[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_en, y_grid, dTdP_sol_en)
-        dTdP_pv_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_pv, y_grid, dTdP_mix_pv)
-        dTdP_ppv_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_ppv, y_grid, dTdP_mix_ppv)
-        dTdP_en_m[self.c_z:self.c_z+self.m_z]=interpolate2d(pressure_np[self.c_z:self.c_z+self.m_z],y_np[self.c_z:self.c_z+self.m_z], P_grid_en, y_grid, dTdP_mix_en)
-        
-        cdef double[:] logrho=np.zeros(len(self.radius))
-
-        for i in range(self.c_z,self.c_z+self.m_z):
-            if self.phase_c[i]==0.0:
-                self.T_cell[i]=T_c_l[i]
-            elif self.phase_c[i]==2.0:
-                if self.p_cell[i]>=125.0e9:
-                    self.T_cell[i]=T_c_ppv[i]
-                elif self.p_cell[i]<23.0e9:
-                    self.T_cell[i]=T_c_en[i]
-                else:
-                    self.T_cell[i]=T_c_pv[i]
-            else:
-                if self.p_cell[i]>=125.0e9:
-                    self.T_cell[i]=T_c_ppv_m[i]
-                elif self.p_cell[i]<23.0e9:
-                    self.T_cell[i]=T_c_en_m[i]
-                else:
-                    self.T_cell[i]=T_c_pv_m[i]
-            if self.phase[i]==0.0:
-                self.T[i]=T_l[i]
-                self.alpha[i]=alpha_l[i]
-                self.cP[i]=cP_l[i]
-                self.rho[i]=rho_l[i]
-                self.dTdP[i]=dTdP_l[i]
-                self.dqdy[i]=dqdy_l[i]
-                self.k_array[i]=k_l
-                logrho[i]=math.log(self.rho[i])
-            elif self.phase[i]==2.0:
-                if self.pressure[i]>=125.0e9:
-                    self.T[i]=T_ppv[i]
-                    self.alpha[i]=alpha_ppv[i]
-                    self.cP[i]=cP_ppv[i]
-                    self.rho[i]=rho_ppv[i]
-                    self.dTdP[i]=dTdP_ppv[i]
-                    self.dqdy[i]=dqdy_ppv[i]
-                    self.k_array[i]=k_ppv
-                    logrho[i]=math.log(self.rho[i])
-                elif self.pressure[i]<23.0e9:
-                    self.T[i]=T_en[i]
-                    self.alpha[i]=alpha_en[i]
-                    self.cP[i]=cP_en[i]
-                    self.rho[i]=rho_en[i]
-                    self.dTdP[i]=dTdP_en[i]
-                    self.dqdy[i]=dqdy_en[i]
-                    self.k_array[i]=k_en
-                    logrho[i]=math.log(self.rho[i])
-                else:
-                    self.T[i]=T_pv[i]
-                    self.alpha[i]=alpha_pv[i]
-                    self.cP[i]=cP_pv[i]
-                    self.rho[i]=rho_pv[i]
-                    self.dTdP[i]=dTdP_pv[i]
-                    self.dqdy[i]=dqdy_pv[i]
-                    self.k_array[i]=k_pv
-                    logrho[i]=math.log(self.rho[i])
-            else:
-                if self.pressure[i]>=125.0e9:
-                    self.T[i]=T_ppv_m[i]
-                    self.alpha[i]=alpha_ppv_m[i]
-                    self.cP[i]=cP_ppv_m[i]
-                    self.rho[i]=rho_ppv_m[i]
-                    self.dTdP[i]=dTdP_ppv_m[i]
-                    self.dqdy[i]=dqdy_ppv_m[i]
-                    self.k_array[i]=k_ppv
-                    logrho[i]=math.log(self.rho[i])
-                elif self.pressure[i]<23.0e9:
-                    self.T[i]=T_en_m[i]
-                    self.alpha[i]=alpha_en_m[i]
-                    self.cP[i]=cP_en_m[i]
-                    self.rho[i]=rho_en_m[i]
-                    self.dTdP[i]=dTdP_en_m[i]
-                    self.dqdy[i]=dqdy_en_m[i]
-                    self.k_array[i]=k_en
-                    logrho[i]=math.log(self.rho[i])
-                else:
-                    self.T[i]=T_pv_m[i]
-                    self.alpha[i]=alpha_pv_m[i]
-                    self.cP[i]=cP_pv_m[i]
-                    self.rho[i]=rho_pv_m[i]
-                    self.dTdP[i]=dTdP_pv_m[i]
-                    self.dqdy[i]=dqdy_pv_m[i]
-                    self.k_array[i]=k_pv
-                    logrho[i]=math.log(self.rho[i])
-
-        return self.T_cell,self.T,self.alpha,self.cP,self.rho,self.dTdP,self.dqdy,logrho,self.k_array
-    """
-    cpdef tuple mat_core_cond(self, double[:] old_P):
-        cdef double[:] aa=np.zeros(self.c_z)
-        cdef double[:] bb=np.zeros(self.c_z)
-        cdef double[:] cc=np.zeros(self.c_z)
-        cdef double[:] dd=np.zeros(self.c_z)
-        cdef double[:] ee=np.zeros(self.c_z)
-        cdef double[:] ff=np.zeros(self.c_z)
-        cdef Py_ssize_t i
-        cdef double[:] solution_T=np.zeros(self.c_z)
-        cdef double Q_ICB
-        i=0
-        bb[i]=0.0
-        dd[i]=-(self.k_array[i]*self.Area[i])/(self.h[i]*self.cP[i])/(self.r_cell[i+1]-self.r_cell[i])
-        cc[i]=1.0/self.dt-dd[i]
-        ff[i]=self.T_cell[i]/self.dt+self.alpha[i]*self.T[i]/self.rho[i]/self.cP[i]*(self.pressure[i]-old_P[i])/self.dt
-        i=self.c_z-1
-        bb[i]=-(self.k_array[i-1]*self.Area[i-1])/(self.h[i]*self.cP[i-1])/(self.r_cell[i]-self.r_cell[i-1])
-        cc[i]=1.0/self.dt-bb[i]
-        dd[i]=0.0
-        ff[i]=self.T_cell[i]/self.dt+self.alpha[i]*self.T[i]/self.rho[i]/self.cP[i]*(self.pressure[i]-old_P[i])/self.dt
-        for i in range(1,self.c_z-1):
-            bb[i]=-(self.k_array[i-1]*self.Area[i-1])/(self.h[i]*self.cP[i-1])/(self.r_cell[i]-self.r_cell[i-1])
-            dd[i]=-(self.k_array[i]*self.Area[i])/(self.h[i]*self.cP[i])/(self.r_cell[i+1]-self.r_cell[i])
-            cc[i]=1.0/self.dt-dd[i]-bb[i]
-            ff[i]=self.T_cell[i]/self.dt+self.alpha[i]*self.T[i]/self.rho[i]/self.cP[i]*(self.pressure[i]-old_P[i])/self.dt
-        solution_T=self.penta_solver(aa[:self.c_z],bb[:self.c_z],cc[:self.c_z],dd[:self.c_z],ee[:self.c_z],ff[:self.c_z],self.c_z)
-        if self.Mic>0.0:
-            Q_ICB=(-self.k_array[self.solid_index]*(solution_T[self.solid_index]-solution_T[self.solid_index+1])
-                   /(self.r_cell[self.solid_index]-self.r_cell[self.solid_index+1])*self.Area[self.solid_index])
-        else:
-            Q_ICB=0.0
-        return solution_T,Q_ICB
-
-    cpdef tuple f_core_adia(self,double[:] old_P,double Q_ICB,double Fcmb):
-        cdef Py_ssize_t i
-        cdef double Q_th=-Fcmb*self.Area[self.c_z-1]
-        cdef int pre_adia_p_idx=self.find_nearest(np.asarray(pre_adia_pressure),self.pressure[self.c_z-1])
-        pre_adia_p=np.zeros(pre_adia_p_idx+1)
-        for i in range(len(pre_adia_p)-1):
-            pre_adia_p[i]=pre_adia_pressure[i]
-        pre_adia_p[pre_adia_p_idx]=self.pressure[self.c_z-1]
-        pre_adia_p=pre_adia_p[::-1]
-        
-        cdef double x_alloy=self.x_core/mf_l  ## mf_l related to EoS
-        cdef int x_idx=self.find_nearest(x_core_grid,x_alloy)
-        cdef int Tref_idx=self.find_nearest(Tref_core_grid,self.min_pre_adia_T)
-        
-        dTdT0_cmb=interpolate3d(np.ones(1)*x_alloy,np.ones(1)*self.min_pre_adia_T,np.ones(1)*self.pressure[self.c_z-1],x_core_grid[x_idx:x_idx+2],Tref_core_grid[Tref_idx:Tref_idx+2],pre_adia_pressure,load_original_dTdT0[x_idx:x_idx+2,Tref_idx:Tref_idx+2])[0]
-        dT0dPcmb=f_dT0dP([x_alloy,self.min_pre_adia_T,self.T[self.c_z-1]])[0]
-        delta_Pcmb=self.pressure[self.c_z-1]-old_P[self.c_z-1]
-        dTdT0_array=interpolate3d(np.ones(self.c_z)*x_alloy,np.ones(self.c_z)*self.min_pre_adia_T,self.pressure[:self.c_z],x_core_grid[x_idx:x_idx+2],Tref_core_grid[Tref_idx:Tref_idx+2],pre_adia_pressure,load_original_dTdT0[x_idx:x_idx+2,Tref_idx:Tref_idx+2])
-        for i in range(self.c_z):
-            outer_adiabat_value=self.h[i]*C_P_Fe*dTdT0_array[i]
-            outer_adiabat_array[i]=outer_adiabat_value/dTdT0_cmb
-            outer_adiabat_Pcmb_array[i]=outer_adiabat_value*dT0dPcmb
-        outer_adiabat=np.sum(outer_adiabat_array[self.solid_index:])
-        outer_adiabat_Pcmb=np.sum(outer_adiabat_Pcmb_array[self.solid_index:])*delta_Pcmb
-        # Latent heat when there's ongoing inner core solidification
-        #if initial_phase[0]==ph_Fe_sol and initial_phase[core_outer_index]==ph_Fe_liq:
-        #if Mic>0.0 and Mic<=self.M_pl*self.CMF:
-        #    dTdT0_ic=interpolate3d(np.ones(1)*x_alloy,np.ones(1)*self.min_pre_adia_T,np.ones(1)*self.Pic,x_core_grid[x_idx:x_idx+2],Tref_core_grid[Tref_idx:Tref_idx+2],pre_adia_pressure,load_original_dTdT0[x_idx:x_idx+2,Tref_idx:Tref_idx+2])[0]
-        #    dmicdPic=-4.0*math.pi/G*self.Ric**4.0/self.Mic
-        #    dPicdTic=1.0/(self.alpha_ic/self.rho_ic*self.Tic/C_P_Fe)
-        #    dTicdTcmb=dTdT0_ic/dTdT0_cmb
-        #    dmicdTcmb=dmicdPic*dPicdTic*dTicdTcmb
-        #else:
-        #    dmicdTcmb=0.0
-        dmicdTcmb=0.0
-        outer_adiabat=outer_adiabat-dmicdTcmb*L_Fe
-        
-        Q_rad_c=self.Q_rad_c_0*math.exp(-self.t/86400.0/365.0/1e9/1.2)
-        Q=Q_th+Q_rad_c+Q_ICB
-        delta_Tcmb=(self.dt*Q-outer_adiabat_Pcmb)/outer_adiabat
-        self.T_cmb=self.T_cmb+delta_Tcmb
-        # Look for the reference temperature, min_pre_adia_T, for the core adiabat. 
-        pre_adia_T=[self.T_cmb]
-        for i in range(0,len(pre_adia_p)-1):
-            rho_liquid=f_rho_Fel(pre_adia_T[i],pre_adia_p[i])[0]
-            rho_alloy=f_rho_Fea(pre_adia_T[i],pre_adia_p[i])[0]
-            alpha_liquid=f_alpha_Fel(pre_adia_T[i],pre_adia_p[i])[0]
-            alpha_alloy=f_alpha_Fea(pre_adia_T[i],pre_adia_p[i])[0]
-            pre_adia_rho=rho_mix(x_alloy,rho_alloy,rho_liquid)
-            pre_adia_alpha=alpha_mix(x_alloy,alpha_alloy,alpha_liquid,pre_adia_rho,rho_alloy,rho_liquid)
-            delta_T=f_dTdP(pre_adia_alpha,pre_adia_rho,C_P_Fe,pre_adia_T[i])*(pre_adia_p[i+1]-pre_adia_p[i])
-            pre_adia_T.append(pre_adia_T[i]+delta_T)
-        self.min_pre_adia_T=pre_adia_T[len(pre_adia_T)-1] 
-        adiabat_array=interpolate3d(np.ones(self.c_z)*x_alloy,np.ones(self.c_z)*self.min_pre_adia_T,self.pressure[:self.c_z], x_core_grid[x_idx:x_idx+2], Tref_core_grid[Tref_idx:Tref_idx+2], pre_adia_pressure, load_original_T[x_idx:x_idx+2,Tref_idx:Tref_idx+2])
-        self.T[:self.c_z]=adiabat_array.copy()
-        
-        rho_liquid_array=interpolate2d(self.pressure[:self.c_z], self.T[:self.c_z], P_Fel, T_Fel, rho_Fel)
-        rho_solid_array=interpolate2d(self.pressure[:self.c_z], self.T[:self.c_z], P_Fes, T_Fes, rho_Fes)
-        rho_alloy_array=interpolate2d(self.pressure[:self.c_z], self.T[:self.c_z], P_Fea, T_Fea, rho_Fea)
-        alpha_liquid_array=interpolate2d(self.pressure[:self.c_z], self.T[:self.c_z], P_Fel, T_Fel, alpha_Fel)
-        alpha_solid_array=interpolate2d(self.pressure[:self.c_z], self.T[:self.c_z], P_Fes, T_Fes, alpha_Fes)
-        alpha_alloy_array=interpolate2d(self.pressure[:self.c_z], self.T[:self.c_z], P_Fea, T_Fea, alpha_Fea)
-        dqdy_liquid_array=interpolate2d(self.pressure[:self.c_z], self.T[:self.c_z], P_Fel, T_Fel, dqdy_Fel)
-        dqdy_solid_array=interpolate2d(self.pressure[:self.c_z], self.T[:self.c_z], P_Fes, T_Fes, dqdy_Fes)
-        dqdy_alloy_array=interpolate2d(self.pressure[:self.c_z], self.T[:self.c_z], P_Fea, T_Fea, dqdy_Fea)  
-        rho_liquid_array_a=interpolate2d(self.pressure[:self.c_z], self.T[:self.c_z], P_Fel, T_Fel, rho_Fel)
-        rho_alloy_array_a=interpolate2d(self.pressure[:self.c_z], self.T[:self.c_z], P_Fea, T_Fea, rho_Fea)
-        alpha_liquid_array_a=interpolate2d(self.pressure[:self.c_z], self.T[:self.c_z], P_Fel, T_Fel, alpha_Fel)
-        alpha_alloy_array_a=interpolate2d(self.pressure[:self.c_z], self.T[:self.c_z], P_Fea, T_Fea, alpha_Fea)
-        
-        logrho=np.zeros(self.c_z)
-        for i in range(self.c_z):
-            if i==0:
-                rho_liquid=f_rho_Fel(self.T[0],self.P_c)[0]
-                rho_alloy=f_rho_Fea(self.T[0],self.P_c)[0]
-                self.rho_c=rho_mix(x_alloy,rho_alloy,rho_liquid)
-                dqdy_liquid=f_dqdy_Fel(self.T[0],self.P_c)[0]
-                dqdy_alloy=f_dqdy_Fea(self.T[0],self.P_c)[0]
-                self.dqdy_c=dqdy_mix(x_alloy,self.rho_c,rho_alloy,rho_liquid,dqdy_alloy,dqdy_liquid,self.P_c)
-            
-            rho_liquid=rho_liquid_array[i]
-            rho_alloy=rho_alloy_array[i]
-            alpha_liquid=alpha_liquid_array[i]
-            alpha_alloy=alpha_alloy_array[i]
-            dqdy_liquid=dqdy_liquid_array[i]
-            dqdy_alloy=dqdy_alloy_array[i]
-            self.rho[i]=rho_mix(x_alloy,rho_alloy,rho_liquid)
-            self.dqdy[i]=dqdy_mix(x_alloy,self.rho[i],rho_alloy,rho_liquid,dqdy_alloy,dqdy_liquid,self.pressure[i])
-            self.alpha[i]=alpha_mix(x_alloy,alpha_alloy,alpha_liquid,self.rho[i],rho_alloy,rho_liquid)
-            logrho[i]=np.log(self.rho[i])
-        
-        return self.T, self.rho, self.alpha, self.dqdy, logrho, self.rho_c, self.dqdy_c
-    """
-    cpdef double f_dt(self,double dt_thres):
-        # adjust dt in each timestep. dt is controlled by the maximum change in entropy in the planet
-        cdef double ds_thres=2.5e-4
-        if dt_thres<ds_thres:
-            if dt_thres<0.95*ds_thres:
-                self.dt=self.dt*1.01
-            else:
-                self.dt=self.dt+30.0
-        else:
-            if dt_thres>1.05*ds_thres:
-                self.dt=self.dt*0.75
-            else:
-                self.dt=self.dt*0.95 
-        if self.dt<30.0:
-            self.dt=30.0
-        if self.dt>86400.0*365.0*1e6:
-            self.dt=86400.0*365.0*1e6
-        return self.dt
-    
-    cpdef dict main(self):
-        cdef Py_ssize_t i
-        cdef double[:] old_s=(self.s_array).copy()
-        cdef double[:] old_scell=(self.s_cell).copy()
-        cdef double[:] old_T=(self.T).copy()
-        cdef double[:] old_Tcell=(self.T_cell).copy()
-        cdef double[:] old_P=(self.pressure).copy()
-        cdef double[:] s_liq=np.zeros(len(self.radius))
-        cdef double[:] s_liq_c=np.zeros(len(self.radius))
-        cdef double[:] s_sol=np.zeros(len(self.radius))
-        cdef double[:] s_sol_c=np.zeros(len(self.radius))
-        for i in range(self.c_z, self.c_z+self.m_z):
-            s_liq[i]=S_liq_P(self.pressure[i]).tolist()
-            s_liq_c[i]=S_liq_P(self.p_cell[i]).tolist()
-            s_sol[i]=S_sol_P(self.pressure[i]).tolist()
-            s_sol_c[i]=S_sol_P(self.p_cell[i]).tolist()
-        
-        cdef double[:] v=self.f_viscosity()
-        cdef double[:] dsdr=self.f_dsdr()
-        cdef double[:] convection=self.f_convection(dsdr)
-        cdef double[:] l_mlt=self.f_l(convection)
-        cdef double[:] eddy_low=self.f_eddy_T_low_nu(l_mlt,dsdr)
-        cdef double[:] eddy_high=self.f_eddy_T_high_nu(l_mlt,v,dsdr)
-        cdef double[:] eddy_k=self.f_eddy_k(eddy_low,eddy_high,v)
-        cdef double[:] dPdr=self.f_dPdr()
-        cdef double[:] kappa=self.f_kappa()
-        
-        cdef double[:,:] mat=np.zeros((5,len(self.radius)))
-        cdef double[:] yy=np.zeros(len(self.radius))
-        cdef double Fcmb, Fsurf
-        mat, yy, Fcmb, Fsurf=self.f_matrix(eddy_k,kappa,dPdr)
-        self.s_cell[self.c_z:self.c_z+self.m_z]=self.penta_solver(mat[0][self.c_z:self.c_z+self.m_z],
-                                                               mat[1][self.c_z:self.c_z+self.m_z],
-                                                               mat[2][self.c_z:self.c_z+self.m_z],
-                                                               mat[3][self.c_z:self.c_z+self.m_z],
-                                                               mat[4][self.c_z:self.c_z+self.m_z],
-                                                               yy[self.c_z:self.c_z+self.m_z],
-                                                               self.m_z)
-        
-        cdef double[:] y_array=np.zeros(len(self.radius))
-        cdef double[:] y_c_array=np.zeros(len(self.radius))
-        cdef double[:] logrho=np.zeros(len(self.radius))
-        for i in range(self.c_z,self.c_z+self.m_z-1):
-            self.s_array[i]=(self.s_cell[i]+self.s_cell[i+1])/2.0
-        self.s_array[self.c_z+self.m_z-1]=self.s_cell[self.c_z+self.m_z-1]
-        y_array,y_c_array,self.phase,self.phase_c,self.x_m=self.f_y(s_liq,s_liq_c,s_sol,s_sol_c)
-
-        self.T_cell,self.T,self.alpha,self.cP,self.rho,self.dTdP,self.dqdy,logrho,self.k_array=self.f_update(y_array,y_c_array)
-        
-        # change the stepsize in time
-        cdef double dt_thres=np.max(np.abs((np.asarray(old_scell[self.c_z:self.c_z+self.m_z])-np.asarray(self.s_cell[self.c_z:self.c_z+self.m_z]))/np.asarray(old_scell[self.c_z:self.c_z+self.m_z])))
-        cdef double dt=self.f_dt(dt_thres)
-        
-        cdef double[:] F_conv=np.zeros(len(dsdr))
-        cdef double[:] v_conv=np.zeros(len(dsdr))
-        cdef double[:] Rem=np.zeros(len(dsdr))
-        for i in range(self.c_z+1,zone):
-            F_conv[i]=-self.rho[i]*self.T[i]*eddy_k[i]*dsdr[i]
-            v_conv[i]=eddy_k[i]/(l_mlt[i]+1e-10)
-            Rem[i]=mu_0*v_conv[i]*L_sigma*5e4  
-
-        # save results
-        cdef dict results={}
-        results['average s_m']=sum(self.s_array[self.c_z:self.c_z+self.m_z])/len(self.s_array[self.c_z:self.c_z+self.m_z])
-        results['average T_m']=sum(self.T[self.c_z:self.c_z+self.m_z])/len(self.T[self.c_z:self.c_z+self.m_z])
-        results['average T_c']=sum(self.T[:self.c_z])/len(self.T[:self.c_z])
-        results['Fcmb']=Fcmb
-        results['Fsurf']=Fsurf
-        results['Fcond_cmb']=self.k_array[self.c_z-1]*self.alpha[self.c_z-1]*self.g[self.c_z-1]*self.T[self.c_z-1]/self.cP[self.c_z-1]
-        results['t']=self.t
-        results['dt']=self.dt
-        results['dt_thres']=dt_thres
-        results['s_array']=self.s_array.copy()
-        results['s_cell']=self.s_cell.copy()
-        results['T_array']=self.T.copy()
-        results['T_cell']=self.T_cell.copy()
-        results['cP']=self.cP.copy()
-        results['rho']=self.rho.copy()
-        results['logrho']=logrho.copy()
-        results['dTdP']=self.dTdP.copy()
-        results['dqdy']=self.dqdy.copy()
-        results['alpha']=self.alpha.copy()
-        results['phase']=self.phase.copy()
-        results['phase_c']=self.phase_c.copy() # phase at the cell center
-        results['rho_c']=self.rho_c
-        results['dqdy_c']=self.dqdy_c
-        results['k']=self.k_array.copy()
-        results['x_m']=self.x_m.copy()
-        results['old_s']=old_s.copy()
-        results['old_scell']=old_scell.copy()
-        results['old_T']=old_T.copy()
-        results['old_Tcell']=old_Tcell.copy()
-        results['T surf']=self.T[-1]
-        results['eddy_k']=eddy_k.copy()
-        results['dsdr']=dsdr.copy()
-        results['l_mlt']=l_mlt.copy()
-        results['Fconv']=F_conv.copy()
-        results['vconv']=v_conv.copy()
-        results['Rem']=Rem.copy()
-        results['viscosity']=v.copy()
-        
-        return results
-            
-# timestep where we save thermal and structure profiles (in years)
-save_t=[1.0]
-for i in range(1,1000):
-    if save_t[i-1]<10000.0:
-        save_t.append(save_t[i-1]+20.0)
-    elif save_t[i-1]<1e8:
-        save_t.append(save_t[i-1]+int(save_t[i-1]/20.0))
-    else:
-        save_t.append(save_t[i-1]+int(save_t[i-1]/50.0))
-
-
 # initialize the structural profile using 4th order Runge Kutta method
 cdef c_initial_profile initial_profile=c_initial_profile(M_pl, c_z, m_z, CMF, MMF, 
                                     P_c, P_surf, T_c, x_c, 
@@ -1647,102 +785,75 @@ cdef c_henyey henyey_obj=c_henyey(ri['mass'], ri['radius'], ri['logr'], ri['pres
                     ri['T_an_c'], c_z, m_z, x_c)
 cdef dict rh=henyey_obj.henyey_m(dsdr_c,initial) # Using henyey code to relax the solution to RK4 such that the solution satisfies the boundary condition at both planet center and surface
 
-cdef dict rt={}
-rt['t']=0.0
-rt['dt']=1.0
-rt['s_array']=ri['s_array'].copy()
-rt['s_cell']=rh['s_cell'].copy()
-rt['T_array']=ri['temperature'].copy()
-rt['T_cell']=ri['T_cell'].copy()
-rt['alpha']=ri['alpha'].copy()
-rt['cP']=ri['cP'].copy()
-rt['dTdP']=ri['dTdP'].copy()
 
-rt['phase']=phase.copy()
-rt['phase_c']=np.zeros(len(ri['mass']))
-rt['k']=k_array.copy()
-rt['x_m']=np.ones(len(ri['mass']))
+cdef double[:] PdV=np.zeros(zone); 
+cdef double[:] dEG=np.zeros(zone); 
+cdef double[:] dw=np.zeros(zone)
+cdef double[:] new_V=np.zeros(zone); 
+cdef double[:] new_EG=np.zeros(zone);
+cdef double[:] new_v_top=np.zeros(zone)
+cdef double[:] kappa=np.zeros(zone)
 
-rt['rho_c']=rh['rho_c']
-rt['dqdy_c']=rh['dqdy_c']
+cdef double[:] melt_frac=np.ones(zone)
+cdef double[:] dsdr_array=np.ones(zone)*dsdr_c
 
-average_s=[]
-average_Tm=[]
-average_Tc=[]
-T_surf=[]
-t_array=[]
-dt_array=[]
-Rpl=[]
-Pc=[]
-Fcmb=[]
-Fsurf=[]
-Rc=[]
-Pcmb=[]
-Tcmb=[]
-Fcond=[]
+cdef double[:] mass_cell=np.zeros(zone)
+cdef double[:] x_cell=np.ones(zone)
 
-cdef heat_transport transport_obj
+cdef double[:] dPdr=np.zeros(zone)
+cdef double[:] dxdr=np.zeros(zone)
 
-#while iteration<1000:
-#while rt['T_array'][-1]>255.02:
-while t<t_end:
-    transport_obj=heat_transport(ri['mass'], ri['dm'], rh['radius'], rh['r_cell'], rh['pressure'], rh['p_cell'], 
-                                rh['rho'], rh['gravity'], rh['dqdy'], rh['Area'], 
-                                rt['s_array'], rt['s_cell'], rt['T_array'], rt['T_cell'],
-                                rt['x_m'], rt['phase'], rt['phase_c'],
-                                rt['alpha'], rt['cP'], rt['k'], rt['dTdP'], 
-                                0.0,0.0,0.0,0.0,0.0,0.0,0, 0.105, ri['T_an_c'], rt['T_array'][c_z], #ri['T_an_c']
-                                rh['P_c'], rt['rho_c'], rt['dqdy_c'],
-                                Q_rad_c_0, Teq, qrad, t, rt['dt'], c_z, m_z, M_pl, CMF)
-    rt=transport_obj.main()
-    henyey_obj=c_henyey(ri['mass'], rh['radius'], rh['logr'], rh['pressure'], rh['logp'], 
-                            rt['rho'], rt['logrho'], rh['gravity'], rt['s_array'], rt['dqdy'], 
-                            rh['P_c'], rt['rho_c'], rt['dqdy_c'], P_surf, rtol,
-                            ri['T_an_c'], c_z, m_z, x_c) # ri['T_an_c'] needs to be updated
 
-    rh=henyey_obj.henyey_m(dsdr_c,initial=0.0)
-    
-    average_s.append(rt['average s_m'])
-    average_Tm.append(rt['average T_m'])
-    average_Tc.append(rt['average T_c'])
-    t_array.append(rt['t'])
-    dt_array.append(rt['dt'])
-    Pc.append(rh['pressure'][0])
-    Rpl.append(rh['radius'][-1])
-    T_surf.append(rt['T_array'][-1])
-    Fcmb.append(rt['Fcmb'])
-    Fsurf.append(rt['Fsurf'])
-    Rc.append(rh['radius'][c_z])
-    Pcmb.append(rh['pressure'][c_z])
-    Tcmb.append(rt['T_array'][c_z])
-    Fcond.append(rt['Fcond_cmb'])
-    
-    t=t+rt['dt']
-    iteration=iteration+1
-    if iteration%5==0:
-        if t/86400.0/365.0<1e3:
-            t_val=t/86400.0/365.0
-            print('time:%2.2fyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa' %(t_val,rt['Fcmb'],rt['Fsurf'],0.0,rt['T_array'][-1],rh['pressure'][0]/1e9,rh['pressure'][c_z]/1e9))
-        elif t/86400.0/365.0>=1e3 and t/86400.0/365.0<1e6:
-            t_val=t/86400.0/365.0/1e3
-            print('time:%2.2fkyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa' %(t_val,rt['Fcmb'],rt['Fsurf'],0.0,rt['T_array'][-1],rh['pressure'][0]/1e9,rh['pressure'][c_z]/1e9))
-        elif t/86400.0/365.0>=1e6 and t/86400.0/365.0<1e9:
-            t_val=t/86400.0/365.0/1e6
-            print('time:%2.2fMyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa' %(t_val,rt['Fcmb'],rt['Fsurf'],0.0,rt['T_array'][-1],rh['pressure'][0]/1e9,rh['pressure'][c_z]/1e9))
-        else:
-            t_val=t/86400.0/365.0/1e9
-            print('time:%2.2fGyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa' %(t_val,rt['Fcmb'],rt['Fsurf'],0.0,rt['T_array'][-1],rh['pressure'][0]/1e9,rh['pressure'][c_z]/1e9))
+for i in range(zone):
+    if i==0:
+        new_V[i]=4.0/3.0*math.pi*rh['radius'][i]**3.0
+        mass_cell[i]=ri['mass'][0]/2.0
+    else:
+        new_V[i]=4.0/3.0*math.pi*rh['radius'][i]**3.0-4.0/3.0*math.pi*rh['radius'][i-1]**3.0
+        mass_cell[i]=(ri['mass'][i-1]+ri['mass'][i])/2.0
+    new_v_top[i]=4.0/3.0*math.pi*rh['radius'][i]**3.0
 
-    for ind in range(len(save_t)):
-        if t<save_t[ind]*86400.0*365.0+rt['dt']and t>save_t[ind]*86400.0*365.0-rt['dt']:
-            np.savetxt('results/profile/structure_'+str(int(save_t[ind]))+'.txt',np.transpose([rh['radius'],rh['pressure'],rt['T_array'],rt['rho'],rh['gravity'], ri['mass']]))
-            np.savetxt('results/profile/property_'+str(int(save_t[ind]))+'.txt',np.transpose([rt['alpha'], rt['cP'],rh['gravity'],rt['Fconv'],rt['vconv'],rt['Rem'],rt['viscosity']]))
-            np.savetxt('results/evolution_temp.txt',np.transpose([t_array,dt_array,average_s,average_Tm,average_Tc,T_surf,Tcmb,Fsurf,Fcmb,Fcond,Rpl,Rc,Pc,Pcmb]))
+for i in range(zone):
+    new_EG[i]=-ri['dm'][i]*ri['mass'][i]/rh['r_cell'][i]
+    dPdr[i]=-G*ri['mass'][i]*rh['rho'][i]/rh['radius'][i]**2.0
+    kappa[i]=10.0/(rh['rho'][i]*ri['cP'][i])
 
-np.savetxt('results/evolution.txt',np.transpose([t_array,dt_array,average_s,average_Tm,average_Tc,T_surf,Tcmb,Fsurf,Fcmb,Fcond,Rpl,Rc,Pc,Pcmb]))
+np.savetxt('initial/henyey0.txt',np.transpose([rh['radius'],rh['pressure'],rh['r_cell'],rh['p_cell'],
+    rh['rho'], rh['gravity'], rh['dqdy'], phase, rh['Area'],PdV,dEG,dw,new_V,new_EG,new_v_top,
+                                       rh['radius'],rh['pressure'],rh['r_cell'],rh['p_cell'],rh['rho'], rh['gravity'],
+                                       new_V,new_EG,new_v_top,rh['Area']]))
+np.savetxt('initial/structure0.txt',np.transpose([ri['temperature'],ri['T_cell'],melt_frac,ri['s_array'],rh['s_cell'],
+                                         dsdr_array,ri['s_array'],rh['s_cell'],ri['mass'],mass_cell,x_cell]))
+np.savetxt('initial/property0.txt',np.transpose([ri['alpha'],ri['cP'],kappa,ri['dTdP'],dPdr,dxdr]))
+np.savetxt('initial/previous0.txt',np.transpose([0.0, 1.0, rh['P_c'], 0.0, ri['temperature'][c_z-1], ri['T_an_c'], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0.0, c_z, m_z]))
 
-# Give ppl an option to plot the thermal profiles vs t, like MESA 
-# EoS: input parameters for BM3, Vinet, Keane etcs. Thermal correction = True or False.  
 
-## save: solid/liquid core mass, R solid core/total core, T_cmb, P_cmb, rho_cmb, T_c, P_c, rho_c
-## Rossby number? Dipole moment and B_surf.
+cpdef double T_simon(double P, double x):
+    cdef double T0=6500.0*(P/340.0)**0.515
+    cdef double x0=((1.0-x)/55.845)/((1.0-x)/55.845+x/28.0855) #molar fraction of Fe with S as impurity
+    cdef double T=T0/(1.0-np.log(x0))
+    return T
+
+cdef double x_init=0.105
+cdef double[:] T_Fe_melt=np.zeros(c_z)
+cdef double[:] x_melt=np.zeros(c_z)
+for i in range(c_z):
+    x=x_init*(M_pl*CMF-ri['mass'][0])/(M_pl*CMF-ri['mass'][i]) 
+    if x>0.1519:
+        x=0.1519
+    if i==c_z-1:
+        x=0.1519
+    x_melt[i]=x
+    T_Fe_melt[i]=T_simon(rh['pressure'][i]/1e9,x)
+
+cdef double[:] T_melt_P=rh['pressure'].copy()
+T_melt_P[0]=2.0*T_melt_P[1]-T_melt_P[2]
+T_Fe_melt[0]=2.0*T_Fe_melt[1]-T_Fe_melt[2]
+
+np.savetxt('initial/Fe_melt.txt',np.transpose([T_melt_P[:c_z],T_Fe_melt]))
+
+
+
+
+
+
