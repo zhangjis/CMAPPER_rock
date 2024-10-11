@@ -40,6 +40,7 @@ print('Plotting %d timesteps...' % N_PLOTS)
 
 
 evo=np.loadtxt('results/evolution.txt')
+plt.figure(figsize=(8,5))
 plt.plot(evo[:,0]/86400.0/365.0,evo[:,7],color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -50,6 +51,7 @@ plt.xlabel('Gyr',fontsize=16.5)
 plt.savefig('results/image/Fsurf.png',dpi=200)
 plt.close()
 
+plt.figure(figsize=(8,5))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,5],color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -58,6 +60,7 @@ plt.xlabel('Gyr',fontsize=16.5)
 plt.savefig('results/image/Tsurf.png',dpi=200)
 plt.close()
 
+plt.figure(figsize=(8,5))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,8],color='black',linewidth=2.0,label='Heat flux at core mantle boundary')
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,9],color='black',linestyle='dashed',linewidth=2.0, label='Conductive heat flux along core adiabat')
 plt.yscale('log')
@@ -69,6 +72,7 @@ plt.legend(frameon=True, fontsize=12)
 plt.savefig('results/image/Fcmb.png',dpi=200)
 plt.close()
 
+plt.figure(figsize=(8,5))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,10]/6371000.0,color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -77,6 +81,7 @@ plt.xlabel('Gyr',fontsize=16.5)
 plt.savefig('results/image/Planet_radius.png',dpi=200)
 plt.close()
 
+plt.figure(figsize=(8,5))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,11]/6371000.0,color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -85,6 +90,7 @@ plt.xlabel('Gyr',fontsize=16.5)
 plt.savefig('results/image/Core_radius.png',dpi=200)
 plt.close()
 
+plt.figure(figsize=(8,5))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,12]/1e9,color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -93,6 +99,7 @@ plt.xlabel('Gyr',fontsize=16.5)
 plt.savefig('results/image/Pc.png',dpi=200)
 plt.close()
 
+plt.figure(figsize=(8,5))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,20],color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -101,6 +108,7 @@ plt.xlabel('Gyr',fontsize=16.5)
 plt.savefig('results/image/Tc.png',dpi=200)
 plt.close()
 
+plt.figure(figsize=(8,5))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,13]/1e9,color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -109,6 +117,7 @@ plt.xlabel('Gyr',fontsize=16.5)
 plt.savefig('results/image/Pcmb.png',dpi=200)
 plt.close()
 
+plt.figure(figsize=(8,5))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,6],color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -117,6 +126,7 @@ plt.xlabel('Gyr',fontsize=16.5)
 plt.savefig('results/image/Tcmb.png',dpi=200)
 plt.close()
 
+plt.figure(figsize=(8,5))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,14]/1e3,color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -125,6 +135,7 @@ plt.xlabel('Gyr',fontsize=16.5)
 plt.savefig('results/image/Ric.png',dpi=200)
 plt.close()
 
+plt.figure(figsize=(8,5))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,15]/5.97e24,color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -133,14 +144,17 @@ plt.xlabel('Gyr',fontsize=16.5)
 plt.savefig('results/image/Mic.png',dpi=200)
 plt.close()
 
+plt.figure(figsize=(8,5))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,16]/1000.0,color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
-plt.ylabel('MO_dynamo_thickness (km)',fontsize=16.5)
+plt.xscale('log')
+plt.ylabel('MO dynamo thickness (km)',fontsize=16.5)
 plt.xlabel('Gyr',fontsize=16.5)
 plt.savefig('results/image/D_MO.png',dpi=200)
 plt.close()
 
+plt.figure(figsize=(8,5))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,17]/1e12,color='tomato',linewidth=2.0,label='Mantle')
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,18]/1e12,color='royalblue',linewidth=2.0,label='Core')
 plt.yticks(fontsize=14)
@@ -151,21 +165,24 @@ plt.legend(frameon=True,fontsize=12)
 plt.savefig('results/image/Radiogenic_heating.png',dpi=200)
 plt.close()
 
+plt.figure(figsize=(8,5))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,3],color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
-plt.ylabel('Surface temperature (K)',fontsize=16.5)
+plt.ylabel('Average mantle temperature (K)',fontsize=16.5)
 plt.xlabel('Gyr',fontsize=16.5)
 plt.savefig('results/image/average_Tm.png',dpi=200)
 plt.close()
 
+plt.figure(figsize=(8,5))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,4],color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
-plt.ylabel('Surface temperature (K)',fontsize=16.5)
+plt.ylabel('Average core temperature (K)',fontsize=16.5)
 plt.xlabel('Gyr',fontsize=16.5)
 plt.savefig('results/image/average_Tc.png',dpi=200)
 plt.close()
+
 
 save_t=[1.0]
 for i in range(1,643):
@@ -200,23 +217,25 @@ mass_profile=np.loadtxt('initial/structure0.txt')
 mass=mass_profile[:,8]
 
 s=np.loadtxt('results/profile/structure_'+str(int(save_t[0]))+'.txt')
-T_max=max(s[:,2])+50.0
-R_max=max(s[:,0])+0.05
+T_max=max(s[:,2])+max(s[:,2])*0.01
+R_max=max(s[:,0])+max(s[:,0])*0.01
 s=np.loadtxt('results/profile/structure_'+str(int(save_t[N_PLOTS-1]))+'.txt')
 p=np.loadtxt('results/profile/property_'+str(int(save_t[0]))+'.txt')
 T_min=min(s[:,2])-50.0
-P_max=max(s[:,1])/1e9+1.0
+P_max=max(s[:,1])/1e9+max(s[:,1])/1e11
 P_min=-1.0
 Rem_max=max(p[:,5])+max(p[:,5])*0.01
-rho_max=max(s[:,3])
+rho_max=max(s[:,3])+max(s[:,3])*0.01
+g_max=max(s[:,4])+max(s[:,4])*0.01
+vconv_max=max(p[:,4][352:-2])+max(p[:,4][352:-2])*0.01
+Fconv_max=(max(p[:,3][352:-2])+max(p[:,3][352:-2])*0.01)/(4.0*np.pi*s[:,0][-1]**2.0)
+p=np.loadtxt('results/profile/property_'+str(int(save_t[N_PLOTS-1]))+'.txt')
 eta_max=max(p[:,6])+max(p[:,6])*0.01
-Fconv_max=max(p[:,3])+max(p[:,3])*0.01
-vconv_max=max(p[:,4])+max(p[:,4])*0.01
-g_max=max(s[:,4])+0.02
 
 for i in tqdm(range(N_PLOTS)):
     s=np.loadtxt('results/profile/structure_'+str(int(save_t[i]))+'.txt')
     p=np.loadtxt('results/profile/property_'+str(int(save_t[i]))+'.txt')
+    plt.figure(figsize=(8,5))
     plt.ylim(0.0,T_max)
     plt.plot(mass/5.972e24,s[:,2],color='black',linewidth=2.0)
     plt.yticks(fontsize=14)
@@ -227,6 +246,7 @@ for i in tqdm(range(N_PLOTS)):
     plt.savefig('results/image/MT/step/%04d.png' % i,dpi=200)
     plt.close()
 
+    plt.figure(figsize=(8,5))
     plt.plot(s[:,1]/1e9,s[:,2],color='black',linewidth=2.0)
     plt.xlim(0.0,P_max)
     plt.ylim(0.0,T_max)
@@ -238,6 +258,7 @@ for i in tqdm(range(N_PLOTS)):
     plt.savefig('results/image/PT/step/%04d.png' % i,dpi=200)
     plt.close()
 
+    plt.figure(figsize=(8,5))
     plt.plot(mass/5.972e24,s[:,4],color='black',linewidth=2.0)
     plt.ylim(0.01,g_max)
     plt.yticks(fontsize=14)
@@ -248,9 +269,10 @@ for i in tqdm(range(N_PLOTS)):
     plt.savefig('results/image/gravity/step/%04d.png' % i,dpi=200)
     plt.close()
 
-    plt.plot(mass/5.972e24,p[:,3],color='black',linewidth=2.0)
+    plt.figure(figsize=(8,5))
+    plt.plot(mass/5.972e24,p[:,3]/(4.0*np.pi*s[:,0]**2.0),color='black',linewidth=2.0)
     plt.yscale('log')
-    plt.ylim(1e-1,Fconv_max)
+    plt.ylim(1e-5,Fconv_max)
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
     plt.title(t_title[i], fontsize=16)
@@ -259,6 +281,7 @@ for i in tqdm(range(N_PLOTS)):
     plt.savefig('results/image/Fconv/step/%04d.png' % i,dpi=200)
     plt.close()
 
+    plt.figure(figsize=(8,5))
     plt.plot(mass/5.972e24,s[:,3],color='black',linewidth=2.0)
     plt.ylim(0.01,rho_max)
     plt.yticks(fontsize=14)
@@ -269,8 +292,9 @@ for i in tqdm(range(N_PLOTS)):
     plt.savefig('results/image/rho/step/%04d.png' % i,dpi=200)
     plt.close()
 
+    plt.figure(figsize=(8,5))
     plt.plot(mass/5.972e24,s[:,0]/6371000.0,color='black',linewidth=2.0)
-    plt.ylim(0.0,R_max)
+    plt.ylim(0.0,R_max/6371000.0)
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
     plt.title(t_title[i], fontsize=16)
@@ -279,6 +303,7 @@ for i in tqdm(range(N_PLOTS)):
     plt.savefig('results/image/MR/step/%04d.png' % i,dpi=200)
     plt.close()
 
+    plt.figure(figsize=(8,5))
     plt.plot(mass/5.972e24,s[:,1]/1e9,color='black',linewidth=2.0)
     plt.ylim(P_min,P_max)
     plt.yticks(fontsize=14)
@@ -289,6 +314,7 @@ for i in tqdm(range(N_PLOTS)):
     plt.savefig('results/image/MP/step/%04d.png' % i,dpi=200)
     plt.close()
 
+    plt.figure(figsize=(8,5))
     plt.plot(mass/5.972e24,p[:,5],color='black',linewidth=2.0)
     plt.yscale('log')
     plt.ylim(0.01,Rem_max)
@@ -300,6 +326,7 @@ for i in tqdm(range(N_PLOTS)):
     plt.savefig('results/image/Rem/step/%04d.png' % i,dpi=200)
     plt.close()
 
+    plt.figure(figsize=(8,5))
     plt.plot(mass/5.972e24,p[:,6],color='black',linewidth=2.0)
     plt.yscale('log')
     plt.ylim(0.01,eta_max)
@@ -311,9 +338,10 @@ for i in tqdm(range(N_PLOTS)):
     plt.savefig('results/image/viscosity/step/%04d.png' % i,dpi=200)
     plt.close()
 
-    plt.plot(mass/5.972e24,p[:,3],color='black',linewidth=2.0)
+    plt.figure(figsize=(8,5))
+    plt.plot(mass/5.972e24,p[:,4],color='black',linewidth=2.0)
     plt.yscale('log')
-    plt.ylim(0.01,vconv_max)
+    plt.ylim(1e-14,vconv_max)
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
     plt.title(t_title[i], fontsize=16)

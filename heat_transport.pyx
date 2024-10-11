@@ -381,7 +381,7 @@ previous=np.loadtxt('initial/previous0.txt')
 load_file=np.loadtxt('input.txt')
 
 cdef double t=0.0#previous[0]
-cdef double dt=1.0#previous[1]
+cdef double dt=1e7#previous[1]
 cdef double P_center=previous[2]
 cdef double delta_P_center=previous[3]
 cdef double T_cmb=previous[4]
@@ -390,11 +390,11 @@ cdef double end_time=load_file[2]*86400.0*365.0*1e9
 
 cdef double dt_thres
 cdef double ds_thres=0.0
-cdef double ds_thres_xl=10.0*10.0**(-5.0)
-cdef double ds_thres_m=5.0*10.0**(-5.0)
-cdef double ds_thres_s=2.0*10.0**(-5.0)
+cdef double ds_thres_xl=25.0*10.0**(-5.0)
+cdef double ds_thres_m=8.0*10.0**(-5.0)
+cdef double ds_thres_s=6.0*10.0**(-5.0)
 cdef double ds_thres_xs=5e-7
-cdef double ds_thres_l=7.0*10.0**(-5.0)
+cdef double ds_thres_l=10.0*10.0**(-5.0)
 
 cdef double[:] initial_radius=initial_henyey[:,0]
 cdef double[:] radius_cell=initial_henyey[:,2]
@@ -1842,13 +1842,12 @@ while t<end_time:
         ds_thres=ds_thres_xl
     elif t>=30000*86400.0*365.0 and t<1e6*86400.0*365.0:
         ds_thres=ds_thres_m
-    elif t>=1e6*86400.0*365.0 and t<4e9*86400.0*365.0 and delta_r_flag==0.0:
+    elif t>=1e6*86400.0*365.0 and t<1e9*86400.0*365.0 and delta_r_flag==0.0:
         ds_thres=ds_thres_s
-    elif t>=1e6*86400.0*365.0 and t<4e9*86400.0*365.0 and delta_r_flag==1.0:
+    elif t>=1e6*86400.0*365.0 and t<1e9*86400.0*365.0 and delta_r_flag==1.0:
         ds_thres=ds_thres_m
     else:
         ds_thres=ds_thres_l
-
 
     if dt_thres<ds_thres:
         if dt_thres<0.975*ds_thres:
@@ -1870,8 +1869,8 @@ while t<end_time:
             dt=dt*0.975
         if dt<30.0:
             dt=30.0
-    if dt>86400.0*365.0*1000000.0:
-        dt=86400.0*365.0*1000000.0
+    if dt>86400.0*365.0*5000000.0:
+        dt=86400.0*365.0*5000000.0
     if t>1000.0*86400.0*365.0 and dt<3.65*86400.0:
         dt=3.65*86400.0
 
