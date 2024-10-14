@@ -316,8 +316,8 @@ for i in tqdm(range(N_PLOTS)):
 
     plt.figure(figsize=(8,5))
     plt.plot(mass/5.972e24,p[:,5],color='black',linewidth=2.0)
-    plt.yscale('log')
     plt.ylim(0.01,Rem_max)
+    plt.yscale('log')
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
     plt.title(t_title[i], fontsize=16)
@@ -328,8 +328,8 @@ for i in tqdm(range(N_PLOTS)):
 
     plt.figure(figsize=(8,5))
     plt.plot(mass/5.972e24,p[:,6],color='black',linewidth=2.0)
-    plt.yscale('log')
     plt.ylim(0.01,eta_max)
+    plt.yscale('log')
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
     plt.title(t_title[i], fontsize=16)
@@ -340,8 +340,8 @@ for i in tqdm(range(N_PLOTS)):
 
     plt.figure(figsize=(8,5))
     plt.plot(mass/5.972e24,p[:,4],color='black',linewidth=2.0)
-    plt.yscale('log')
     plt.ylim(1e-14,vconv_max)
+    plt.yscale('log')
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
     plt.title(t_title[i], fontsize=16)

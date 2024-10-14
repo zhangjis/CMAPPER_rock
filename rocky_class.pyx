@@ -13,9 +13,10 @@ from libc cimport math
 cimport cython
 import time
 
-import warnings
-warnings.filterwarnings('ignore', 'The iteration is not making good progress')
-warnings.filterwarnings('ignore', 'divide by zero')
+# # suppress certain warnings
+# import warnings
+# warnings.filterwarnings('ignore', 'The iteration is not making good progress')
+# warnings.filterwarnings('ignore', 'divide by zero')
 
 ###### Overall structure of the code.
 # line 25-25    : load input file

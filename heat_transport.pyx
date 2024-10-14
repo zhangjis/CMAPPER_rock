@@ -12,6 +12,10 @@ from pynbody.analysis.interpolate import interpolate2d
 from libc cimport math
 cimport cython
 
+# # suppress certain warnings
+# import warnings
+# warnings.filterwarnings('ignore', 'The iteration is not making good progress')
+
 cpdef double sigma_silicate(double P,double T):
     cdef double E_ion=131000.0
     cdef double V_ion=0.437e-6
