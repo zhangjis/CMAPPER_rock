@@ -47,41 +47,42 @@ directory by typing `cd CMAPPER_rock` in the terminal.
 Alternatively, you can click `Download ZIP` on the Github UI, find and extract
 the ZIP file, then `cd` into the correct folder.
 
-### 3) Python Packages
+### 3a) Python Packages
 
-To set up all dependencies automatically, type
-    ```sh
-    make dependencies
-    ```
+To set up all dependencies automatically, type:
+```sh
+make dependencies
+```
 
 Alternatively, to set up by hand:
-- *Recommended:* set up a [Python virtual
+- Recommended: set up a [Python virtual
   environment](https://docs.python.org/3/library/venv.html): `python3 -m venv
   venv && source venv/bin/activate`
 
 To install all required packages, type in the terminal:
-    ```sh
-    pip install -r requirements.pip
-    ```
+```sh
+pip install -r requirements.pip
+```
 
-### 4) Compiling and Running
-To compile the code, run the evolution, and generate plots, run the command in the terminal
-   ```sh
-   make run
-   ```
+### 3b) Compiling and Running
+To compile the code, run the evolution, and generate plots, run the command in
+the terminal
+```sh
+make run
+```
 Note that the code must be recompiled after changing `input_file.pyx`, which
 will automatically happen when typing `make run`
 
 Alternatively, to compile the code by hand, run
-   ```sh
-   python3 setup_pre_adiabat.py build_ext --inplace
-   ```
+```sh
+python3 setup_pre_adiabat.py build_ext --inplace
+```
 and to run the code, run
-   ```sh
-   python3 test.py
-   ```
+```sh
+python3 test.py
+```
 
-### 5) Results
+### 4) Results
 The output of CMAPper includes planet thermal and structural profiles of the
 planet, as well as thermophysical quantities at pre-selected timesteps. The
 thermal and structural profiles are saved in the sub-directory
