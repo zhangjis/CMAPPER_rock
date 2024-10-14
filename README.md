@@ -3,49 +3,82 @@
 
 # CMAPPER
 
-This is a repository for an 1D model of thermal evolution of rocky exoplanets with masses between 1 and 10 Earth-mass and core mass fractions between 0.1 and 0.8. The model outputs detailed planet thermal history and tracks possible phase transitions including magma ocean and inner core solidification (see results).
+This is a repository for an 1D model of thermal evolution of rocky exoplanets
+with masses between 1 and 10 Earth-mass and core mass fractions between 0.1 and
+0.8. The model outputs detailed planet thermal history and tracks possible phase
+transitions including magma ocean and inner core solidification (see results).
 
 ## Quickstart
 
-Note that this is just an abbreviated version of the below instructions. Please read on if you have any additional difficulties.
+Note that this is just an abbreviated version of the below instructions. Please
+read on if you have any additional difficulties.
 
-1) Make sure you have `python3` installed (we use 3.12)
-2) Clone the repository `git clone https://github.com/zhangjis/CMAPPER.git` and enter the directory `cd CMAPPER`
-3a) [Optional: setup python virtual environment: `virtualenv venv && source
-venv/bin/activate`]
-3) Install dependencies: `pip3 install -r requirements.pip`
-4) Build the code: `python3 setup_pre_adiabat.py build_ext --inplace`
-5) Run an example: `python3 test.py`
-6) View evolutionary plots and movies in the `results/image` folder
+1) Make sure you have `python3` installed (>3.10 has been tested)
+2) Download the code (`git clone https://github.com/zhangjis/CMAPPER_rock.git`
+    is recommended, or just click `Download ZIP` under the green "Code" button
+    on the Github website)
+3) Type `make`
+    - This will install dependencies, build the code, and run a test script
+4) View evolutionary plots and movies in the `results/image` folder
 
-## Installation
+## Full Installation Instructions
 ### 1) Python
-We recommend installing Python using Anaconda. This distribution of Python comes with the Cython bundle and other popular libraries required by CMAPper, such as NumPy and Scipy.
+We recommend installing Python using Anaconda. This distribution of Python comes
+with the Cython bundle and other popular libraries required by CMAPper, such as
+NumPy and Scipy.
 
-To download Anaconda installer, visit https://www.anaconda.com/download/, and download the version appropriate for your operating system.
+To download Anaconda installer, visit https://www.anaconda.com/download/, and
+download the version appropriate for your operating system.
 
 To verify installation, type the following command in the terminal,
    ```sh
    python3 --version
    conda --version
    ```
-You should see the installed Python and conda version numbers if the installation was successful.
+You should see the installed Python and conda version numbers if the
+installation was successful.
 
 ### 2) Clone the repository
-Go to a directory to which you want to download the repository by typing `cd` followed by the path to the directory in the terminal. Copy and paste `git clone https://github.com/zhangjis/CMAPPER.git` in the terminal. You can then enter the directory by typing `cd CMAPPER` in the terminal.
+Go to a directory to which you want to download the repository by typing `cd`
+followed by the path to the directory in the terminal. Copy and paste `git clone
+https://github.com/zhangjis/CMAPPER.git` in the terminal. You can then enter the
+directory by typing `cd CMAPPER` in the terminal.
 
-Alternatively, you can
+Alternatively, you can click `Download ZIP`
 
 ### 3) Python Packages
 
-- Optionally, first set up a [Python virtual environment](https://docs.python.org/3/library/venv.html): `virtualenv venv && source venv/bin/activate`
+- *Recommended:* set up a [Python virtual
+  environment](https://docs.python.org/3/library/venv.html): `python3 -m venv
+  venv && source venv/bin/activate`
 
 To install all required packages, type in the terminal:
     ```sh
     pip install -r requirements.pip
     ```
+### 4) Compiling
+To compile the code, run the command in the terminal
+   ```sh
+   make build
+   ```
+Note that the code must be recompiled after changing `input_file.pyx`.
+### 5) Running
+To run the evolution and generate plots, run the command in the terminal
+   ```sh
+   make run
+   ```
+### 6) Results
+The output of CMAPper includes planet thermal and structural profiles of the planet, as well as thermophysical quantities at pre-selected timesteps. The thermal and structural profiles are saved in the sub-directory `\results\profile\` with file names `structure_timestep.txt`, timestep being years into the simulation. Each column in the txt files represent mass, temperature, mantle melt fraction, radius, pressure, density and gravitational acceleration.
 
-## Compiling and running
+In addition, planet thermal history is saved in `evolution.txt` in the sub-directory `\results`. Each column represents time, size of timestep, mass averaged mantle temperature, mass averaged core temperature, temperature at the planet center, temperature at the core mantle boundary, surface temperature, heat fluxes at the core mantle boundary, heat fluxes at the planet surface, pressure level at the planet center, pressure level at the core mantle boundary, radius of the planet, radius of the core, radius of the inner solid core, the depth of the dynamo source region, the thickness of the dynamo source region, as well as the strength of the B-field at the planet surface.
+
+All saved quantities are in SI units.
+
+The code saves gif movies and png figures showing the thermal history of the planets in the sub-directory `\results\image\`. Additionally, we provide a tutorial in Jupyter notebook for visualization of saved text files.
+
+A Jupyter notebook "plot.ipynb" contains code to visualize saved txt files in the sub-directory `\results\profile\`
+
+## Configuring CMAPper
 ### Input parameters
 Main input parameters for the simulations include planet mass, initial central temperature, radiogenic heating relative to that of Earth's mantle and the lifetime of the planet to be simulated. These values can be set in `input_file.pyx`.
 
@@ -69,27 +102,4 @@ We provide a default choice of equations of state (EoS) for individual phases of
 See examples and comments in `input_file.pyx` for additional information.
 
 In future versions, users will be able to provide additional models for mantle viscosity and choices of EoS in addition to the default options provided.
-
-### 4) Compiling
-To compile the code, run the command in the terminal
-   ```sh
-   python3 setup_pre_adiabat.py build_ext --inplace
-   ```
-Note that the code must be recompiled after changing `input_file.pyx`.
-### 5) Running
-To run the evolution and generate plots, run the command in the terminal
-   ```sh
-   python3 test.py
-   ```
-### 6) Results
-The output of CMAPper includes planet thermal and structural profiles of the planet, as well as thermophysical quantities at pre-selected timesteps. The thermal and structural profiles are saved in the sub-directory `\results\profile\` with file names `structure_timestep.txt`, timestep being years into the simulation. Each column in the txt files represent mass, temperature, mantle melt fraction, radius, pressure, density and gravitational acceleration.
-
-In addition, planet thermal history is saved in `evolution.txt` in the sub-directory `\results`. Each column represents time, size of timestep, mass averaged mantle temperature, mass averaged core temperature, temperature at the planet center, temperature at the core mantle boundary, surface temperature, heat fluxes at the core mantle boundary, heat fluxes at the planet surface, pressure level at the planet center, pressure level at the core mantle boundary, radius of the planet, radius of the core, radius of the inner solid core, the depth of the dynamo source region, the thickness of the dynamo source region, as well as the strength of the B-field at the planet surface.
-
-All saved quantities are in SI units.
-
-The code saves gif movies and png figures showing the thermal history of the planets in the sub-directory `\results\image\`. Additionally, we provide a tutorial in Jupyter notebook for visualization of saved text files.
-
-### comment
-A Jupyter notebook "plot.ipynb" contains code to visualize saved txt files in the sub-directory `\results\profile\`
 

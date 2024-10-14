@@ -31,7 +31,7 @@ program_list=[
 'rocky_class.py','heat_transport.py']
 for program in program_list:
     print("Start:" + program)
-    subprocess.call(['python', program])
+    subprocess.call(['python3', program])
     print("Simulation finished")
 
 
