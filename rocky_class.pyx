@@ -1,5 +1,6 @@
 #!python
 #cython: boundscheck=False
+# distutils: define_macros=NPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION
 
 cimport numpy as np
 import numpy as np
@@ -12,11 +13,15 @@ from libc cimport math
 cimport cython
 import time
 
-###### Overall structure of the code. 
+import warnings
+warnings.filterwarnings('ignore', 'The iteration is not making good progress')
+warnings.filterwarnings('ignore', 'divide by zero')
+
+###### Overall structure of the code.
 # line 25-25    : load input file
 # line 27-161   : load EoS tables
 # line 163-222  : define constants
-# line 224-529  : Routines for initializing thermal and structure profiles: line 
+# line 224-529  : Routines for initializing thermal and structure profiles: line
 # line 531-769  : Routines for Henyey solver: line (its purpose is to find solutions to the planet structure equations that satisfy the boundary conditions at both planet center and surface)
 # line 771-1623 : Routines for heat transport in the core and the mantle
 # line 1625-1682: Initialize thermal and structural profiles
@@ -160,7 +165,7 @@ alpha_Py_mix_pv=interpolate.RectBivariateSpline(P_grid_pv,y_grid,alpha_mix_pv)
 dTdP_Py_mix_pv=interpolate.RectBivariateSpline(P_grid_pv,y_grid,dTdP_mix_pv)
 dqdy_Py_mix_pv=interpolate.RectBivariateSpline(P_grid_pv,y_grid,dqdy_mix_pv)
 
-# all variables are in SI units, unless otherwise noted. 
+# all variables are in SI units, unless otherwise noted.
 cdef double M_pl=load_file[0]*5.972e24 # planet mass in kg
 cdef double CMF=load_file[1] # core mass fraction
 cdef double t_end=load_file[2]*86400.0*365.0*1e9 # end time for the simulation in second
@@ -171,20 +176,20 @@ qrad['U8']=load_file[5] # Uranium 238
 qrad['U5']=load_file[6] # Uranium 235
 
 cdef double x_c=0.105 # concentration of light elements in the core by mass.
-cdef double Teq=255.0 # equilibrium temperature in K. 
+cdef double Teq=255.0 # equilibrium temperature in K.
 cdef double Q_rad_c_0=0.0 # Current day core radiogenic heating in W/kg.
 cdef double P_surf=1e5 # Surface pressure in Pa.
 
 cdef int c_z=350 # zones in the core
-cdef int m_z=350 # zones in the mantle 
+cdef int m_z=350 # zones in the mantle
 cdef int zone=c_z+m_z # total number of zones in the planet
 cdef double P_c=1000e9 # initial guess of the central pressure in Pa. Subsequent update in the code is the actual central pressure in Pa.
 cdef double T_c=10500.0 # Central temperature in K
-cdef double T_an_c_i=7000.0 # initial guess of the entropy temperature of the core in K. 
+cdef double T_an_c_i=7000.0 # initial guess of the entropy temperature of the core in K.
 
 cdef double MMF=1.0-CMF # mantle mass fraction
 
-cdef double d_Pc=1.0 # Adjustment in central pressure to find the actual central pressure using Runge-Kutta method. 
+cdef double d_Pc=1.0 # Adjustment in central pressure to find the actual central pressure using Runge-Kutta method.
 cdef double dsdr_c=-1e-6 # initial entropy gradient (an arbitrary choice)
 cdef double rtol=10.0 # initialize relative tolerance for numerical techniques
 
@@ -199,10 +204,10 @@ cdef double k_b = 1.38e-23 # boltzmann constant
 cdef double N_A = 6.022e23 # mol^-1
 cdef double L_pv = 7.322e5 # latent heat of magma
 cdef double L0 = 2.44e-8 # lorentz number
-cdef double mu_0 = 4.0*math.pi*1e-7 # vacuum permeability 
-cdef double L_sigma=0.0 # thickness of magma ocean in m 
+cdef double mu_0 = 4.0*math.pi*1e-7 # vacuum permeability
+cdef double L_sigma=0.0 # thickness of magma ocean in m
 
-cdef double mf_l=0.16 
+cdef double mf_l=0.16
 cdef double S_max=5100.0#4739.0#5597.5#5384   # max of specific entropy in the EoS table for silicate. J/K/kg
 cdef double S_min=100.0 # min of specific entropy in the EoS table for silicate. J/K/kg
 
@@ -213,7 +218,7 @@ cdef double CP_m_s = 1265.0 # specific heat of mantle silicate
 cdef double k_l=10.0 # thermal conductivity of magma. W/m/K
 cdef double k_ppv=10.0 # thermal conductivity of Mg-postperovskite
 cdef double k_pv=10.0 # thermal conductivity of Mg-perovskite
-cdef double k_en=4.0 # thermal conductivity of enstatite 
+cdef double k_en=4.0 # thermal conductivity of enstatite
 
 cdef double[:] k_array=np.zeros(zone)
 cdef double[:] phase=np.zeros(zone)
@@ -238,8 +243,8 @@ cdef class c_initial_profile:
     cdef double d_Pc
     cdef double rtol
     cdef double T_an_c
-    
-    def __cinit__(self, double M_pl, int c_z, int m_z, double CMF, double MMF, double P_c, 
+
+    def __cinit__(self, double M_pl, int c_z, int m_z, double CMF, double MMF, double P_c,
         double P_surf, double T_c, double x_c, double dsdr_c, double d_Pc, double rtol, double T_an_c):
         self.M_pl = M_pl
         self.c_z = c_z
@@ -248,22 +253,22 @@ cdef class c_initial_profile:
         self.MMF = MMF
         self.P_c = P_c # initial guess of the central pressure
         self.P_surf = P_surf
-        self.x_c = x_c 
+        self.x_c = x_c
         self.T_c = T_c
         self.dsdr_c = dsdr_c
         self.d_Pc = d_Pc
         self.rtol = rtol
         self.T_an_c= T_an_c
-        
+
     cpdef double dlnrdm(self, double r, double p, double density): # mass conservation equation
         return 1.0/(4.0*math.pi*r**3.0*density)
-    
+
     cpdef double dlnPdm(self, double r, double p, double M): # hydrostatic equilibrium
         return -G*M/(4.0*math.pi*r**4.0*p)
-    
+
     cpdef double f_r0(self, double h, double rho_c): # get the radius at the first zone above the center of the planet
         return (3.0*h/(4.0*math.pi*rho_c))**(1.0/3.0)
-    
+
     cpdef double f_p0(self, double h, double rho_c): # get the pressure at the first zone above the center of the planet
         return self.P_c-3.0*G/(8.0*math.pi)*(4.0*math.pi*rho_c/3.0)**(4.0/3.0)*(h)**(2.0/3.0)
 
@@ -298,17 +303,17 @@ cdef class c_initial_profile:
                 h[i]=h_c
             elif i>=self.c_z and i<self.c_z+self.m_z:
                 mass[i]=mass[i-1]+h_m
-                h[i]=h_m          
+                h[i]=h_m
         return mass, h
 
     cpdef double rho_mix(self, double x, double rho_l, double rho_s):
         # return the average density of mixtures using volume additive rules.
         return (x/rho_l+(1.0-x)/rho_s)**(-1.0)
-    
+
     cpdef double alpha_mix(self,double x,double alpha_l,double alpha_s,double rho,double rho_l,double rho_s):
         # return the average thermal expansion coefficient of mixtures using volume additive rules.
         return x*rho/rho_l*alpha_l+(1.0-x)*rho/rho_s*alpha_s
-    
+
     cpdef double dqdy_mix(self,double x, double rho_tot, double rho_l, double rho_s, double dqdy_l, double dqdy_s, double pressure):
         # return the dlog(rho)/dlog(P) of mixtures
         if pressure==0.0:
@@ -353,15 +358,15 @@ cdef class c_initial_profile:
         cdef double[:] phase=np.zeros(zone)
 
         mass, h=self.f_M_dm()
-        pressure[zone-1]=1e9 # random value to initialize the condition for the while loop. 
-        
+        pressure[zone-1]=1e9 # random value to initialize the condition for the while loop.
+
         cdef double x_alloy=self.x_c/mf_l
         cdef double rho_l, rho_a, dqdy_l, dqdy_a, alpha_l ,alpha_a
         cdef double rho_c, dqdy_c, r0, p0, rho0
         cdef double k1r, k1p, k2r, k2p, k3r, k3p, k4r, k4p
         cdef double rho_v
         cdef double s_sol_val, s_liq_val, y_value, y, s_new
-        
+
         cdef Py_ssize_t iteration=0
         while abs(pressure[zone-1]-self.P_surf)/self.P_surf>self.rtol:
             self.P_c=self.P_c-self.d_Pc*(pressure[zone-1]-self.P_surf)
@@ -401,7 +406,7 @@ cdef class c_initial_profile:
             for i in range(1, int(zone)):
                 if i<=self.c_z:
                     k1r=self.dlnrdm(radius[i-1]             , pressure[i-1]             , rho[i-1])
-                    k1p=self.dlnPdm(radius[i-1]             , pressure[i-1]             , mass[i-1])    
+                    k1p=self.dlnPdm(radius[i-1]             , pressure[i-1]             , mass[i-1])
                     rho_l=f_rho_Fel(pressure[i-1]+h[i]/2.0*k1p,self.T_an_c)[0][0]
                     rho_a=f_rho_Fea(pressure[i-1]+h[i]/2.0*k1p,self.T_an_c)[0][0]
                     rho_v=self.rho_mix(x_alloy,rho_a,rho_l)
@@ -435,7 +440,7 @@ cdef class c_initial_profile:
                     dqdy_l=f_dqdy_Fel(pressure[i],self.T_an_c)[0][0]
                     dqdy_a=f_dqdy_Fea(pressure[i],self.T_an_c)[0][0]
                     dqdy[i]=self.dqdy_mix(x_alloy,rho[i],rho_a,rho_l,dqdy_a,dqdy_l,pressure[i])
-                else: 
+                else:
                     if i==self.c_z+1:
                         s_sol_val=S_sol_P(pressure[i-1]).tolist()
                         s_liq_val=S_liq_P(pressure[i-1]).tolist()
@@ -490,8 +495,8 @@ cdef class c_initial_profile:
                         y=(s_array[i]-s_liq_val)/(S_max-s_liq_val)
                         rho[i]=rho_Py_liq(pressure[i],y)[0][0]
                         alpha[i]=alpha_Py_liq(pressure[i],y)[0][0]
-                        temperature[i]=T_Py_liq(pressure[i],y)[0][0] 
-                        dqdy[i]=dqdy_Py_liq(pressure[i],y)[0][0] 
+                        temperature[i]=T_Py_liq(pressure[i],y)[0][0]
+                        dqdy[i]=dqdy_Py_liq(pressure[i],y)[0][0]
                         cP[i]=CP_Py_liq(pressure[i],y)[0][0]
                         dTdP[i]=dTdP_Py_liq(pressure[i],y)[0][0]
                         melt_frac[i]=1.0
@@ -500,7 +505,7 @@ cdef class c_initial_profile:
             if iteration%100==0:
                 print(iteration,pressure[zone-1]/1e9)
             iteration=iteration+1
-        
+
         for i in range(zone):
             if i==0:
                 T_cell[i]=temperature[i]
@@ -528,7 +533,7 @@ cdef class c_initial_profile:
         results['dqdy_c']=dqdy_c
         results['dm']=h
         results['T_an_c']=self.T_an_c
-        
+
         return results
 
 cdef class c_henyey:
@@ -547,7 +552,7 @@ cdef class c_henyey:
     cdef double T_an_c, x_c
     cdef int c_z, m_z
 
-    def __cinit__(self, double[:] mass, double[:] radius, double[:] logr, double[:] pressure, double[:] logp, double[:] rho, double[:] logrho, double[:] gravity, double[:] s_array, double[:] dqdy, 
+    def __cinit__(self, double[:] mass, double[:] radius, double[:] logr, double[:] pressure, double[:] logp, double[:] rho, double[:] logrho, double[:] gravity, double[:] s_array, double[:] dqdy,
         double P_c, double rho_c, double dqdy_c, double P_s, double rtol, double T_an_c, int c_z, int m_z, double x_c):
         self.mass = mass
         self.radius = radius
@@ -571,10 +576,10 @@ cdef class c_henyey:
 
     cpdef double rho_mix(self, double x, double rho_l, double rho_s):
         return (x/rho_l+(1.0-x)/rho_s)**(-1.0)
-    
+
     cpdef double alpha_mix(self,double x,double alpha_l,double alpha_s,double rho,double rho_l,double rho_s):
         return x*rho/rho_l*alpha_l+(1.0-x)*rho/rho_s*alpha_s
-    
+
     cpdef double dqdy_mix(self,double x, double rho_tot, double rho_l, double rho_s, double dqdy_l, double dqdy_s, double pressure):
         if pressure==0.0:
             pressure=10.0**(-6.0)
@@ -584,7 +589,7 @@ cdef class c_henyey:
         value1=x*rho_tot**(2.0)*rho_l**(-2.0)*drhodP_l
         value2=(1.0-x)*rho_tot**(2.0)*rho_s**(-2.0)*drhodP_s
         return (value1+value2)*pressure/rho_tot
-        
+
     cpdef dict henyey_m(self, double dsdr_c, double initial):
         cdef int zone=len(self.radius)
         cdef Py_ssize_t i
@@ -597,11 +602,11 @@ cdef class c_henyey:
         cdef double[:] A_r=np.zeros(zone)
         cdef double[:] A_p=np.zeros(zone)
         cdef double[:] a=np.zeros(zone)
-        cdef double[:] b=np.zeros(zone) 
+        cdef double[:] b=np.zeros(zone)
         cdef double[:] c=np.zeros(zone)
         cdef double[:] d=np.zeros(zone)
         cdef double[:] A=np.zeros(zone)
-        cdef double[:] B=np.zeros(zone) 
+        cdef double[:] B=np.zeros(zone)
         cdef double[:] C=np.zeros(zone)
         cdef double[:] D=np.zeros(zone)
         cdef double[:] alp=np.zeros(zone)
@@ -615,11 +620,11 @@ cdef class c_henyey:
         cdef double delta_P_center, logP_c, logrho_c, alp_0, gam_0
         cdef double v_bd, v_ABCD, v_P, v_r
         cdef double s_sol_val, s_liq_val, y, rho_l, rho_a, dqdy_l, dqdy_a
-        
+
         while np.max(np.abs(d_p))>rtol or np.max(np.abs(d_r))>rtol:
             old_pressure=self.pressure.copy()
             old_radius=self.radius.copy()
-            
+
             self.pressure[-1]=self.P_s
             self.logp[-1]=math.log(self.pressure[-1])
 
@@ -627,21 +632,21 @@ cdef class c_henyey:
             s_liq_val=S_liq_P(self.pressure[-1]).tolist()
             if self.s_array[-1]<s_sol_val:
                 y=(self.s_array[-1]-S_min)/(s_sol_val-S_min)
-                self.rho[-1]=rho_Py_sol_en(self.pressure[-1],y)[0][0] 
-                self.dqdy[-1]=dqdy_Py_sol_en(self.pressure[-1],y)[0][0] 
+                self.rho[-1]=rho_Py_sol_en(self.pressure[-1],y)[0][0]
+                self.dqdy[-1]=dqdy_Py_sol_en(self.pressure[-1],y)[0][0]
             elif self.s_array[-1]>s_liq_val:
                 y=(self.s_array[-1]-s_liq_val)/(S_max-s_liq_val)
                 self.rho[-1]=rho_Py_liq(self.pressure[-1],y)[0][0]
                 self.dqdy[-1]=dqdy_Py_liq(self.pressure[-1],y)[0][0]
             else:
                 y=(self.s_array[-1]-s_sol_val)/(s_liq_val-s_sol_val)
-                self.rho[-1]=rho_Py_mix_en(self.pressure[-1],y)[0][0] 
-                self.dqdy[-1]=dqdy_Py_mix_en(self.pressure[-1],y)[0][0] 
+                self.rho[-1]=rho_Py_mix_en(self.pressure[-1],y)[0][0]
+                self.dqdy[-1]=dqdy_Py_mix_en(self.pressure[-1],y)[0][0]
             self.logrho[-1]=math.log(self.rho[-1])
-            
+
             logP_c=math.log(self.P_c)
             logrho_c=math.log(self.rho_c)
-            
+
             A_r=np.zeros(zone)
             A_p=np.zeros(zone)
             for i in range(zone):
@@ -651,17 +656,17 @@ cdef class c_henyey:
                 else:
                     A_r[i]=self.logr[i]-self.logr[i-1]-1.0/(4.0*np.pi)*(self.mass[i]-self.mass[i-1])*math.exp(-0.5*(self.logrho[i]+self.logrho[i-1])-1.5*(self.logr[i]+self.logr[i-1]))
                     A_p[i]=self.logp[i]-self.logp[i-1]+G/(8.0*np.pi)*(math.pow(self.mass[i],2.0)-math.pow(self.mass[i-1],2.0))*math.exp(-0.5*(self.logp[i]+self.logp[i-1])-2.0*(self.logr[i]+self.logr[i-1]))
-                    
-            a=np.zeros(zone); b=np.zeros(zone) 
+
+            a=np.zeros(zone); b=np.zeros(zone)
             c=np.zeros(zone); d=np.zeros(zone) # lower case is for pressure
-            A=np.zeros(zone); B=np.zeros(zone) 
+            A=np.zeros(zone); B=np.zeros(zone)
             C=np.zeros(zone); D=np.zeros(zone) # Upper case is for radius
-            
+
             for i in range(zone):
                 if i==0:
                     v_bd=(G/(8.0*math.pi))*(math.pow(self.mass[i],2.0))*math.exp(-2.0*self.logr[i])*math.exp(-0.5*(self.logp[i]+logP_c))*(-0.5)
                     a[i]=(G/(8.0*math.pi))*(math.pow(self.mass[i],2.0))*math.exp(-0.5*(self.logp[i]+logP_c))*math.exp(-2.0*self.logr[i])*(-2.0)
-                    c[i]=a[i]     
+                    c[i]=a[i]
                     b[i]=-1.0+v_bd
                     d[i]=1.0+v_bd
                     v_ABCD=(1.0/(4.0*math.pi))*self.mass[i]*math.exp(-0.5*(self.logrho[i]+logrho_c))*math.exp(-1.5*self.logr[i])
@@ -680,7 +685,7 @@ cdef class c_henyey:
                     B[i]=-0.5*v_r*self.dqdy[i-1]
                     C[i]=1.0-1.5*v_r
                     D[i]=-0.5*v_r*self.dqdy[i]
-            
+
             alp=np.zeros(zone)
             gam=np.zeros(zone)
             alp_0=0.0
@@ -692,7 +697,7 @@ cdef class c_henyey:
                 else:
                     alp[i]=(d[i]*(B[i]-A[i]*alp[i-1])-D[i]*(b[i]-a[i]*alp[i-1]))/(c[i]*(B[i]-A[i]*alp[i-1])-C[i]*(b[i]-a[i]*alp[i-1]))
                     gam[i]=((B[i]-A[i]*alp[i-1])*(A_p[i]-a[i]*gam[i-1])-(b[i]-a[i]*alp[i-1])*(A_r[i]-A[i]*gam[i-1]))/(c[i]*(B[i]-A[i]*alp[i-1])-C[i]*(b[i]-a[i]*alp[i-1]))
-            
+
             delta_y=np.zeros(zone)
             delta_x=np.zeros(zone)
             delta_y[-1]=0.0
@@ -733,16 +738,16 @@ cdef class c_henyey:
             self.dqdy_c=self.dqdy_mix(x_alloy,self.rho_c,rho_a,rho_l,dqdy_a,dqdy_l,self.P_c)
 
             iteration=iteration+1
-        
+
         for i in range(zone):
             if i==0:
                 r_cell[i]=self.radius[i]/2.0
                 p_cell[i]=(self.pressure[i]+self.P_c)/2.0
             else:
                 r_cell[i]=(self.radius[i]+self.radius[i-1])/2.0
-                p_cell[i]=(self.pressure[i]+self.pressure[i-1])/2.0 
+                p_cell[i]=(self.pressure[i]+self.pressure[i-1])/2.0
             Area[i]=4.0*np.pi*self.radius[i]**2.0
-   
+
         cdef dict results={}
         results['radius']=self.radius.copy()
         results['logr']=self.logr.copy()
@@ -758,7 +763,7 @@ cdef class c_henyey:
         results['P_c']=self.P_c
         results['rho_c']=self.rho_c
         results['dqdy_c']=self.dqdy_c
-        
+
         cdef double[:] s_cell=np.zeros(zone)
         if initial==1.0:
             s_cell=np.zeros(zone)
@@ -766,30 +771,30 @@ cdef class c_henyey:
                 if i==self.c_z:
                     s_cell[i]=self.s_array[i]-dsdr_c*self.radius[i]/2.0
                 else:
-                    s_cell[i]=(self.s_array[i-1]+self.s_array[i])/2.0    
+                    s_cell[i]=(self.s_array[i-1]+self.s_array[i])/2.0
             results['s_cell']=s_cell.copy()
 
         return results
-    
+
 # initialize the structural profile using 4th order Runge Kutta method
-cdef c_initial_profile initial_profile=c_initial_profile(M_pl, c_z, m_z, CMF, MMF, 
-                                    P_c, P_surf, T_c, x_c, 
+cdef c_initial_profile initial_profile=c_initial_profile(M_pl, c_z, m_z, CMF, MMF,
+                                    P_c, P_surf, T_c, x_c,
                                     dsdr_c, d_Pc, rtol, T_an_c_i)
-cdef dict ri=initial_profile.RK4() 
+cdef dict ri=initial_profile.RK4()
 
 # improve the solution by RK4 using a henyey code
 rtol=1e-3
-cdef c_henyey henyey_obj=c_henyey(ri['mass'], ri['radius'], ri['logr'], ri['pressure'], ri['logp'], 
-                    ri['rho'], ri['logrho'], ri['gravity'], ri['s_array'], ri['dqdy'], 
+cdef c_henyey henyey_obj=c_henyey(ri['mass'], ri['radius'], ri['logr'], ri['pressure'], ri['logp'],
+                    ri['rho'], ri['logrho'], ri['gravity'], ri['s_array'], ri['dqdy'],
                     ri['P_c'], ri['rho_c'], ri['dqdy_c'], P_surf, rtol,
                     ri['T_an_c'], c_z, m_z, x_c)
 cdef dict rh=henyey_obj.henyey_m(dsdr_c,initial) # Using henyey code to relax the solution to RK4 such that the solution satisfies the boundary condition at both planet center and surface
 
 
-cdef double[:] PdV=np.zeros(zone); 
-cdef double[:] dEG=np.zeros(zone); 
+cdef double[:] PdV=np.zeros(zone);
+cdef double[:] dEG=np.zeros(zone);
 cdef double[:] dw=np.zeros(zone)
-cdef double[:] new_V=np.zeros(zone); 
+cdef double[:] new_V=np.zeros(zone);
 cdef double[:] new_EG=np.zeros(zone);
 cdef double[:] new_v_top=np.zeros(zone)
 cdef double[:] kappa=np.zeros(zone)
@@ -838,7 +843,7 @@ cdef double x_init=0.105
 cdef double[:] T_Fe_melt=np.zeros(c_z)
 cdef double[:] x_melt=np.zeros(c_z)
 for i in range(c_z):
-    x=x_init*(M_pl*CMF-ri['mass'][0])/(M_pl*CMF-ri['mass'][i]) 
+    x=x_init*(M_pl*CMF-ri['mass'][0])/(M_pl*CMF-ri['mass'][i])
     if x>0.1519:
         x=0.1519
     if i==c_z-1:
