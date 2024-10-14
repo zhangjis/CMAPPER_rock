@@ -55,11 +55,10 @@ make dependencies
 ```
 
 Alternatively, to set up by hand:
-- Recommended: set up a [Python virtual
+- *Recommended:* set up a [Python virtual
   environment](https://docs.python.org/3/library/venv.html): `python3 -m venv
   venv && source venv/bin/activate`
-
-To install all required packages, type in the terminal:
+- To install all required packages, type in the terminal:
 ```sh
 pip install -r requirements.pip
 ```
