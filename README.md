@@ -91,7 +91,7 @@ temperature, mantle melt fraction, radius, pressure, density and gravitational
 acceleration.
 
 In addition, planet thermal history is saved in `evolution.txt` in the
-sub-directory `\results`.  Each column from left to right represents 
+sub-directory `\results`. Each column from left to right represents 
 time, 
 size of timestep,
 mass averaged mantle entropy,
@@ -120,6 +120,7 @@ temperature at the planet center,
 thermal buoyancy flux in the liquid core,
 compositional buoyancy flux in the liquid core,
 magnetic dipole moment.
+temperature at the planet center.
 
 All saved quantities are in SI units.
 
