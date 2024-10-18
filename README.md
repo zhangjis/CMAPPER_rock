@@ -14,9 +14,13 @@ Note that this is just an abbreviated version of the below instructions. Please
 read on if you have any additional difficulties.
 
 1) Make sure you have `python3` installed (>3.10 has been tested)
+    - If you don't, installing via
+      [Anaconda](https://www.anaconda.com/download/) is easiest, by running
+      `conda install python`
 2) Download the code (`git clone https://github.com/zhangjis/CMAPPER_rock.git`
-    is recommended, or just click `Download ZIP` under the green "Code" button
-    on the Github website)
+    is recommended
+    - Or you just click `Download ZIP` under the green "Code" button on the
+      Github website)
 3) Change into the code directory and type `make`
     - This will install dependencies, build the code, and run a test script
 4) View evolutionary plots and movies in the `results/image` folder
