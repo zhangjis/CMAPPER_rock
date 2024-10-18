@@ -91,14 +91,28 @@ temperature, mantle melt fraction, radius, pressure, density and gravitational
 acceleration.
 
 In addition, planet thermal history is saved in `evolution.txt` in the
-sub-directory `\results`. Each column represents time, size of timestep, mass
-averaged mantle temperature, mass averaged core temperature, temperature at the
-planet center, temperature at the core mantle boundary, surface temperature,
-heat fluxes at the core mantle boundary, heat fluxes at the planet surface,
-pressure level at the planet center, pressure level at the core mantle boundary,
-radius of the planet, radius of the core, radius of the inner solid core, the
-depth of the dynamo source region, the thickness of the dynamo source region, as
-well as the strength of the B-field at the planet surface.
+sub-directory `\results`. Each column from left to right represents 
+time, 
+size of timestep,
+mass averaged mantle entropy,
+mass averaged mantle temperature, 
+mass averaged core temperature, 
+surface temperature,
+temperature at the core mantle boundary, 
+surface heat flux,
+heat fluxes at the core mantle boundary, 
+conductive flux at the core mantle boundary.
+radius of the planet, 
+radius of the core, 
+pressure level at the planet center, 
+pressure level at the core mantle boundary,
+radius of the inner solid core, 
+mass of the inner solid core, 
+the thickness of the dynamo source region in the magma ocean, 
+mantle radiogenic heating,
+core radiogenic heating,
+conductive heat from the solid inner core to the liquid outer core,
+temperature at the planet center.
 
 All saved quantities are in SI units.
 
