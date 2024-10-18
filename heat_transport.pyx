@@ -386,7 +386,7 @@ previous=np.loadtxt('initial/previous0.txt')
 load_file=np.loadtxt('input.txt')
 
 cdef double t=0.0#previous[0]
-cdef double dt=1e7#previous[1]
+cdef double dt=5e7#previous[1]
 cdef double P_center=previous[2]
 cdef double delta_P_center=previous[3]
 cdef double T_cmb=previous[4]
@@ -396,8 +396,8 @@ cdef double end_time=load_file[2]*86400.0*365.0*1e9
 cdef double dt_thres
 cdef double ds_thres=0.0
 cdef double ds_thres_xl=1e-2#25.0*10.0**(-5.0)
-cdef double ds_thres_m=1e-4#8.0*10.0**(-5.0)
-cdef double ds_thres_s=1e-4#6.0*10.0**(-5.0)
+cdef double ds_thres_m=2e-4#8.0*10.0**(-5.0)
+cdef double ds_thres_s=2e-4#6.0*10.0**(-5.0)
 cdef double ds_thres_xs=5e-7
 cdef double ds_thres_l=1e-2#10.0*10.0**(-5.0)
 
@@ -644,6 +644,8 @@ L_sigma_array=[]
 D_MO_dynamo_array=[]
 MO_dynamo_bot_array=[]
 MO_dynamo_top_array=[]
+
+core_dipole_m=[]
 
 Fconv_1=[]
 Fconv_2=[]
@@ -929,14 +931,16 @@ cdef double[:] Rem_MO=np.zeros(zone)
 cdef double t_val
 
 save_t=[1.0]
-for i in range(1,643):
+for i in range(1,312):
     if save_t[i-1]<5000.0:
-        save_t.append(save_t[i-1]+25.0)
+        save_t.append(save_t[i-1]+60.0)
     elif save_t[i-1]<1e8:
-        save_t.append(save_t[i-1]+int(save_t[i-1]/20.0))
+        save_t.append(save_t[i-1]+int(save_t[i-1]/8.0))
     else:
-        save_t.append(save_t[i-1]+int(save_t[i-1]/50.0))
+        save_t.append(save_t[i-1]+int(save_t[i-1]/30.0))
 cdef Py_ssize_t ind
+
+cdef double core_m
 
 #while iteration<end_ite:
 #while solid_index<core_outer_index:
@@ -1838,10 +1842,11 @@ while t<end_time:
         Buoy_x_value=initial_gravity[solid_index]*(f_rho_Fes(T_center,P_center)[0]-initial_density[solid_index+1])/rho_core*(Ric/(initial_radius[core_outer_index]))**2.0*(Ric-old_Ric)/dt
     else:
         Buoy_x_value=initial_gravity[solid_index]*(initial_density[solid_index-1]-initial_density[solid_index+1])/rho_core*(Ric/(initial_radius[core_outer_index]))**2.0*(Ric-old_Ric)/dt
-
+    core_m=4.0*math.pi*initial_radius[core_outer_index+1]**3.0*0.2*(initial_density[solid_index-1]/(2.0*4.0*math.pi*1e-7))**0.5*((Buoy_T_value+Buoy_x_value)*(initial_radius[core_outer_index]-initial_radius[solid_index]))**(1.0/3.0)
     if iteration%10.0==0.0:
         Buoy_T.append(Buoy_T_value)
         Buoy_x.append(Buoy_x_value)
+        core_dipole_m.append(core_m)
 
     if t<3000*86400.0*365.0:
         ds_thres=ds_thres_xl
@@ -1874,33 +1879,33 @@ while t<end_time:
             dt=dt*0.975
         if dt<30.0:
             dt=30.0
-    if dt>86400.0*365.0*5000000.0:
-        dt=86400.0*365.0*5000000.0
+    if dt>86400.0*365.0*10000000.0:
+        dt=86400.0*365.0*10000000.0
     if t>1000.0*86400.0*365.0 and dt<3.65*86400.0:
         dt=3.65*86400.0
 
     if iteration%20==0:
         if t/86400.0/365.0<1e3:
             t_val=t/86400.0/365.0
-            print('time:%2.2fyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa ds:%2.5f' %(t_val,Fcmb,-Fsurf,Ric,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9,ds_thres))
+            print('time:%2.2fyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa' %(t_val,Fcmb,-Fsurf,Ric,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9))
         elif t/86400.0/365.0>=1e3 and t/86400.0/365.0<1e6:
             t_val=t/86400.0/365.0/1e3
-            print('time:%2.2fkyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa ds:%2.5f' %(t_val,Fcmb,-Fsurf,Ric,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9,ds_thres))
+            print('time:%2.2fkyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa' %(t_val,Fcmb,-Fsurf,Ric,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9))
         elif t/86400.0/365.0>=1e6 and t/86400.0/365.0<1e9:
             t_val=t/86400.0/365.0/1e6
-            print('time:%2.2fMyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa ds:%2.5f' %(t_val,Fcmb,-Fsurf,Ric,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9,ds_thres))
+            print('time:%2.2fMyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa' %(t_val,Fcmb,-Fsurf,Ric,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9))
         else:
             t_val=t/86400.0/365.0/1e9
-            print('time:%2.2fGyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa ds:%2.5f' %(t_val,Fcmb,-Fsurf,Ric,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9,ds_thres))
+            print('time:%2.2fGyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa' %(t_val,Fcmb,-Fsurf,Ric,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9))
 
     for ind in range(len(save_t)):
         if t<save_t[ind]*86400.0*365.0+dt and t>save_t[ind]*86400.0*365.0-dt:
             np.savetxt('results/profile/structure_'+str(int(save_t[ind]))+'.txt',np.transpose([initial_radius,initial_pressure,initial_temperature,initial_density,initial_gravity]))
             np.savetxt('results/profile/property_'+str(int(save_t[ind]))+'.txt',np.transpose([alpha,CP,initial_gravity,Fconv,v_MO,Rem_MO,viscosity]))
-            np.savetxt('results/evolution_temp.txt',np.transpose([t_array,dt_array,average_S,average_Tm,average_Tc,Tsurf_array,Tcmb_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,T_center_array]))
+            np.savetxt('results/evolution_temp.txt',np.transpose([t_array,dt_array,average_S,average_Tm,average_Tc,Tsurf_array,Tcmb_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,T_center_array]))#,Buoy_T,Buoy_x,core_dipole_m]))
 
 
     iteration=iteration+1
     t=t+dt
-np.savetxt('results/evolution.txt',np.transpose([t_array,dt_array,average_S,average_Tm,average_Tc,Tsurf_array,Tcmb_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,T_center_array]))
+np.savetxt('results/evolution.txt',np.transpose([t_array,dt_array,average_S,average_Tm,average_Tc,Tsurf_array,Tcmb_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,T_center_array]))#,Buoy_T,Buoy_x],core_dipole_m]))
 
