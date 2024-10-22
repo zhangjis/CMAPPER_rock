@@ -18,6 +18,7 @@ dependencies:
 		"\n**********************************************\n"
 	@${PYTHON} -m venv .venv && source .venv/bin/activate && ${PIP} install -r requirements.pip
 
+.PHONY: build
 build: heat_transport.pyx rocky_class.pyx
 	@echo "\n**********************************************"\
 		"\nMAKEFILE: Building Cython code..."\
