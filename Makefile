@@ -1,4 +1,4 @@
-PYTHON=python4
+PYTHON=python3
 PIP=pip3
 CFLAGS="-Ofast -Wno-unreachable-code -Wno-unreachable-code-fallthrough"
 
@@ -10,7 +10,7 @@ check-python:
 		"\n**********************************************\n"
 	@${PYTHON} --version > /dev/null 2>&1\
 		&& echo "Python version is $$(${PYTHON} --version)"\
-		|| echo "Python install not found, please install ${PYTHON}" && exit 1
+		|| ( echo "Python install not found, please install ${PYTHON}" && exit 1 )
 
 dependencies:
 	@echo "\n**********************************************"\

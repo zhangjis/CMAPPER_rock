@@ -17,4 +17,7 @@
 # We currently don't consider Al24 for its short half life time.
 # viscosity models. For the current version, two different models for the viscosity of ppl is considered. 1 is for diffusion creep and 2 is for dislocation creep. See Tackley et al. 2013.
 1
+# Equilibrium temperature 
+255.0
 # path to eos tables. (Will be updated in future versions)
+

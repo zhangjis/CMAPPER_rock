@@ -2,5 +2,6 @@
 *.so
 build
 *.c
-results
+results*
 venv
+.ipynb_checkpoints

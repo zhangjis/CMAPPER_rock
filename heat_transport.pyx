@@ -213,73 +213,73 @@ cpdef double[:] penta_solver(double[:] a, double[:] b, double[:] c, double[:] d,
 
 cdef Py_ssize_t i,j,x_idx,Tref_idx
 
-T_sol_pv=np.loadtxt('mixture_table/T_sol_pv_Py.txt')
-rho_sol_pv=np.loadtxt('mixture_table/rho_sol_pv_Py.txt')
-alpha_sol_pv=np.loadtxt('mixture_table/alpha_sol_pv_Py.txt')
-dTdP_sol_pv=np.loadtxt('mixture_table/dTdP_sol_pv_Py.txt')
-dqdy_sol_pv=np.loadtxt('mixture_table/dqdy_sol_pv_Py.txt')
+T_sol_pv=np.loadtxt('EoS/mantle/T_sol_pv_Py.txt')
+rho_sol_pv=np.loadtxt('EoS/mantle/rho_sol_pv_Py.txt')
+alpha_sol_pv=np.loadtxt('EoS/mantle/alpha_sol_pv_Py.txt')
+dTdP_sol_pv=np.loadtxt('EoS/mantle/dTdP_sol_pv_Py.txt')
+dqdy_sol_pv=np.loadtxt('EoS/mantle/dqdy_sol_pv_Py.txt')
 
-T_sol_ppv=np.loadtxt('mixture_table/T_sol_ppv_Py.txt')
-rho_sol_ppv=np.loadtxt('mixture_table/rho_sol_ppv_Py.txt')
-alpha_sol_ppv=np.loadtxt('mixture_table/alpha_sol_ppv_Py.txt')
-dTdP_sol_ppv=np.loadtxt('mixture_table/dTdP_sol_ppv_Py.txt')
-dqdy_sol_ppv=np.loadtxt('mixture_table/dqdy_sol_ppv_Py.txt')
+T_sol_ppv=np.loadtxt('EoS/mantle/T_sol_ppv_Py.txt')
+rho_sol_ppv=np.loadtxt('EoS/mantle/rho_sol_ppv_Py.txt')
+alpha_sol_ppv=np.loadtxt('EoS/mantle/alpha_sol_ppv_Py.txt')
+dTdP_sol_ppv=np.loadtxt('EoS/mantle/dTdP_sol_ppv_Py.txt')
+dqdy_sol_ppv=np.loadtxt('EoS/mantle/dqdy_sol_ppv_Py.txt')
 
-T_sol_en=np.loadtxt('mixture_table/T_sol_en_Py.txt')
-rho_sol_en=np.loadtxt('mixture_table/rho_sol_en_Py.txt')
-alpha_sol_en=np.loadtxt('mixture_table/alpha_sol_en_Py.txt')
-dTdP_sol_en=np.loadtxt('mixture_table/dTdP_sol_en_Py.txt')
-dqdy_sol_en=np.loadtxt('mixture_table/dqdy_sol_en_Py.txt')
+T_sol_en=np.loadtxt('EoS/mantle/T_sol_en_Py.txt')
+rho_sol_en=np.loadtxt('EoS/mantle/rho_sol_en_Py.txt')
+alpha_sol_en=np.loadtxt('EoS/mantle/alpha_sol_en_Py.txt')
+dTdP_sol_en=np.loadtxt('EoS/mantle/dTdP_sol_en_Py.txt')
+dqdy_sol_en=np.loadtxt('EoS/mantle/dqdy_sol_en_Py.txt')
 
-T_mix_pv=np.loadtxt('mixture_table/T_mix_pv_Py.txt')
-rho_mix_pv=np.loadtxt('mixture_table/rho_mix_pv_Py.txt')
-CP_mix_pv=np.loadtxt('mixture_table/CP_mix_pv_Py.txt')
-alpha_mix_pv=np.loadtxt('mixture_table/alpha_mix_pv_Py.txt')
-dTdP_mix_pv=np.loadtxt('mixture_table/dTdP_mix_pv_Py.txt')
-dqdy_mix_pv=np.loadtxt('mixture_table/dqdy_mix_pv_Py.txt')
+T_mix_pv=np.loadtxt('EoS/mantle/T_mix_pv_Py.txt')
+rho_mix_pv=np.loadtxt('EoS/mantle/rho_mix_pv_Py.txt')
+CP_mix_pv=np.loadtxt('EoS/mantle/CP_mix_pv_Py.txt')
+alpha_mix_pv=np.loadtxt('EoS/mantle/alpha_mix_pv_Py.txt')
+dTdP_mix_pv=np.loadtxt('EoS/mantle/dTdP_mix_pv_Py.txt')
+dqdy_mix_pv=np.loadtxt('EoS/mantle/dqdy_mix_pv_Py.txt')
 
-T_mix_ppv=np.loadtxt('mixture_table/T_mix_ppv_Py.txt')
-rho_mix_ppv=np.loadtxt('mixture_table/rho_mix_ppv_Py.txt')
-CP_mix_ppv=np.loadtxt('mixture_table/CP_mix_ppv_Py.txt')
-alpha_mix_ppv=np.loadtxt('mixture_table/alpha_mix_ppv_Py.txt')
-dTdP_mix_ppv=np.loadtxt('mixture_table/dTdP_mix_ppv_Py.txt')
-dqdy_mix_ppv=np.loadtxt('mixture_table/dqdy_mix_ppv_Py.txt')
+T_mix_ppv=np.loadtxt('EoS/mantle/T_mix_ppv_Py.txt')
+rho_mix_ppv=np.loadtxt('EoS/mantle/rho_mix_ppv_Py.txt')
+CP_mix_ppv=np.loadtxt('EoS/mantle/CP_mix_ppv_Py.txt')
+alpha_mix_ppv=np.loadtxt('EoS/mantle/alpha_mix_ppv_Py.txt')
+dTdP_mix_ppv=np.loadtxt('EoS/mantle/dTdP_mix_ppv_Py.txt')
+dqdy_mix_ppv=np.loadtxt('EoS/mantle/dqdy_mix_ppv_Py.txt')
 
-T_mix_en=np.loadtxt('mixture_table/T_mix_en_Py.txt')
-rho_mix_en=np.loadtxt('mixture_table/rho_mix_en_Py.txt')
-CP_mix_en=np.loadtxt('mixture_table/CP_mix_en_Py.txt')
-alpha_mix_en=np.loadtxt('mixture_table/alpha_mix_en_Py.txt')
-dTdP_mix_en=np.loadtxt('mixture_table/dTdP_mix_en_Py.txt')
-dqdy_mix_en=np.loadtxt('mixture_table/dqdy_mix_en_Py.txt')
+T_mix_en=np.loadtxt('EoS/mantle/T_mix_en_Py.txt')
+rho_mix_en=np.loadtxt('EoS/mantle/rho_mix_en_Py.txt')
+CP_mix_en=np.loadtxt('EoS/mantle/CP_mix_en_Py.txt')
+alpha_mix_en=np.loadtxt('EoS/mantle/alpha_mix_en_Py.txt')
+dTdP_mix_en=np.loadtxt('EoS/mantle/dTdP_mix_en_Py.txt')
+dqdy_mix_en=np.loadtxt('EoS/mantle/dqdy_mix_en_Py.txt')
 
-T_liq=np.loadtxt('mixture_table/T_liq_Py_1500GPa.txt')
-rho_liq=np.loadtxt('mixture_table/rho_liq_Py_1500GPa.txt')
-CP_liq=np.loadtxt('mixture_table/CP_liq_Py_1500GPa.txt')
-alpha_liq=np.loadtxt('mixture_table/alpha_liq_Py_1500GPa.txt')
-dTdP_liq=np.loadtxt('mixture_table/dTdP_liq_Py_1500GPa.txt')
-dqdy_liq=np.loadtxt('mixture_table/dqdy_liq_Py_1500GPa.txt')
+T_liq=np.loadtxt('EoS/mantle/T_liq_Py_1500GPa.txt')
+rho_liq=np.loadtxt('EoS/mantle/rho_liq_Py_1500GPa.txt')
+CP_liq=np.loadtxt('EoS/mantle/CP_liq_Py_1500GPa.txt')
+alpha_liq=np.loadtxt('EoS/mantle/alpha_liq_Py_1500GPa.txt')
+dTdP_liq=np.loadtxt('EoS/mantle/dTdP_liq_Py_1500GPa.txt')
+dqdy_liq=np.loadtxt('EoS/mantle/dqdy_liq_Py_1500GPa.txt')
 
 """
-T_liq=np.loadtxt('mixture_table/T_liq_Py.txt')
-rho_liq=np.loadtxt('mixture_table/rho_liq_Py.txt')
-CP_liq=np.loadtxt('mixture_table/CP_liq_Py.txt')
-alpha_liq=np.loadtxt('mixture_table/alpha_liq_Py.txt')
-dTdP_liq=np.loadtxt('mixture_table/dTdP_liq_Py.txt')
-dqdy_liq=np.loadtxt('mixture_table/dqdy_liq_Py.txt')
+T_liq=np.loadtxt('EoS/mantle/T_liq_Py.txt')
+rho_liq=np.loadtxt('EoS/mantle/rho_liq_Py.txt')
+CP_liq=np.loadtxt('EoS/mantle/CP_liq_Py.txt')
+alpha_liq=np.loadtxt('EoS/mantle/alpha_liq_Py.txt')
+dTdP_liq=np.loadtxt('EoS/mantle/dTdP_liq_Py.txt')
+dqdy_liq=np.loadtxt('EoS/mantle/dqdy_liq_Py.txt')
 
-T_liq=np.loadtxt('mixture_table/T_liq_Py_900GPa.txt')
-rho_liq=np.loadtxt('mixture_table/rho_liq_Py_900GPa.txt')
-CP_liq=np.loadtxt('mixture_table/CP_liq_Py_900GPa.txt')
-alpha_liq=np.loadtxt('mixture_table/alpha_liq_Py_900GPa.txt')
-dTdP_liq=np.loadtxt('mixture_table/dTdP_liq_Py_900GPa.txt')
-dqdy_liq=np.loadtxt('mixture_table/dqdy_liq_Py_900GPa.txt')
+T_liq=np.loadtxt('EoS/mantle/T_liq_Py_900GPa.txt')
+rho_liq=np.loadtxt('EoS/mantle/rho_liq_Py_900GPa.txt')
+CP_liq=np.loadtxt('EoS/mantle/CP_liq_Py_900GPa.txt')
+alpha_liq=np.loadtxt('EoS/mantle/alpha_liq_Py_900GPa.txt')
+dTdP_liq=np.loadtxt('EoS/mantle/dTdP_liq_Py_900GPa.txt')
+dqdy_liq=np.loadtxt('EoS/mantle/dqdy_liq_Py_900GPa.txt')
 """
-y_grid=np.loadtxt('mixture_table/y.txt')
-P_grid_en=np.loadtxt('mixture_table/P_en.txt')
-P_grid_pv=np.loadtxt('mixture_table/P_pv.txt')
-P_grid_ppv=np.loadtxt('mixture_table/P_ppv.txt')
+y_grid=np.loadtxt('EoS/mantle/y.txt')
+P_grid_en=np.loadtxt('EoS/mantle/P_en.txt')
+P_grid_pv=np.loadtxt('EoS/mantle/P_pv.txt')
+P_grid_ppv=np.loadtxt('EoS/mantle/P_ppv.txt')
 
-P_solidus_liquidus=np.loadtxt('mixture_table/solid_P.txt')
+P_solidus_liquidus=np.loadtxt('EoS/mantle/solid_P.txt')
 cdef double[:] P_grid=P_solidus_liquidus[:,0][:1500].copy()
 cdef double[:] S_sol_array=P_solidus_liquidus[:,1][:1500].copy()
 cdef double[:] S_liq_array=P_solidus_liquidus[:,2][:1500].copy()
@@ -317,23 +317,23 @@ T_liq_P=interpolate.interp1d(P_grid,T_liq_array)
 T_sol_P=interpolate.interp1d(P_grid,T_sol_array)
 
 print('Read Fe table')
-rho_Fel=np.loadtxt('EoS/rho_Fel.txt')
-alpha_Fel=np.loadtxt('EoS/alpha_Fel.txt')
-dqdy_Fel=np.loadtxt('EoS/dqdy_Fel.txt')
-T_Fel=np.loadtxt('EoS/T_Fel.txt')
-P_Fel=np.loadtxt('EoS/P_Fel.txt')
+rho_Fel=np.loadtxt('EoS/Fe_core/rho_Fel.txt')
+alpha_Fel=np.loadtxt('EoS/Fe_core/alpha_Fel.txt')
+dqdy_Fel=np.loadtxt('EoS/Fe_core/dqdy_Fel.txt')
+T_Fel=np.loadtxt('EoS/Fe_core/T_Fel.txt')
+P_Fel=np.loadtxt('EoS/Fe_core/P_Fel.txt')
 
-rho_Fea=np.loadtxt('EoS/rho_Fe16Si.txt')
-alpha_Fea=np.loadtxt('EoS/alpha_Fe16Si.txt')
-dqdy_Fea=np.loadtxt('EoS/dqdy_Fe16Si.txt')
-T_Fea=np.loadtxt('EoS/T_Fe16Si.txt')
-P_Fea=np.loadtxt('EoS/P_Fe16Si.txt')
+rho_Fea=np.loadtxt('EoS/Fe_core/rho_Fe16Si.txt')
+alpha_Fea=np.loadtxt('EoS/Fe_core/alpha_Fe16Si.txt')
+dqdy_Fea=np.loadtxt('EoS/Fe_core/dqdy_Fe16Si.txt')
+T_Fea=np.loadtxt('EoS/Fe_core/T_Fe16Si.txt')
+P_Fea=np.loadtxt('EoS/Fe_core/P_Fe16Si.txt')
 
-rho_Fes=np.loadtxt('EoS/rho_Fes_dew06.txt')
-alpha_Fes=np.loadtxt('EoS/alpha_Fes_dew06.txt')
-dqdy_Fes=np.loadtxt('EoS/dqdy_Fes_dew06.txt')
-T_Fes=np.loadtxt('EoS/T_Fes_dew06.txt')
-P_Fes=np.loadtxt('EoS/P_Fes_dew06.txt')
+rho_Fes=np.loadtxt('EoS/Fe_core/rho_Fes_dew06.txt')
+alpha_Fes=np.loadtxt('EoS/Fe_core/alpha_Fes_dew06.txt')
+dqdy_Fes=np.loadtxt('EoS/Fe_core/dqdy_Fes_dew06.txt')
+T_Fes=np.loadtxt('EoS/Fe_core/T_Fes_dew06.txt')
+P_Fes=np.loadtxt('EoS/Fe_core/P_Fes_dew06.txt')
 
 
 Tlg,Plg=np.meshgrid(T_Fel,P_Fel,sparse=True)
@@ -350,27 +350,30 @@ f_dqdy_Fel=interpolate.RectBivariateSpline(Tlg,Plg,dqdy_Fel.T)
 f_dqdy_Fea=interpolate.RectBivariateSpline(Tag,Pag,dqdy_Fea.T)
 f_dqdy_Fes=interpolate.RectBivariateSpline(Tsg,Psg,dqdy_Fes.T)
 
-loaded_T=np.loadtxt('EoS/Fe_adiabat.txt')
+loaded_T=np.loadtxt('EoS/Fe_core/Fe_adiabat.txt')
 load_original_T=loaded_T.reshape(loaded_T.shape[0],loaded_T.shape[1]//989,989)
-loaded_dTdT0=np.loadtxt('EoS/Fe_dTdT0.txt')
+loaded_dTdT0=np.loadtxt('EoS/Fe_core/Fe_dTdT0.txt')
 load_original_dTdT0=loaded_dTdT0.reshape(loaded_dTdT0.shape[0],loaded_dTdT0.shape[1]//989,989)
-loaded_dT0dP=np.loadtxt('EoS/Fe_dT0dP.txt')
+loaded_dT0dP=np.loadtxt('EoS/Fe_core/Fe_dT0dP.txt')
 load_original_dT0dP=loaded_dT0dP.reshape(loaded_dT0dP.shape[0],loaded_dT0dP.shape[1]//826,826)
-x_core_grid=np.loadtxt('EoS/Fe_adiabat_xgrid.txt')
-Tref_core_grid=np.loadtxt('EoS/Fe_adiabat_Tgrid.txt')
-P_core_grid=np.loadtxt('EoS/Fe_adiabat_Pgrid.txt')
-Tgrid_core_grid=np.loadtxt('EoS/Fe_adiabat_P_Tgridgrid.txt')
+x_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_xgrid.txt')
+Tref_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_Tgrid.txt')
+P_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_Pgrid.txt')
+Tgrid_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_P_Tgridgrid.txt')
 f_dT0dP=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, Tgrid_core_grid), load_original_dT0dP)
 
+load_file=np.loadtxt('input.txt')
+results_foldername='results_Mass'+str(load_file[0])+'EarthMass_CoreMassFraction'+str(load_file[1])+'_TotalTime'+str(load_file[2])+'Gyr_RadiogenicHeatingKThU238U235RatioToEarth'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_EquilibriumTemperature'+str(load_file[8])+'K'
+
 print('Read structure and property profiles')
-mass_profile=np.loadtxt('initial/structure0.txt')
-P_profile=np.loadtxt('initial/henyey0.txt')
+mass_profile=np.loadtxt(results_foldername+'/profile/t0/structure0.txt')
+P_profile=np.loadtxt(results_foldername+'/profile/t0/henyey0.txt')
 cdef double[:] mass=mass_profile[:,8]
 cdef double[:] melt_pressure=P_profile[:,1]
 cdef double[:] melt_pressure_cell=P_profile[:,3]
 cdef double[:] mass_cell=mass_profile[:,9]
 
-Fe_melt_file=np.loadtxt('initial/Fe_melt.txt')
+Fe_melt_file=np.loadtxt(results_foldername+'/profile/t0/Fe_melt.txt')
 cdef double[:] melt_pressure_Fe=Fe_melt_file[:,0]
 cdef double[:] T_Fe_melt=Fe_melt_file[:,1]
 cdef double[:] melt_pressure_Fe_GPa=np.zeros(len(melt_pressure_Fe))
@@ -378,12 +381,10 @@ for i in range(len(melt_pressure_Fe)):
     melt_pressure_Fe_GPa[i]=melt_pressure_Fe[i]/1e9
 f_interp_Tsimon=interpolate.interp1d(melt_pressure_Fe_GPa,T_Fe_melt)
 
-initial_profile=np.loadtxt('initial/structure0.txt')
-initial_property=np.loadtxt('initial/property0.txt')
-initial_henyey=np.loadtxt('initial/henyey0.txt')
-previous=np.loadtxt('initial/previous0.txt')
-
-load_file=np.loadtxt('input.txt')
+initial_profile=np.loadtxt(results_foldername+'/profile/t0/structure0.txt')
+initial_property=np.loadtxt(results_foldername+'/profile/t0/property0.txt')
+initial_henyey=np.loadtxt(results_foldername+'/profile/t0/henyey0.txt')
+previous=np.loadtxt(results_foldername+'/profile/t0/previous0.txt')
 
 cdef double t=0.0#previous[0]
 cdef double dt=5e7#previous[1]
@@ -484,16 +485,16 @@ cdef double k_Fe=40.0
 cdef double k_ol=4.0
 
 cdef double tau_m_Th=14.0
-cdef double Q_radm_Th=2.24*10.0**(-12.0)
+cdef double Q_radm_Th=2.24*10.0**(-12.0)*load_file[3]
 cdef double tau_m_K=1.25
-cdef double Q_radm_K=8.69*10.0**(-13.0)
+cdef double Q_radm_K=8.69*10.0**(-13.0)*load_file[4]
 cdef double tau_m_U8=4.47
-cdef double Q_radm_U8=1.97*10.0**(-12.0)
+cdef double Q_radm_U8=1.97*10.0**(-12.0)*load_file[5]
 cdef double tau_m_U5=0.704
-cdef double Q_radm_U5=8.48*10.0**(-14.0)
+cdef double Q_radm_U5=8.48*10.0**(-14.0)*load_file[6]
 
 cdef double Fs=239.575#287043.75
-cdef double Teq=255.0
+cdef double Teq=load_file[8]
 cdef double CMF=load_file[1]
 cdef double x_init=0.105
 cdef int mantle_zone=previous[-2]
@@ -1839,14 +1840,19 @@ while t<end_time:
     Buoy_T_value=alpha[core_outer_index]*initial_gravity[core_outer_index]/(initial_density[core_outer_index]*C_P_Fe)*(Fcmb-k_Fe*(initial_gravity[core_outer_index]*new_alpha[core_outer_index]*new_T[core_outer_index]/C_P_Fe))
     rho_core=M_pl*CMF/(4.0/3.0*math.pi*initial_radius[core_outer_index]**3.0)
     if solid_index==0:
-        Buoy_x_value=initial_gravity[solid_index]*(f_rho_Fes(T_center,P_center)[0]-initial_density[solid_index+1])/rho_core*(Ric/(initial_radius[core_outer_index]))**2.0*(Ric-old_Ric)/dt
+        Buoy_x_value=initial_gravity[solid_index]*(f_rho_Fes(T_center,P_center)[0][0]-initial_density[solid_index+1])/rho_core*(Ric/(initial_radius[core_outer_index]))**2.0*(Ric-old_Ric)/dt
     else:
         Buoy_x_value=initial_gravity[solid_index]*(initial_density[solid_index-1]-initial_density[solid_index+1])/rho_core*(Ric/(initial_radius[core_outer_index]))**2.0*(Ric-old_Ric)/dt
-    core_m=4.0*math.pi*initial_radius[core_outer_index+1]**3.0*0.2*(initial_density[solid_index-1]/(2.0*4.0*math.pi*1e-7))**0.5*((Buoy_T_value+Buoy_x_value)*(initial_radius[core_outer_index]-initial_radius[solid_index]))**(1.0/3.0)
+    if Buoy_T_value+Buoy_x_value>0.0:
+        core_m=4.0*math.pi*initial_radius[core_outer_index+1]**3.0*0.2*(initial_density[solid_index-1]/(2.0*4.0*math.pi*1e-7))**0.5*((Buoy_T_value+Buoy_x_value)*(initial_radius[core_outer_index]-initial_radius[solid_index]))**(1.0/3.0)
+    else:
+        core_m=0.0
+
     if iteration%10.0==0.0:
         Buoy_T.append(Buoy_T_value)
         Buoy_x.append(Buoy_x_value)
         core_dipole_m.append(core_m)
+
 
     if t<3000*86400.0*365.0:
         ds_thres=ds_thres_xl
@@ -1900,12 +1906,14 @@ while t<end_time:
 
     for ind in range(len(save_t)):
         if t<save_t[ind]*86400.0*365.0+dt and t>save_t[ind]*86400.0*365.0-dt:
-            np.savetxt('results/profile/structure_'+str(int(save_t[ind]))+'.txt',np.transpose([initial_radius,initial_pressure,initial_temperature,initial_density,initial_gravity]))
-            np.savetxt('results/profile/property_'+str(int(save_t[ind]))+'.txt',np.transpose([alpha,CP,initial_gravity,Fconv,v_MO,Rem_MO,viscosity]))
-            np.savetxt('results/evolution_temp.txt',np.transpose([t_array,dt_array,average_S,average_Tm,average_Tc,Tsurf_array,Tcmb_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,T_center_array]))#,Buoy_T,Buoy_x,core_dipole_m]))
-
-
+            np.savetxt(results_foldername+'/profile/StructureProfile_'+str(int(save_t[ind]))+'.txt',np.transpose([initial_radius,initial_pressure,initial_density,initial_gravity,
+                initial_temperature,alpha,CP,Fconv,v_MO,Rem_MO,viscosity]), header='radius, pressure, density, gravitational acceleration, temperature, thermal expansion coefficient, specific heat, mantle convective heat flux, mantle convective velocity, mantle magnetic Reynolds number, mantle viscosity')
+            np.savetxt(results_foldername+'/evolution.txt',np.transpose([t_array,dt_array,average_Tm,average_Tc,Tsurf_array,Tcmb_array,T_center_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,Buoy_T,Buoy_x,core_dipole_m]),
+                header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature,surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment')
+                                                             
     iteration=iteration+1
     t=t+dt
-np.savetxt('results/evolution.txt',np.transpose([t_array,dt_array,average_S,average_Tm,average_Tc,Tsurf_array,Tcmb_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,T_center_array]))#,Buoy_T,Buoy_x],core_dipole_m]))
-
+np.savetxt(results_foldername+'/evolution.txt',np.transpose([t_array,dt_array,average_Tm,average_Tc,Tsurf_array,Tcmb_array,T_center_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,Buoy_T,Buoy_x,core_dipole_m]),
+    header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature,surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment')
+                                                             
+structure_
