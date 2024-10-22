@@ -5,3 +5,4 @@ build
 results*
 venv
 .ipynb_checkpoints
+.venv
