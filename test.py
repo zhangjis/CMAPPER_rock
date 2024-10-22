@@ -16,9 +16,6 @@ load_file=np.loadtxt('input.txt')
 results_foldername='results_Mass'+str(load_file[0])+'EarthMass_CoreMassFraction'+str(load_file[1])+'_TotalTime'+str(load_file[2])+'Gyr_RadiogenicHeatingKThU238U235RatioToEarth'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_EquilibriumTemperature'+str(load_file[8])+'K'
 os.makedirs(results_foldername+'/profile/t0', exist_ok=True)
 
-previous=np.loadtxt(results_foldername+'/profile/t0/previous0.txt')
-core_zone=previous[-1]
-
 # filepaths
 filefolders = [
     results_foldername+'/image/TemperatureVsPressure/step',
@@ -40,6 +37,10 @@ for program in program_list:
     print("Start:" + program)
     subprocess.call(['python3', program])
     print("Simulation finished")
+
+previous=np.loadtxt(results_foldername+'/profile/t0/previous0.txt')
+core_zone=previous[-1]
+
 N_PLOTS = 312
 print('Plotting %d timesteps...' % N_PLOTS)
 
