@@ -1,4 +1,4 @@
-PYTHON=python4
+PYTHON=python3
 PIP=pip3
 CFLAGS="-Ofast -Wno-unreachable-code -Wno-unreachable-code-fallthrough"
 
