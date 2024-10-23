@@ -35,7 +35,7 @@ program_list=[
 'rocky_class.py','heat_transport.py']
 for program in program_list:
     print("Start:" + program)
-    subprocess.call(['python3', program])
+    subprocess.check_call(['python3', program])
     print("Simulation finished")
 
 previous=np.loadtxt(results_foldername+'/profile/t0/previous0.txt')
