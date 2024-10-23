@@ -2,7 +2,7 @@ PYTHON=python3
 PIP=pip3
 CFLAGS="-Ofast -Wno-unreachable-code -Wno-unreachable-code-fallthrough"
 
-all: check-python dependencies build run
+all: check-python check-conda dependencies build run
 
 check-python:
 	@echo "\n**********************************************"\
@@ -11,6 +11,15 @@ check-python:
 	@${PYTHON} --version > /dev/null 2>&1\
 		&& echo "Python version is $$(${PYTHON} --version)"\
 		|| ( echo "Python install not found, please install ${PYTHON}" && exit 1 )
+
+check-conda:
+ifeq ($(CMAP_CONDA_CHECK), FALSE)
+	@echo "Skipping Anaconda \$$PATH check..."
+else
+	@if [ $$(which -a ${PYTHON} | grep "opt/anaconda*/envs/*/bin/${PYTHON}" | wc -l) -ge 2 ]; then\
+		echo "Multiple Anaconda envs found in \$$PATH, exiting. Run \`export \$$CMAP_CONDA_CHECK=FALSE\` to disable this check" && exit 1;\
+	fi
+endif
 
 dependencies:
 	@echo "\n**********************************************"\
