@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 load_file=np.loadtxt('input.txt')
-results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'Gyr_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])
+results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])
 os.makedirs(results_foldername+'/profile/t0', exist_ok=True)
 
 # filepaths
@@ -31,8 +31,8 @@ filefolders = [
 ]
 for filefolder in filefolders:
     os.makedirs(filefolder, exist_ok=True)
-program_list=[
-'rocky_class.py','heat_transport.py']
+
+program_list=['rocky_class.py','heat_transport.py']
 for program in program_list:
     print("Start:" + program)
     subprocess.check_call(['python3', program])
@@ -41,7 +41,7 @@ for program in program_list:
 previous=np.loadtxt(results_foldername+'/profile/t0/previous0.txt')
 core_zone=previous[-1]
 
-N_PLOTS = 312
+N_PLOTS = 247
 print('Plotting %d timesteps...' % N_PLOTS)
 
 evo=np.loadtxt(results_foldername+'/evolution.txt')
@@ -214,13 +214,13 @@ plt.savefig(results_foldername+'/image/CoreDipolarMagneticMoment.png',dpi=200)
 plt.close()
 
 save_t=[1.0]
-for i in range(1,312):
+for i in range(1,247):
     if save_t[i-1]<5000.0:
-        save_t.append(save_t[i-1]+60.0)
+        save_t.append(save_t[i-1]+80.0)
     elif save_t[i-1]<1e8:
-        save_t.append(save_t[i-1]+int(save_t[i-1]/8.0))
+        save_t.append(save_t[i-1]+int(save_t[i-1]/6.0))
     else:
-        save_t.append(save_t[i-1]+int(save_t[i-1]/30.0))
+        save_t.append(save_t[i-1]+int(save_t[i-1]/25.0))
 save_t_title=save_t.copy()
 t_title=[]
 for i in range(len(save_t)):
@@ -254,8 +254,6 @@ mass=mass_profile[:,8]
 s=np.loadtxt(results_foldername+'/profile/StructureProfile_'+str(int(save_t[0]))+'.txt')
 T_max=max(s[:,4])+max(s[:,4])*0.01
 R_max=max(s[:,0])+max(s[:,0])*0.01
-Rem_max=max(s[:,9])+max(s[:,9])*0.01
-vconv_max=max(s[:,8][int(core_zone+5):-2])+max(s[:,8][int(core_zone+5):-2])*0.01
 Fconv_max=(max(s[:,7][int(core_zone+5):-2])+max(s[:,7][int(core_zone+5):-2])*0.01)/(4.0*np.pi*s[:,0][-1]**2.0)
 s=np.loadtxt(results_foldername+'/profile/StructureProfile_'+str(int(save_t[N_PLOTS-1]))+'.txt')
 T_min=min(s[:,4])-50.0
@@ -264,6 +262,10 @@ P_min=-1.0
 rho_max=max(s[:,2])+max(s[:,2])*0.01
 g_max=max(s[:,3])+max(s[:,3])*0.01
 eta_max=max(s[:,10])+max(s[:,10])*0.01
+s=np.loadtxt(results_foldername+'/profile/StructureProfile_'+str(int(save_t[1]))+'.txt')
+Rem_max=max(s[:,9])+max(s[:,9])*0.01
+vconv_max=max(s[:,8][int(core_zone+5):-2])+max(s[:,8][int(core_zone+5):-2])*0.01
+
 
 for i in tqdm(range(N_PLOTS)):
     s=np.loadtxt(results_foldername+'/profile/StructureProfile_'+str(int(save_t[i]))+'.txt')

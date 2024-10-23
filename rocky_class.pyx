@@ -28,8 +28,8 @@ import time
 # line 1625-1682: Initialize thermal and structural profiles
 # line 1684-1742: while loop for updating thermal profiles using heat transport routines and structural profiles using Henyey solver
 
-load_file=np.loadtxt('input.txt') # read in input files.
-results_foldername='results_Mass'+str(load_file[0])+'EarthMass_CoreMassFraction'+str(load_file[1])+'_TotalTime'+str(load_file[2])+'Gyr_RadiogenicHeatingKThU238U235RatioToEarth'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_EquilibriumTemperature'+str(load_file[8])+'K'
+load_file=np.loadtxt('input.txt')
+results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])
 
 print('Read EoS tables')
 T_liq=np.loadtxt('EoS/mantle/T_liq_Py_1500GPa.txt')
@@ -167,6 +167,15 @@ alpha_Py_mix_pv=interpolate.RectBivariateSpline(P_grid_pv,y_grid,alpha_mix_pv)
 dTdP_Py_mix_pv=interpolate.RectBivariateSpline(P_grid_pv,y_grid,dTdP_mix_pv)
 dqdy_Py_mix_pv=interpolate.RectBivariateSpline(P_grid_pv,y_grid,dqdy_mix_pv)
 
+#import a grid of Pc and Tc values. Using interpolated values as initial guesses for Pc and Tc
+load_Pc=np.loadtxt('EoS/Guess_initial/Pc.txt')
+load_Tc=np.loadtxt('EoS/Guess_initial/Tc.txt')
+load_Mplgrid=np.loadtxt('EoS/Guess_initial/Mpl_grid.txt')
+load_CMFgrid=np.loadtxt('EoS/Guess_initial/CMF_grid.txt')
+f_Pc_i=interpolate.RectBivariateSpline(load_Mplgrid,load_CMFgrid,load_Pc)
+f_Tc_i=interpolate.RectBivariateSpline(load_Mplgrid,load_CMFgrid,load_Tc)
+
+
 # all variables are in SI units, unless otherwise noted.
 cdef double M_pl=load_file[0]*5.972e24 # planet mass in kg
 cdef double CMF=load_file[1] # core mass fraction
@@ -182,11 +191,11 @@ cdef double Teq=load_file[8] # equilibrium temperature in K.
 cdef double Q_rad_c_0=0.0 # Current day core radiogenic heating in W/kg.
 cdef double P_surf=1e5 # Surface pressure in Pa.
 
-cdef int c_z=350 # zones in the core
-cdef int m_z=350 # zones in the mantle
-cdef int zone=c_z+m_z # total number of zones in the planet
-cdef double P_c=1000e9 # initial guess of the central pressure in Pa. Subsequent update in the code is the actual central pressure in Pa.
-cdef double T_c=10500.0 # Central temperature in K
+cdef int zone=int((load_file[0]-1.0)*80.0+600.0) # total number of zones in the planet
+cdef int c_z=int(load_file[1]*0.8*zone) # zones in the core
+cdef int m_z=zone-c_z # zones in the mantle
+cdef double P_c=f_Pc_i(load_file[0],load_file[1]*100.0)[0][0]#1000e9 # initial guess of the central pressure in Pa. Subsequent update in the code is the actual central pressure in Pa.
+cdef double T_c=f_Tc_i(load_file[0],load_file[1]*100.0)[0][0]#10500.0 # Central temperature in K
 cdef double T_an_c_i=7000.0 # initial guess of the entropy temperature of the core in K.
 
 cdef double MMF=1.0-CMF # mantle mass fraction
@@ -504,8 +513,8 @@ cdef class c_initial_profile:
                         melt_frac[i]=1.0
                     logrho[i]=np.log(rho[i])
 
-            if iteration%100==0:
-                print(iteration,pressure[zone-1]/1e9)
+            if iteration%10==0:
+                print('Iteration:%d Surface pressure:%2.2f bar' %(iteration,pressure[zone-1]/1e5))
             iteration=iteration+1
 
         for i in range(zone):
@@ -791,7 +800,7 @@ cdef c_henyey henyey_obj=c_henyey(ri['mass'], ri['radius'], ri['logr'], ri['pres
                     ri['P_c'], ri['rho_c'], ri['dqdy_c'], P_surf, rtol,
                     ri['T_an_c'], c_z, m_z, x_c)
 cdef dict rh=henyey_obj.henyey_m(dsdr_c,initial) # Using henyey code to relax the solution to RK4 such that the solution satisfies the boundary condition at both planet center and surface
-
+print('Final check of surface pressure:%2.2f bar'%(rh['pressure'][-1]/1e5))
 
 cdef double[:] PdV=np.zeros(zone);
 cdef double[:] dEG=np.zeros(zone);

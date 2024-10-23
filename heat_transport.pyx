@@ -363,7 +363,7 @@ Tgrid_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_P_Tgridgrid.txt')
 f_dT0dP=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, Tgrid_core_grid), load_original_dT0dP)
 
 load_file=np.loadtxt('input.txt')
-results_foldername='results_Mass'+str(load_file[0])+'EarthMass_CoreMassFraction'+str(load_file[1])+'_TotalTime'+str(load_file[2])+'Gyr_RadiogenicHeatingKThU238U235RatioToEarth'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_EquilibriumTemperature'+str(load_file[8])+'K'
+results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])
 
 print('Read structure and property profiles')
 mass_profile=np.loadtxt(results_foldername+'/profile/t0/structure0.txt')
@@ -497,15 +497,14 @@ cdef double Fs=239.575#287043.75
 cdef double Teq=load_file[8]
 cdef double CMF=load_file[1]
 cdef double x_init=0.105
-cdef int mantle_zone=previous[-2]
-cdef int core_zone=previous[-1]
+cdef int mantle_zone=previous[-1]
+cdef int core_zone=previous[-2]
 cdef int zone=mantle_zone+core_zone
 cdef int core_outer_index=core_zone-1
 cdef double S_width_s=5.0
 cdef double S_width_m=1.0
 cdef double Re_width=0.3
 cdef double mf_l=0.16
-
 cdef double l_alpha=0.82#0.431#0.82#0.431#0.82
 cdef double l_beta=1.0#0.6734#1.0#0.6734#1.0
 
@@ -932,13 +931,14 @@ cdef double[:] Rem_MO=np.zeros(zone)
 cdef double t_val
 
 save_t=[1.0]
-for i in range(1,312):
+for i in range(1,247):
     if save_t[i-1]<5000.0:
-        save_t.append(save_t[i-1]+60.0)
+        save_t.append(save_t[i-1]+80.0)
     elif save_t[i-1]<1e8:
-        save_t.append(save_t[i-1]+int(save_t[i-1]/8.0))
+        save_t.append(save_t[i-1]+int(save_t[i-1]/6.0))
     else:
-        save_t.append(save_t[i-1]+int(save_t[i-1]/30.0))
+        save_t.append(save_t[i-1]+int(save_t[i-1]/25.0))
+
 cdef Py_ssize_t ind
 
 cdef double core_m
@@ -1072,14 +1072,14 @@ while t<end_time:
     Ra_nu_s=f_viscosity(Ra_T_s, Ra_P_s, Ra_rho_s, initial_phase[zone-1], Ra_x_s, 3700.0, 4000.0)
 
     Ttol=1.0
-    while Ttol>rtol:
-        delta_T_ra_s=Ra_T_s-old_T_s
-        delta_r_s=(4.0*Ra_nu_s*660.0/(Ra_rho_s*Ra_CP_s*Ra_alpha_s*Ra_g_s*delta_T_ra_s))**(1.0/3.0)
-        Fsurf=-k_array[-1]*delta_T_ra_s/delta_r_s
-        T_s=(-Fsurf/sigma+Teq**4.0)**0.25
-        Ttol=abs(old_T_s-T_s)/old_T_s
-        old_T_s=T_s
-        #print('Hello Tstol', delta_r_s,T_s,Ttol)
+    if surf_flag==1.0:
+        while Ttol>rtol:
+            delta_T_ra_s=Ra_T_s-old_T_s
+            delta_r_s=(4.0*Ra_nu_s*660.0/(Ra_rho_s*Ra_CP_s*Ra_alpha_s*Ra_g_s*delta_T_ra_s))**(1.0/3.0)
+            Fsurf=-k_array[-1]*delta_T_ra_s/delta_r_s
+            T_s=(-Fsurf/sigma+Teq**4.0)**0.25
+            Ttol=abs(old_T_s-T_s)/old_T_s
+            old_T_s=T_s
     if delta_r_s<=initial_radius[zone-1]-radius_cell[zone-1] and surf_flag==1.0:
         surf_flag=1.0
     else:
@@ -1115,13 +1115,6 @@ while t<end_time:
 
     #if surf_flag==1.0:
     T_s=(-Fsurf/sigma+Teq**4.0)**0.25
-    #print('Hello1',old_radius[zone-1],old_radius[zone-2],old_Ra_r_s,delta_r_s)
-    #print('Hello2',old_pressure[zone-1],old_pressure[zone-2],Ra_P_s)
-    #print('Hello3',surf_flag,solution[-1])
-    #print('Hello4',delta_T_ra_s)
-    #print('Hello5',T_s)
-    #S_s=solution_s[-1]
-    #print('Hello0',(old_S_s-S_s)/S_s)
 
     new_Scell=np.zeros(zone)
     for i in range(core_outer_index+1,zone):
