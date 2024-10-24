@@ -9,7 +9,7 @@ check-python:
 		"\nChecking Python version..."\
 		"\n**********************************************\n"
 	@${PYTHON} --version > /dev/null 2>&1\
-		&& echo "Python version is $$(${PYTHON} --version)"\
+		&& echo "Note: Python version is $$(${PYTHON} --version) and pip version is $$(${PIP} --version | cut -d ' ' -f1-2). Looks like it should be good!"\
 		|| ( echo "Python install not found, please install ${PYTHON}" && exit 1 )
 
 check-conda:
