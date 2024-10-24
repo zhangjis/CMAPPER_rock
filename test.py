@@ -351,7 +351,7 @@ for i in tqdm(range(N_PLOTS)):
     plt.figure(figsize=(8,6))
     plt.plot(mass/5.972e24,s[:,9],color='black',linewidth=2.0)
     plt.ylim(0.01,Rem_max)
-    #plt.yscale('log')
+    plt.yscale('log')
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
     plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1])+'   '+t_title[i] ,fontsize=16)

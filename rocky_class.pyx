@@ -192,7 +192,7 @@ cdef double Q_rad_c_0=0.0 # Current day core radiogenic heating in W/kg.
 cdef double P_surf=1e5 # Surface pressure in Pa.
 
 cdef int zone=int((load_file[0]-1.0)*80.0+600.0) # total number of zones in the planet
-cdef int c_z=int(load_file[1]*0.8*zone) # zones in the core
+cdef int c_z=int(load_file[1]*zone) # zones in the core
 cdef int m_z=zone-c_z # zones in the mantle
 cdef double P_c=f_Pc_i(load_file[0],load_file[1]*100.0)[0][0]#1000e9 # initial guess of the central pressure in Pa. Subsequent update in the code is the actual central pressure in Pa.
 cdef double T_c=f_Tc_i(load_file[0],load_file[1]*100.0)[0][0]#10500.0 # Central temperature in K
