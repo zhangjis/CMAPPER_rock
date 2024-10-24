@@ -213,6 +213,9 @@ cpdef double[:] penta_solver(double[:] a, double[:] b, double[:] c, double[:] d,
 
 cdef Py_ssize_t i,j,x_idx,Tref_idx
 
+load_file=np.loadtxt('input.txt')
+results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])
+
 T_sol_pv=np.loadtxt('EoS/mantle/T_sol_pv_Py.txt')
 rho_sol_pv=np.loadtxt('EoS/mantle/rho_sol_pv_Py.txt')
 alpha_sol_pv=np.loadtxt('EoS/mantle/alpha_sol_pv_Py.txt')
@@ -317,24 +320,66 @@ T_liq_P=interpolate.interp1d(P_grid,T_liq_array)
 T_sol_P=interpolate.interp1d(P_grid,T_sol_array)
 
 print('Read Fe table')
-rho_Fel=np.loadtxt('EoS/Fe_core/rho_Fel.txt')
-alpha_Fel=np.loadtxt('EoS/Fe_core/alpha_Fel.txt')
-dqdy_Fel=np.loadtxt('EoS/Fe_core/dqdy_Fel.txt')
-T_Fel=np.loadtxt('EoS/Fe_core/T_Fel.txt')
-P_Fel=np.loadtxt('EoS/Fe_core/P_Fel.txt')
+if load_file[0]<1.25:
+    rho_Fel=np.loadtxt('EoS/Fe_core/rho_Fel_60GPa.txt')
+    alpha_Fel=np.loadtxt('EoS/Fe_core/alpha_Fel_60GPa.txt')
+    dqdy_Fel=np.loadtxt('EoS/Fe_core/dqdy_Fel_60GPa.txt')
+    T_Fel=np.loadtxt('EoS/Fe_core/T_Fel_60GPa.txt')
+    P_Fel=np.loadtxt('EoS/Fe_core/P_Fel_60GPa.txt')
 
-rho_Fea=np.loadtxt('EoS/Fe_core/rho_Fe16Si.txt')
-alpha_Fea=np.loadtxt('EoS/Fe_core/alpha_Fe16Si.txt')
-dqdy_Fea=np.loadtxt('EoS/Fe_core/dqdy_Fe16Si.txt')
-T_Fea=np.loadtxt('EoS/Fe_core/T_Fe16Si.txt')
-P_Fea=np.loadtxt('EoS/Fe_core/P_Fe16Si.txt')
+    rho_Fea=np.loadtxt('EoS/Fe_core/rho_Fe16Si_60GPa.txt')
+    alpha_Fea=np.loadtxt('EoS/Fe_core/alpha_Fe16Si_60GPa.txt')
+    dqdy_Fea=np.loadtxt('EoS/Fe_core/dqdy_Fe16Si_60GPa.txt')
+    T_Fea=np.loadtxt('EoS/Fe_core/T_Fe16Si_60GPa.txt')
+    P_Fea=np.loadtxt('EoS/Fe_core/P_Fe16Si_60GPa.txt')
 
-rho_Fes=np.loadtxt('EoS/Fe_core/rho_Fes_dew06.txt')
-alpha_Fes=np.loadtxt('EoS/Fe_core/alpha_Fes_dew06.txt')
-dqdy_Fes=np.loadtxt('EoS/Fe_core/dqdy_Fes_dew06.txt')
-T_Fes=np.loadtxt('EoS/Fe_core/T_Fes_dew06.txt')
-P_Fes=np.loadtxt('EoS/Fe_core/P_Fes_dew06.txt')
+    rho_Fes=np.loadtxt('EoS/Fe_core/rho_Fes_dew06_60GPa.txt')
+    alpha_Fes=np.loadtxt('EoS/Fe_core/alpha_Fes_dew06_60GPa.txt')
+    dqdy_Fes=np.loadtxt('EoS/Fe_core/dqdy_Fes_dew06_60GPa.txt')
+    T_Fes=np.loadtxt('EoS/Fe_core/T_Fes_dew06_60GPa.txt')
+    P_Fes=np.loadtxt('EoS/Fe_core/P_Fes_dew06_60GPa.txt')
 
+    loaded_T=np.loadtxt('EoS/Fe_core/Fe_adiabat_60GPa.txt')
+    load_original_T=loaded_T.reshape(loaded_T.shape[0],loaded_T.shape[1]//995,995)
+    loaded_dTdT0=np.loadtxt('EoS/Fe_core/Fe_dTdT0_60GPa.txt')
+    load_original_dTdT0=loaded_dTdT0.reshape(loaded_dTdT0.shape[0],loaded_dTdT0.shape[1]//995,995)
+    loaded_dT0dP=np.loadtxt('EoS/Fe_core/Fe_dT0dP_60GPa.txt')
+    load_original_dT0dP=loaded_dT0dP.reshape(loaded_dT0dP.shape[0],loaded_dT0dP.shape[1]//951,951)
+    x_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_xgrid_60GPa.txt')
+    Tref_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_Tgrid_60GPa.txt')
+    P_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_Pgrid_60GPa.txt')
+    Tgrid_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_P_Tgridgrid_60GPa.txt')
+    f_dT0dP=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, Tgrid_core_grid), load_original_dT0dP)
+else:
+    rho_Fel=np.loadtxt('EoS/Fe_core/rho_Fel.txt')
+    alpha_Fel=np.loadtxt('EoS/Fe_core/alpha_Fel.txt')
+    dqdy_Fel=np.loadtxt('EoS/Fe_core/dqdy_Fel.txt')
+    T_Fel=np.loadtxt('EoS/Fe_core/T_Fel.txt')
+    P_Fel=np.loadtxt('EoS/Fe_core/P_Fel.txt')
+
+    rho_Fea=np.loadtxt('EoS/Fe_core/rho_Fe16Si.txt')
+    alpha_Fea=np.loadtxt('EoS/Fe_core/alpha_Fe16Si.txt')
+    dqdy_Fea=np.loadtxt('EoS/Fe_core/dqdy_Fe16Si.txt')
+    T_Fea=np.loadtxt('EoS/Fe_core/T_Fe16Si.txt')
+    P_Fea=np.loadtxt('EoS/Fe_core/P_Fe16Si.txt')
+
+    rho_Fes=np.loadtxt('EoS/Fe_core/rho_Fes_dew06.txt')
+    alpha_Fes=np.loadtxt('EoS/Fe_core/alpha_Fes_dew06.txt')
+    dqdy_Fes=np.loadtxt('EoS/Fe_core/dqdy_Fes_dew06.txt')
+    T_Fes=np.loadtxt('EoS/Fe_core/T_Fes_dew06.txt')
+    P_Fes=np.loadtxt('EoS/Fe_core/P_Fes_dew06.txt')
+
+    loaded_T=np.loadtxt('EoS/Fe_core/Fe_adiabat.txt')
+    load_original_T=loaded_T.reshape(loaded_T.shape[0],loaded_T.shape[1]//989,989)
+    loaded_dTdT0=np.loadtxt('EoS/Fe_core/Fe_dTdT0.txt')
+    load_original_dTdT0=loaded_dTdT0.reshape(loaded_dTdT0.shape[0],loaded_dTdT0.shape[1]//989,989)
+    loaded_dT0dP=np.loadtxt('EoS/Fe_core/Fe_dT0dP.txt')
+    load_original_dT0dP=loaded_dT0dP.reshape(loaded_dT0dP.shape[0],loaded_dT0dP.shape[1]//826,826)
+    x_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_xgrid.txt')
+    Tref_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_Tgrid.txt')
+    P_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_Pgrid.txt')
+    Tgrid_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_P_Tgridgrid.txt')
+    f_dT0dP=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, Tgrid_core_grid), load_original_dT0dP)
 
 Tlg,Plg=np.meshgrid(T_Fel,P_Fel,sparse=True)
 Tag,Pag=np.meshgrid(T_Fea,P_Fea,sparse=True)
@@ -349,21 +394,6 @@ f_alpha_Fes=interpolate.RectBivariateSpline(Tsg,Psg,alpha_Fes.T)
 f_dqdy_Fel=interpolate.RectBivariateSpline(Tlg,Plg,dqdy_Fel.T)
 f_dqdy_Fea=interpolate.RectBivariateSpline(Tag,Pag,dqdy_Fea.T)
 f_dqdy_Fes=interpolate.RectBivariateSpline(Tsg,Psg,dqdy_Fes.T)
-
-loaded_T=np.loadtxt('EoS/Fe_core/Fe_adiabat.txt')
-load_original_T=loaded_T.reshape(loaded_T.shape[0],loaded_T.shape[1]//989,989)
-loaded_dTdT0=np.loadtxt('EoS/Fe_core/Fe_dTdT0.txt')
-load_original_dTdT0=loaded_dTdT0.reshape(loaded_dTdT0.shape[0],loaded_dTdT0.shape[1]//989,989)
-loaded_dT0dP=np.loadtxt('EoS/Fe_core/Fe_dT0dP.txt')
-load_original_dT0dP=loaded_dT0dP.reshape(loaded_dT0dP.shape[0],loaded_dT0dP.shape[1]//826,826)
-x_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_xgrid.txt')
-Tref_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_Tgrid.txt')
-P_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_Pgrid.txt')
-Tgrid_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_P_Tgridgrid.txt')
-f_dT0dP=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, Tgrid_core_grid), load_original_dT0dP)
-
-load_file=np.loadtxt('input.txt')
-results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])
 
 print('Read structure and property profiles')
 mass_profile=np.loadtxt(results_foldername+'/profile/t0/structure0.txt')
@@ -513,7 +543,7 @@ cdef double mantle_mass=M_pl*(1.0-CMF)
 cdef double h_mantle=M_pl*(1.0-CMF)/mantle_zone
 cdef double h_core=M_pl*CMF/core_zone
 
-cdef double Q_rad_c_0=1e12/(math.exp(-4.5/1.2))/(M_E*0.33)*(M_pl*CMF)
+cdef double Q_rad_c_0=0.0#1e12/(math.exp(-4.5/1.2))/(M_E*0.33)*(M_pl*CMF)
 
 cdef double v_b=4.0/CP[zone-1]
 cdef double v_a=v_b*sigma*Teq**4.0
@@ -1886,16 +1916,16 @@ while t<end_time:
     if iteration%20==0:
         if t/86400.0/365.0<1e3:
             t_val=t/86400.0/365.0
-            print('time:%2.2fyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa' %(t_val,Fcmb,-Fsurf,Ric,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9))
+            print('time:%2.2fyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa' %(t_val,Fcmb,-Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9))
         elif t/86400.0/365.0>=1e3 and t/86400.0/365.0<1e6:
             t_val=t/86400.0/365.0/1e3
-            print('time:%2.2fkyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa' %(t_val,Fcmb,-Fsurf,Ric,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9))
+            print('time:%2.2fkyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa' %(t_val,Fcmb,-Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9))
         elif t/86400.0/365.0>=1e6 and t/86400.0/365.0<1e9:
             t_val=t/86400.0/365.0/1e6
-            print('time:%2.2fMyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa' %(t_val,Fcmb,-Fsurf,Ric,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9))
+            print('time:%2.2fMyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa' %(t_val,Fcmb,-Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9))
         else:
             t_val=t/86400.0/365.0/1e9
-            print('time:%2.2fGyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa' %(t_val,Fcmb,-Fsurf,Ric,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9))
+            print('time:%2.2fGyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa' %(t_val,Fcmb,-Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9))
 
     for ind in range(len(save_t)):
         if t<save_t[ind]*86400.0*365.0+dt and t>save_t[ind]*86400.0*365.0-dt:

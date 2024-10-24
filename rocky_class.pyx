@@ -48,16 +48,56 @@ P_grid_ppv=np.loadtxt('EoS/mantle/P_ppv.txt')
 P_grid_en=np.loadtxt('EoS/mantle/P_en.txt')
 P_grid=P_solidus_liquidus[:,0][:1500].copy()
 
-rho_Fel=np.loadtxt('EoS/Fe_core/rho_Fel.txt')
-alpha_Fel=np.loadtxt('EoS/Fe_core/alpha_Fel.txt')
-dqdy_Fel=np.loadtxt('EoS/Fe_core/dqdy_Fel.txt')
-T_Fel=np.loadtxt('EoS/Fe_core/T_Fel.txt')
-P_Fel=np.loadtxt('EoS/Fe_core/P_Fel.txt')
-rho_Fea=np.loadtxt('EoS/Fe_core/rho_Fe16Si.txt')
-alpha_Fea=np.loadtxt('EoS/Fe_core/alpha_Fe16Si.txt')
-dqdy_Fea=np.loadtxt('EoS/Fe_core/dqdy_Fe16Si.txt')
-T_Fea=np.loadtxt('EoS/Fe_core/T_Fe16Si.txt')
-P_Fea=np.loadtxt('EoS/Fe_core/P_Fe16Si.txt')
+if load_file[0]<1.25:
+    rho_Fel=np.loadtxt('EoS/Fe_core/rho_Fel_60GPa.txt')
+    alpha_Fel=np.loadtxt('EoS/Fe_core/alpha_Fel_60GPa.txt')
+    dqdy_Fel=np.loadtxt('EoS/Fe_core/dqdy_Fel_60GPa.txt')
+    T_Fel=np.loadtxt('EoS/Fe_core/T_Fel_60GPa.txt')
+    P_Fel=np.loadtxt('EoS/Fe_core/P_Fel_60GPa.txt')
+    rho_Fea=np.loadtxt('EoS/Fe_core/rho_Fe16Si_60GPa.txt')
+    alpha_Fea=np.loadtxt('EoS/Fe_core/alpha_Fe16Si_60GPa.txt')
+    dqdy_Fea=np.loadtxt('EoS/Fe_core/dqdy_Fe16Si_60GPa.txt')
+    T_Fea=np.loadtxt('EoS/Fe_core/T_Fe16Si_60GPa.txt')
+    P_Fea=np.loadtxt('EoS/Fe_core/P_Fe16Si_60GPa.txt')
+    loaded_T=np.loadtxt('EoS/Fe_core/Fe_adiabat_60GPa.txt')
+    load_original_T=loaded_T.reshape(loaded_T.shape[0],loaded_T.shape[1]//995,995)#141
+    x_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_xgrid_60GPa.txt')
+    Tref_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_Tgrid_60GPa.txt')
+    pre_adiabat_pressure=np.loadtxt('EoS/Fe_core/Fe_adiabat_Pgrid_60GPa.txt')
+    f_adiabat=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, pre_adiabat_pressure), load_original_T)
+
+    loaded_dTdT0=np.loadtxt('EoS/Fe_core/Fe_dTdT0_60GPa.txt')
+    load_original_dTdT0=loaded_dTdT0.reshape(loaded_dTdT0.shape[0],loaded_dTdT0.shape[1]//995,995)
+    loaded_dT0dP=np.loadtxt('EoS/Fe_core/Fe_dT0dP_60GPa.txt')
+    load_original_dT0dP=loaded_dT0dP.reshape(loaded_dT0dP.shape[0],loaded_dT0dP.shape[1]//951,951)
+    Tgrid_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_P_Tgridgrid_60GPa.txt')
+    f_dT0dP=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, Tgrid_core_grid), load_original_dT0dP)
+
+else:
+    rho_Fel=np.loadtxt('EoS/Fe_core/rho_Fel.txt')
+    alpha_Fel=np.loadtxt('EoS/Fe_core/alpha_Fel.txt')
+    dqdy_Fel=np.loadtxt('EoS/Fe_core/dqdy_Fel.txt')
+    T_Fel=np.loadtxt('EoS/Fe_core/T_Fel.txt')
+    P_Fel=np.loadtxt('EoS/Fe_core/P_Fel.txt')
+    rho_Fea=np.loadtxt('EoS/Fe_core/rho_Fe16Si.txt')
+    alpha_Fea=np.loadtxt('EoS/Fe_core/alpha_Fe16Si.txt')
+    dqdy_Fea=np.loadtxt('EoS/Fe_core/dqdy_Fe16Si.txt')
+    T_Fea=np.loadtxt('EoS/Fe_core/T_Fe16Si.txt')
+    P_Fea=np.loadtxt('EoS/Fe_core/P_Fe16Si.txt')
+    loaded_T=np.loadtxt('EoS/Fe_core/Fe_adiabat.txt')
+    load_original_T=loaded_T.reshape(loaded_T.shape[0],loaded_T.shape[1]//989,989)#141
+    x_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_xgrid.txt')
+    Tref_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_Tgrid.txt')
+    pre_adiabat_pressure=np.loadtxt('EoS/Fe_core/Fe_adiabat_Pgrid.txt')
+    f_adiabat=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, pre_adiabat_pressure), load_original_T)
+
+    loaded_dTdT0=np.loadtxt('EoS/Fe_core/Fe_dTdT0.txt')
+    load_original_dTdT0=loaded_dTdT0.reshape(loaded_dTdT0.shape[0],loaded_dTdT0.shape[1]//989,989)
+    loaded_dT0dP=np.loadtxt('EoS/Fe_core/Fe_dT0dP.txt')
+    load_original_dT0dP=loaded_dT0dP.reshape(loaded_dT0dP.shape[0],loaded_dT0dP.shape[1]//826,826)
+    Tgrid_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_P_Tgridgrid.txt')
+    f_dT0dP=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, Tgrid_core_grid), load_original_dT0dP)
+
 
 Tlg,Plg=np.meshgrid(T_Fel,P_Fel,sparse=True)
 Tag,Pag=np.meshgrid(T_Fea,P_Fea,sparse=True)
@@ -68,19 +108,7 @@ f_alpha_Fea=interpolate.RectBivariateSpline(P_Fea,T_Fea,alpha_Fea)
 f_dqdy_Fel=interpolate.RectBivariateSpline(P_Fel,T_Fel,dqdy_Fel)
 f_dqdy_Fea=interpolate.RectBivariateSpline(P_Fea,T_Fea,dqdy_Fea)
 
-loaded_T=np.loadtxt('EoS/Fe_core/Fe_adiabat.txt')
-load_original_T=loaded_T.reshape(loaded_T.shape[0],loaded_T.shape[1]//989,989)#141
-x_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_xgrid.txt')
-Tref_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_Tgrid.txt')
-pre_adiabat_pressure=np.loadtxt('EoS/Fe_core/Fe_adiabat_Pgrid.txt')
-f_adiabat=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, pre_adiabat_pressure), load_original_T)
 
-loaded_dTdT0=np.loadtxt('EoS/Fe_core/Fe_dTdT0.txt')
-load_original_dTdT0=loaded_dTdT0.reshape(loaded_dTdT0.shape[0],loaded_dTdT0.shape[1]//989,989)
-loaded_dT0dP=np.loadtxt('EoS/Fe_core/Fe_dT0dP.txt')
-load_original_dT0dP=loaded_dT0dP.reshape(loaded_dT0dP.shape[0],loaded_dT0dP.shape[1]//826,826)
-Tgrid_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_P_Tgridgrid.txt')
-f_dT0dP=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, Tgrid_core_grid), load_original_dT0dP)
 
 T_sol_pv=np.loadtxt('EoS/mantle/T_sol_pv_Py.txt')
 rho_sol_pv=np.loadtxt('EoS/mantle/rho_sol_pv_Py.txt')
@@ -853,16 +881,24 @@ cpdef double T_simon(double P, double x):
 cdef double x_init=0.105
 cdef double[:] T_Fe_melt=np.zeros(c_z)
 cdef double[:] x_melt=np.zeros(c_z)
+
 for i in range(c_z):
-    x=x_init*(M_pl*CMF-ri['mass'][0])/(M_pl*CMF-ri['mass'][i])
-    if x>0.1519:
-        x=0.1519
     if i==c_z-1:
         x=0.1519
+    else:
+        x=x_init*(M_pl*CMF-ri['mass'][0])/(M_pl*CMF-ri['mass'][i])
+        if x>0.1519:
+            x=0.1519
     x_melt[i]=x
-    T_Fe_melt[i]=T_simon(rh['pressure'][i]/1e9,x)
+    if load_file[0]==1.0:
+        T_Fe_melt[i]=T_simon(rh['pressure'][i]/1e9+2.0,x)
+    else:
+        T_Fe_melt[i]=T_simon(rh['pressure'][i]/1e9,x)
 
 cdef double[:] T_melt_P=rh['pressure'].copy()
+if load_file[0]==1.0:
+    for i in range(zone):
+        T_melt_P[i]=T_melt_P[i]+2e9
 T_melt_P[0]=2.0*T_melt_P[1]-T_melt_P[2]
 T_Fe_melt[0]=2.0*T_Fe_melt[1]-T_Fe_melt[2]
 
