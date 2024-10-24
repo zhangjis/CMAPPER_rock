@@ -1,5 +1,5 @@
 #
-!!!! The individual files for EoS tables in EoS and mixture_table are compressed into gz files, so the files are small enough to be uploaded onto github. Please unzip the files in these two folders before compiling and running the code. (this issue will be fixed shortly by the end of this week).
+!!!! The individual files for EoS tables in EoS and mixture_table are compressed into gz files, so the files are small enough to be uploaded onto github. Please unzip the files in these two folders before compiling and running the code. (this issue will be fixed shortly by the end of this week). ----- Note by Jisheng, this may not be needed. np.loadtxt decompresses gz files automatically. 
 
 # CMAPPER
 
