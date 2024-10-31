@@ -14,7 +14,7 @@ import numpy as np
 
 load_file=np.loadtxt('input.txt')
 results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])
-#os.makedirs(results_foldername+'/profile/t0', exist_ok=True)
+os.makedirs(results_foldername+'/profile/t0', exist_ok=True)
 
 # filepaths
 filefolders = [
@@ -29,21 +29,21 @@ filefolders = [
     results_foldername+'/image/GravityVsMass/step'
 ]
 
-#for filefolder in filefolders:
-#    os.makedirs(filefolder, exist_ok=True)
-"""
+for filefolder in filefolders:
+    os.makedirs(filefolder, exist_ok=True)
+
 program_list=['rocky_class.py','heat_transport.py']
 for program in program_list:
     print("Start:" + program)
     subprocess.check_call(['python3', program])
     print("Simulation finished")
-"""
+
 previous=np.loadtxt(results_foldername+'/profile/t0/previous0.txt')
 core_zone=previous[-1]
 
 N_PLOTS = 182
 print('Plotting %d timesteps...' % N_PLOTS)
-"""
+
 evo=np.loadtxt(results_foldername+'/evolution.txt')
 plt.figure(figsize=(8,6))
 plt.plot(evo[:,0]/86400.0/365.0,evo[:,7],color='black',linewidth=2.0,label='Surface heat flux')
@@ -214,7 +214,7 @@ plt.xlabel('Time (Gyr)',fontsize=16.5)
 plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1]) ,fontsize=16)
 plt.savefig(results_foldername+'/image/CoreDipolarMagneticMoment.png',dpi=200)
 plt.close()
-"""
+
 save_t=[1.0]
 for i in range(1,182):
     if save_t[i-1]<5000.0:
@@ -271,7 +271,7 @@ eta_max=max(s[:,12])+max(s[:,12])*0.01
 s=np.loadtxt(results_foldername+'/profile/StructureProfile_'+str(int(save_t[1]))+'.txt')
 Rem_max=max(s[:,11])*5.0#+max(s[:,11])*0.01
 vconv_max=max(s[:,10][5:-2])*5.0#+max(s[:,10][5:-2])*0.01
-"""
+
 for i in tqdm(range(1,N_PLOTS)):
     s=np.loadtxt(results_foldername+'/profile/StructureProfile_'+str(int(save_t[i]))+'.txt')
     
@@ -381,7 +381,7 @@ for i in tqdm(range(1,N_PLOTS)):
     plt.xlabel(r'Mass ($M_{\oplus}$)',fontsize=16.5)
     plt.savefig(results_foldername+'/image/MantleViscosityVsMass/step/%04d.png' % i,dpi=200)
     plt.close()
-"""
+
 
 print('Making movies')
 os.makedirs(results_foldername+'/movie', exist_ok=True)
@@ -428,8 +428,8 @@ for i in range(len(out_names)):
     cv2.destroyAllWindows()
 
     print("The output video is {}".format(output))
-    ## remove individual frames of movies 
-    #shutil.rmtree(filefolders[i][:-5])
+    # remove individual frames of movies 
+    shutil.rmtree(filefolders[i][:-5])
     # move movies into the movie folder
     source_path = os.path.join(filefolders[0][:len(results_foldername+'/image')],out_names[i]+'.mp4')
     destination_path = os.path.join(filefolders[0][:len(results_foldername)],'movie/'+out_names[i]+'.mp4')

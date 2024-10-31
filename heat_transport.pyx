@@ -429,7 +429,7 @@ cdef double dt_thres
 cdef double ds_thres=0.0
 cdef double ds_thres_xl=1e-2#25.0*10.0**(-5.0)
 cdef double ds_thres_m=5e-4#8.0*10.0**(-5.0)
-cdef double ds_thres_s=5e-4#6.0*10.0**(-5.0)
+cdef double ds_thres_s=2e-4#6.0*10.0**(-5.0)
 cdef double ds_thres_xs=5e-7
 cdef double ds_thres_l=1e-2#10.0*10.0**(-5.0)
 
