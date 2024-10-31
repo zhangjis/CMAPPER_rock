@@ -9,6 +9,7 @@ from scipy.signal import savgol_filter
 from scipy.optimize import fsolve
 from pynbody.analysis.interpolate import interpolate3d
 from pynbody.analysis.interpolate import interpolate2d
+from scipy.interpolate import CubicSpline
 from libc cimport math
 cimport cython
 
@@ -1886,11 +1887,11 @@ while t<end_time:
     Buoy_T_value=alpha[core_outer_index]*initial_gravity[core_outer_index]/(initial_density[core_outer_index]*C_P_Fe)*(Fcmb-k_Fe*(initial_gravity[core_outer_index]*new_alpha[core_outer_index]*new_T[core_outer_index]/C_P_Fe))
     rho_core=M_pl*CMF/(4.0/3.0*math.pi*initial_radius[core_outer_index]**3.0)
     if solid_index==0:
-        Buoy_x_value=initial_gravity[solid_index]*(f_rho_Fes(T_center,P_center)[0][0]-initial_density[solid_index+1])/rho_core*(Ric/(initial_radius[core_outer_index]))**2.0*(Ric-old_Ric)/dt
+        Buoy_x_value=initial_gravity[solid_index]*(f_rho_Fes(T_center,P_center)[0][0]-initial_density[solid_index+1])/rho_core*(Ric/(initial_radius[core_outer_index]))**2.0#*(Ric-old_Ric)/dt
     else:
-        Buoy_x_value=initial_gravity[solid_index]*(initial_density[solid_index-1]-initial_density[solid_index+1])/rho_core*(Ric/(initial_radius[core_outer_index]))**2.0*(Ric-old_Ric)/dt
+        Buoy_x_value=initial_gravity[solid_index]*(initial_density[solid_index-1]-initial_density[solid_index+1])/rho_core*(Ric/(initial_radius[core_outer_index]))**2.0#*(Ric-old_Ric)/dt
     if Buoy_T_value+Buoy_x_value>0.0:
-        core_m=4.0*math.pi*initial_radius[core_outer_index+1]**3.0*0.2*(initial_density[solid_index-1]/(2.0*4.0*math.pi*1e-7))**0.5*((Buoy_T_value+Buoy_x_value)*(initial_radius[core_outer_index]-initial_radius[solid_index]))**(1.0/3.0)
+        core_m=4.0*math.pi*initial_radius[core_outer_index+1]**3.0*0.2*(initial_density[solid_index-1]/(2.0*4.0*math.pi*1e-7))**0.5*((initial_radius[core_outer_index]-initial_radius[solid_index]))**(1.0/3.0)
     else:
         core_m=0.0
 
@@ -1931,8 +1932,8 @@ while t<end_time:
             dt=dt*0.975
         if dt<30.0:
             dt=30.0
-    if dt>86400.0*365.0*5000000.0:
-        dt=86400.0*365.0*5000000.0
+    if dt>86400.0*365.0*3000000.0:
+        dt=86400.0*365.0*3000000.0
     if t>1000.0*86400.0*365.0 and dt<3.65*86400.0:
         dt=3.65*86400.0
 
@@ -1959,5 +1960,21 @@ while t<end_time:
 
     iteration=iteration+1
     t=t+dt
+cdef Py_ssize_t start_ind
+for i in range(1,len(t_array)):
+    if Ric_array[i-1]==0.0 and Ric_array[i]>0.0:
+        start_ind=i
+f_Ric_t=CubicSpline(t_array[start_ind:],Ric_array[start_ind:])
+f_dRicdt=f_Ric_t.derivative()
+dRicdt=Ric_array.copy()
+dRicdt[start_ind:]=f_dRicdt(t_array[start_ind:])
+log10_dRicdt=dRicdt.copy()
+log10_dRicdt_hat=dRicdt.copy()
+log10_dRicdt[start_ind:]=np.log10(dRicdt[start_ind:])
+log10_dRicdt_hat[start_ind:]=savgol_filter(log10_dRicdt[start_ind:], window_length=99,polyorder=9) 
+for i in range(len(t_array)):
+    Buoy_x[i]=Buoy_x[i]*10.0**log10_dRicdt_hat[i]
+    core_dipole_m[i]=core_dipole_m[i]*(Buoy_T[i]+Buoy_x[i])**(1.0/3.0)
+
 np.savetxt(results_foldername+'/evolution.txt',np.transpose([t_array,dt_array,average_Tm,average_Tc,Tsurf_array,Tcmb_array,T_center_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,Buoy_T,Buoy_x,core_dipole_m]),
     header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature,surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment')
