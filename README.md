@@ -5,8 +5,7 @@
 
 This is a repository for an 1D model of thermal evolution of rocky exoplanets
 with masses between 1 and 10 Earth-mass and core mass fractions between 0.1 and
-0.8. The model outputs detailed planet thermal history and tracks possible phase
-transitions including magma ocean and inner core solidification (see results).
+0.8. The model outputs detailed planet thermal history and tracks possible phase transitions including magma ocean and inner core solidification (see results).
 
 ## Quickstart
 
@@ -89,58 +88,45 @@ python3 test.py
 The output of CMAPper includes planet thermal and structural profiles of the
 planet, as well as thermophysical quantities at pre-selected timesteps. The
 thermal and structural profiles are saved in the sub-directory
-`\results\profile\` with file names `structure_timestep.txt`, timestep being
-years into the simulation. Each column in the txt files represent mass,
-temperature, mantle melt fraction, radius, pressure, density and gravitational
-acceleration.
+`/results/profile/` with file names `structure_timestep.txt`, timestep being
+years into the simulation. Each column in the txt files represent 
+
+column 1-5: radius, pressure, density, gravitational acceleration,temperature, 
+
+column 6-10: thermal expansion coefficient, specific heat, convective heat flux, conductive heat flux, total heat flux  
+
+column 11-13: mantle convective velocity, mantle magnetic Reynolds number,mantle viscosity, and mass. 
+
+Note that the directory `/results` mentioned here and below will have an ending indicating what planet the txt files in the folder are for. For example, the directory for `/results` a planet with a mass of 3 Earth mass, core mass fraction of 0.326, evolving time of 12 Gyr, same level of radiogenic elements concentration to that of Earth, and equilibrium temperature of 255 K, the directory will be named `/results_Mpl3.0_CMF0.326_time12.0_Qrad1.0_1.0_1.0_1.0_Teq255.0`.
 
 In addition, planet thermal history is saved in `evolution.txt` in the
-sub-directory `\results`. Each column from left to right represents 
-time, 
-size of timestep,
-mass averaged mantle entropy,
-mass averaged mantle temperature, 
-mass averaged core temperature, 
+sub-directory `/results`. Each column from left to right represents 
 
-surface temperature,
-temperature at the core mantle boundary, 
-surface heat flux,
-heat fluxes at the core mantle boundary, 
-conductive flux at the core mantle boundary.
 
-radius of the planet, 
-radius of the core, 
-pressure level at the planet center, 
-pressure level at the core mantle boundary,
-radius of the inner solid core, 
+column 1-5: time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, 
 
-mass of the inner solid core, 
-the thickness of the dynamo source region in the magma ocean, 
-mantle radiogenic heating,
-core radiogenic heating,
-conductive heat from the solid inner core to the liquid outer core,
+column 6-10: core mantle boundary temperature, central temperature,surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, 
 
-temperature at the planet center,
-thermal buoyancy flux in the liquid core,
-compositional buoyancy flux in the liquid core,
-magnetic dipole moment.
-temperature at the planet center.
+column 11-15: planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, 
+
+column 16-20: inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, 
+
+column 21-23: core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment
 
 All saved quantities are in SI units.
 
-The code saves gif movies and png figures showing the thermal history of the
-planets in the sub-directory `\results\image\`. Additionally, we provide a
+The code saves mp4 movies and png figures showing the thermal history of the
+planets in the sub-directories `/results/movie/` and `/results/image/` respectively. Additionally, we provide a
 tutorial in Jupyter notebook for visualization of saved text files.
 
 A Jupyter notebook "plot.ipynb" contains code to visualize saved txt files in
-the sub-directory `\results\profile\`
+the sub-directory `/results/profile/` and `/results/evolution.txt`
 
 ## Configuring CMAPper
 ### Input parameters
 Main input parameters for the simulations include planet mass, initial central
 temperature, radiogenic heating relative to that of Earth's mantle and the
-lifetime of the planet to be simulated. These values can be set in
-`input_file.pyx`.
+lifetime of the planet to be simulated. Additionally there is also the option to change the value of planet equilibrium temperature, which is the average temperature a planet would have if it absorbed energy from the star and emitted it back out into space evenly. The default value is 255K. These values can be set in `input.txt`.
 
 Mantle viscosity has a strong influence over the dynamics and the cooling
 history of the mantle. The exact viscosity of mantle silicate, especially for
@@ -151,7 +137,7 @@ ppv in CMAPper (see [Tackley et al.
 The two options are for two deep mantle rheologies with diffusion creep and
 dislocation creep as the dominant deformation mechanisms. Users can choose the
 viscosity model by setting `nu_ppv_model` to 1 for diffusion creep and 2 for
-dislocation creep in `input_file.pyx`.
+dislocation creep in `input.txt`.
 
 We provide a default choice of equations of state (EoS) for individual phases of
 mantle silicate, including the [liquid
@@ -168,7 +154,7 @@ and [FeSi
 alloy](https://www.sciencedirect.com/science/article/pii/S0012821X12005183?via%3Dihub).
 To choose specific choices of EoS in the mantle and the core, modify the
 varibles `eos_ma`, `eos_um`, `eos_lm`, `eos_dm`, `eos_lc` and `eos_sc` in
-`input_file.pyx`. The following table summarizes the code for default choices of
+`input.txt`. The following table summarizes the code for default choices of
 EoS.
 
 | Layers         | Varible in input file | Phases                 | Code      |
@@ -184,7 +170,6 @@ EoS.
 |                |                       | ε-Fe + FeSi alloy      | epi_Si_Fe |
 
 
-See examples and comments in `input_file.pyx` for additional information.
+See examples and comments in `input.txt` for additional information.
 
 In future versions, users will be able to provide additional models for mantle viscosity and choices of EoS in addition to the default options provided.
-

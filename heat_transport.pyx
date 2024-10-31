@@ -423,12 +423,13 @@ cdef double delta_P_center=previous[3]
 cdef double T_cmb=previous[4]
 cdef int end_ite=100
 cdef double end_time=load_file[2]*86400.0*365.0*1e9
+cdef double P_surf=1e5 # Surface pressure in Pa.
 
 cdef double dt_thres
 cdef double ds_thres=0.0
 cdef double ds_thres_xl=1e-2#25.0*10.0**(-5.0)
-cdef double ds_thres_m=2e-4#8.0*10.0**(-5.0)
-cdef double ds_thres_s=2e-4#6.0*10.0**(-5.0)
+cdef double ds_thres_m=5e-4#8.0*10.0**(-5.0)
+cdef double ds_thres_s=5e-4#6.0*10.0**(-5.0)
 cdef double ds_thres_xs=5e-7
 cdef double ds_thres_l=1e-2#10.0*10.0**(-5.0)
 
@@ -633,6 +634,7 @@ T_liq_mbase_array=[]
 T_sol_mbase_array=[]
 delta_r_s_array=[]
 Qrad_c_array=[]
+vconv_core=[]
 
 T_center_array=[]
 
@@ -909,6 +911,8 @@ cdef double[:] solution=np.zeros(zone-core_outer_index-1)
 cdef double[:] solution_T=np.zeros(core_outer_index+1)
 cdef double[:] new_Scell=np.zeros(zone)
 cdef double[:] Fconv=np.zeros(zone)
+cdef double[:] Fcond=np.zeros(zone)
+cdef double[:] Ftot=np.zeros(zone)
 cdef double[:] Fcond1=np.zeros(zone)
 cdef double[:] Fcond2=np.zeros(zone)
 
@@ -961,11 +965,13 @@ cdef double[:] Rem_MO=np.zeros(zone)
 cdef double t_val
 
 save_t=[1.0]
-for i in range(1,247):
+for i in range(1,182):
     if save_t[i-1]<5000.0:
         save_t.append(save_t[i-1]+80.0)
-    elif save_t[i-1]<1e8:
-        save_t.append(save_t[i-1]+int(save_t[i-1]/6.0))
+    elif save_t[i-1]<1e8 and save_t[i-1]>=5000.0:
+        save_t.append(save_t[i-1]+int(save_t[i-1]/3.0))
+    elif save_t[i-1]>=1e8 and save_t[i-1]<1e9:
+        save_t.append(save_t[i-1]+int(save_t[i-1]/10.0))
     else:
         save_t.append(save_t[i-1]+int(save_t[i-1]/25.0))
 
@@ -981,9 +987,9 @@ while t<end_time:
     dsdr=np.zeros(zone)
     for i in range(core_outer_index+1,zone-1):
         dsdr[i]=(S_cell[i]-S_cell[i+1])/(radius_cell[i]-radius_cell[i+1])
-    dxdr=np.zeros(zone)
-    for i in range(zone-1):
-        dxdr[i]=(x_cell[i]-x_cell[i+1])/(radius_cell[i]-radius_cell[i+1])
+    #dxdr=np.zeros(zone)
+    #for i in range(zone-1):
+    #    dxdr[i]=(x_cell[i]-x_cell[i+1])/(radius_cell[i]-radius_cell[i+1])
 
     viscosity=np.zeros(zone) # evaluated at the cell center
     for i in range(core_outer_index+1, zone):
@@ -1156,12 +1162,15 @@ while t<end_time:
 
     Fcond1=np.zeros(zone)
     Fcond2=np.zeros(zone)
+    Fcond=np.zeros(zone)
     Fconv=np.zeros(zone)
+    Ftot=np.zeros(zone)
     for i in range(core_outer_index+1,zone):
-        Fcond1[i]=-10.0*dTdP[i]*dPdr[i]*Area[i]
-        Fcond2[i]=-initial_density[i]*initial_temperature[i]*kappa[i]*dsdr[i]*Area[i]
-        Fconv[i]=-initial_density[i]*initial_temperature[i]*eddy_k[i]*dsdr[i]*Area[i]
-
+        Fcond1[i]=-10.0*dTdP[i]*dPdr[i]#*Area[i]
+        Fcond2[i]=-initial_density[i]*initial_temperature[i]*kappa[i]*dsdr[i]#*Area[i]
+        Fconv[i]=-initial_density[i]*initial_temperature[i]*eddy_k[i]*dsdr[i]#*Area[i]
+        Fcond[i]=Fcond1[i]+Fcond2[i]
+        Ftot[i]=Fconv[i]+Fcond[i]
     new_T_cell=np.zeros(zone)
     new_x_cell=np.zeros(zone)
     for i in range(core_outer_index+1,zone):
@@ -1368,6 +1377,7 @@ while t<end_time:
         ee[i]=0.0
         ff[i]=temperature_cell[i]/dt+alpha[i]*initial_temperature[i]/initial_density[i]/CP[i]*(initial_pressure[i]-old_pressure[i])/dt
     solution_T=penta_solver(aa[:core_outer_index+1],bb[:core_outer_index+1],cc[:core_outer_index+1],dd[:core_outer_index+1],ee[:core_outer_index+1],ff[:core_outer_index+1],core_outer_index+1)
+    #for i in range(core_outer_index):
 
     # add core stuff
     Q_th=-Fcmb*Area[core_outer_index]
@@ -1522,6 +1532,20 @@ while t<end_time:
         x_core=x_init*(M_pl*CMF-mass[0])/(M_pl*CMF-Mic)
         if x_core>0.1519:
             x_core=0.1519
+    
+    # calculating dT/dr. Borrow the first portion of dsdr_array for the mantle to save dTdr in the core. 
+    for i in range(core_outer_index):
+        dsdr[i]=(temperature_cell[i]-temperature_cell[i+1])/(radius_cell[i]-radius_cell[i+1])
+    
+    for i in range(core_outer_index+1):
+        if i>=solid_index:
+            Fconv[i]=Fcmb#*4.0*np.pi*initial_radius[i]**2.0
+            Fcond[i]=0.0 # Fconv here is the sum of conduction + convection
+            Ftot[i]=Fconv[i]
+        else:
+            Fconv[i]=0.0
+            Fcond[i]=-k_array[i]*dsdr[i]#*4.0*np.pi*initial_radius[i]**2.0
+            Ftot[i]=Fcond[i]
 
     rho_liquid_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fel, T_Fel, rho_Fel)
     rho_solid_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fes, T_Fes, rho_Fes)
@@ -1591,6 +1615,7 @@ while t<end_time:
                 new_density[i]=rho_tot
                 new_dqdy[i]=dqdy_tot
 
+
     if iteration%10.0==0.0:
         t_array.append(t)
         dt_array.append(dt)
@@ -1617,6 +1642,7 @@ while t<end_time:
         x_core_array.append(x_core)
         T_Fe_en.append(min_pre_adia_T)
         delta_r_array.append(delta_r)
+        """
         #vmbase_array.append(viscosity[core_outer_index+1])
         vmbase_array.append(Ra_nu)
         rhombase_array.append(initial_density[core_outer_index+1])
@@ -1633,7 +1659,9 @@ while t<end_time:
         S_mbase_array.append(new_S[core_outer_index+1])
         T_liq_mbase_array.append(T_liquidus[core_outer_index+1])
         T_sol_mbase_array.append(T_solidus[core_outer_index+1])
+        """
         delta_r_s_array.append(delta_r_s)
+        """
         Ra_r_cs_array.append(old_Ra_r_s)
         Ra_T_s_array.append(Ra_T_s)
         delta_T_ra_s_array.append(delta_T_ra_s)
@@ -1660,25 +1688,11 @@ while t<end_time:
         outer_adiabat_list.append(outer_adiabat)
         dMic_list.append(dmicdTcmb)
         Ra_T_list.append(Ra_T)
+        """
         delta_r_list.append(delta_r)
         Tcmb_list.append(T_cmb)
         Qrad_c_array.append(Q_rad_c)
         T_center_array.append(T_center)
-
-        Fconv_1.append(Fconv[zone-1])
-        Fconv_2.append(Fconv[zone-2])
-        Fconv_3.append(Fconv[zone-3])
-        Fconv_4.append(Fconv[zone-4])
-
-        Fcond1_1.append(Fcond1[zone-1])
-        Fcond1_2.append(Fcond1[zone-2])
-        Fcond1_3.append(Fcond1[zone-3])
-        Fcond1_4.append(Fcond1[zone-4])
-
-        Fcond2_1.append(Fcond2[zone-1])
-        Fcond2_2.append(Fcond2[zone-2])
-        Fcond2_3.append(Fcond2[zone-3])
-        Fcond2_4.append(Fcond2[zone-4])
 
     old_S=initial_S.copy()
     old_Scell=S_cell.copy()
@@ -1723,7 +1737,7 @@ while t<end_time:
     old_v_top=new_v_top.copy()
 
     ## Henyey code
-    initial_pressure[zone-1]=100000.0
+    initial_pressure[zone-1]=P_surf
     A_r=np.zeros(zone); A_p=np.zeros(zone)
     for i in range(zone):
         if i==0:
@@ -1831,6 +1845,15 @@ while t<end_time:
         v_MO[i]=eddy_k[i]/(l_mlt[i]+1e-10)
         if melt_frac[i]>0.0 and i>S_MO_index-1:
             L_sigma=L_sigma+dr[i]
+
+    # calculate convective velocity and Magnetic Reynolds number in the core. 
+    if Fcmb>=0.0 and solid_index<core_outer_index:
+        for i in range(core_outer_index+1):
+            if i>=solid_index:
+                v_MO[i]=(((alpha[i]*initial_gravity[i])
+                    *Fcmb*(initial_radius[core_outer_index]-initial_radius[solid_index]))/
+                (initial_density[i]*C_P_Fe))**0.33
+                Rem_MO[i]=mu_0*v_MO[i]*(initial_radius[core_outer_index]-initial_radius[solid_index])*k_Fe*2.0/(initial_temperature[i]*L0)
     for i in range(core_outer_index+1,zone):
         Rem_MO[i]=mu_0*v_MO[i]*L_sigma*sigma_MO[i]
     for i in range(core_outer_index+1,zone):
@@ -1877,9 +1900,9 @@ while t<end_time:
         core_dipole_m.append(core_m)
 
 
-    if t<3000*86400.0*365.0:
+    if t<1000*86400.0*365.0:
         ds_thres=ds_thres_xl
-    elif t>=3000*86400.0*365.0 and t<1e6*86400.0*365.0:
+    elif t>=1000*86400.0*365.0 and t<1e6*86400.0*365.0:
         ds_thres=ds_thres_m
     elif t>=1e6*86400.0*365.0 and t<5e8*86400.0*365.0 and delta_r_flag==0.0:
         ds_thres=ds_thres_s
@@ -1908,8 +1931,8 @@ while t<end_time:
             dt=dt*0.975
         if dt<30.0:
             dt=30.0
-    if dt>86400.0*365.0*2500000.0:
-        dt=86400.0*365.0*2500000.0
+    if dt>86400.0*365.0*5000000.0:
+        dt=86400.0*365.0*5000000.0
     if t>1000.0*86400.0*365.0 and dt<3.65*86400.0:
         dt=3.65*86400.0
 
@@ -1930,7 +1953,7 @@ while t<end_time:
     for ind in range(len(save_t)):
         if t<save_t[ind]*86400.0*365.0+dt and t>save_t[ind]*86400.0*365.0-dt:
             np.savetxt(results_foldername+'/profile/StructureProfile_'+str(int(save_t[ind]))+'.txt',np.transpose([initial_radius,initial_pressure,initial_density,initial_gravity,
-                initial_temperature,alpha,CP,Fconv,v_MO,Rem_MO,viscosity]), header='radius, pressure, density, gravitational acceleration, temperature, thermal expansion coefficient, specific heat, mantle convective heat flux, mantle convective velocity, mantle magnetic Reynolds number, mantle viscosity')
+                initial_temperature,alpha,CP,Fconv,Fcond,Ftot,v_MO,Rem_MO,viscosity, mass]), header='radius, pressure, density, gravitational acceleration, temperature, thermal expansion coefficient, specific heat, convective heat flux, conductivt heat flux, total heat flux, convective velocity, mantle magnetic Reynolds number, mantle viscosity, mass')
             np.savetxt(results_foldername+'/evolution.txt',np.transpose([t_array,dt_array,average_Tm,average_Tc,Tsurf_array,Tcmb_array,T_center_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,Buoy_T,Buoy_x,core_dipole_m]),
                 header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature,surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment')
 
