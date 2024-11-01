@@ -2,7 +2,7 @@
 
 ##### Do not change the order of input parameters
 # Planet mass (M_pl) in earth mass (Current version of the model takes values between 1.0 and 8.0)
-1.5
+2.0
 # Core mass fraction (Current version of the model takes values between 0.1 and 0.8)
 0.326
 # t_end in billion years (Gyr)

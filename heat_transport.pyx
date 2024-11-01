@@ -430,7 +430,7 @@ cdef double dt_thres
 cdef double ds_thres=0.0
 cdef double ds_thres_xl=1e-2#25.0*10.0**(-5.0)
 cdef double ds_thres_m=5e-4#8.0*10.0**(-5.0)
-cdef double ds_thres_s=2e-4#6.0*10.0**(-5.0)
+cdef double ds_thres_s=1e-4#6.0*10.0**(-5.0)
 cdef double ds_thres_xs=5e-7
 cdef double ds_thres_l=1e-2#10.0*10.0**(-5.0)
 
@@ -1902,18 +1902,19 @@ while t<end_time:
         Buoy_x.append(Buoy_x_value)
         core_dipole_m.append(core_m)
 
-
-    if t<1000*86400.0*365.0:
+    if melt_frac[-2]==1.0:#t<1000*86400.0*365.0:
         ds_thres=ds_thres_xl
-    elif t>=1000*86400.0*365.0 and t<1e6*86400.0*365.0:
-        ds_thres=ds_thres_s
-    elif t>=1e6*86400.0*365.0 and t<5e8*86400.0*365.0:# and delta_r_flag==0.0:
-        ds_thres=ds_thres_m
-    #elif t>=1e6*86400.0*365.0 and t<5e8*86400.0*365.0 and delta_r_flag==1.0:
-    #    ds_thres=ds_thres_m
     else:
-        ds_thres=ds_thres_l
-
+        #elif t>=1000*86400.0*365.0 and t<1e6*86400.0*365.0:
+        #    ds_thres=ds_thres_s
+        #elif t>=1e6*86400.0*365.0 and t<5e8*86400.0*365.0:# and delta_r_flag==0.0:
+        #    ds_thres=ds_thres_m
+        #else:
+        #    ds_thres=ds_thres_l
+        if t<5e7*86400.0*365.0:
+            ds_thres=ds_thres_s
+        else:
+            ds_thres=ds_thres_xl
     if dt_thres<ds_thres:
         if dt_thres<0.975*ds_thres:
             if iteration<200:
