@@ -47,7 +47,7 @@ installation was successful.
 ### 2) Clone the repository
 Go to a directory to which you want to download the repository by typing `cd`
 followed by the path to the directory in the terminal. Copy and paste `git clone
-https://github.com/zhangjis/CMAPPER_rock` in the terminal. You can then enter the
+https://github.com/zhangjis/CMAPPER_rock.git` in the terminal. You can then enter the
 directory by typing `cd CMAPPER_rock` in the terminal.
 
 Alternatively, you can click `Download ZIP` on the Github UI, find and extract
@@ -75,9 +75,6 @@ the terminal
 ```sh
 make run
 ```
-Note that the code must be recompiled after changing `input_file.pyx`, which
-will automatically happen when typing `make run`
-
 Alternatively, to compile the code by hand, run
 ```sh
 python3 setup_pre_adiabat.py build_ext --inplace
@@ -102,7 +99,7 @@ column 11-13: mantle convective velocity, mantle magnetic Reynolds number,mantle
 
 
 In addition, planet thermal history is saved in `evolution.txt` in the
-sub-directory `/results`. Each column from left to right represents 
+sub-directory `/results_case`. Each column from left to right represents 
 
 
 column 1-5: time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, 
@@ -118,11 +115,11 @@ column 21-23: core thermal buoyancy flux, core compositional buouyancy flux, cor
 All saved quantities are in SI units.
 
 The code saves mp4 movies and png figures showing the thermal history of the
-planets in the sub-directories `/results/movie/` and `/results/image/` respectively. Additionally, we provide a
+planets in the sub-directories `/results_case/movie/` and `/results_case/image/` respectively. Additionally, we provide a
 tutorial in Jupyter notebook for visualization of saved text files.
 
 A Jupyter notebook "plot.ipynb" contains code to visualize saved txt files in
-the sub-directory `/results/profile/` and `/results/evolution.txt`
+the sub-directory `/results_case/profile/` and `/results_case/evolution.txt`
 
 ## Configuring CMAPper
 ### Input parameters
