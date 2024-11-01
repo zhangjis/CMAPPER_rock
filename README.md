@@ -22,9 +22,10 @@ read on if you have any additional difficulties.
       Github website)
 3) Change into the code directory and type `make`
     - This will install dependencies, build the code, and run a test script
-4) View evolutionary plots and movies in the `results_case/image` and `results_case/movie` folders. `case` indicates the spcific planet the results saved in the folder are for. 
+4) View evolutionary plots and movies in the `results_case/image` and `results_case/movie` folders. 
+    - `case` indicates the specific planet the results saved in the folder are for.  For example, the directory in which evolution results of a planet with a mass of 3 Earth mass, core mass fraction of 0.326, evolving time of 12 Gyr, same level of radiogenic elements concentration to that of Earth, and equilibrium temperature of 255 K, the directory will be named `/results_Mpl3.0_CMF0.326_time12.0_Qrad1.0_1.0_1.0_1.0_Teq255.0`.
 
-5) (Optional) Use routines provided in the jupyter notebook, `plot.ipynb`, to make some plots yourself. The notebook includes all tbe routines used in the file `test.py` where we generated plots and movies. Feel free to use your own graphing tools or routines in the jupyter notebook to make plots and/or movies for future simulations. 
+5) (Optional) Use routines provided in the jupyter notebook, `plot.ipynb`, to make some plots yourself. The notebook includes all the routines used in the file `test.py` where we generated plots and movies. Feel free to use your own graphing tools or routines in the jupyter notebook to make plots and/or movies for future simulations. 
 
 ## Full Installation Instructions
 ### 1) Python
@@ -99,7 +100,6 @@ column 6-10: thermal expansion coefficient, specific heat, convective heat flux,
 
 column 11-13: mantle convective velocity, mantle magnetic Reynolds number,mantle viscosity, and mass. 
 
-Note that the directory `/results` mentioned here and below will have an ending indicating what planet the txt files in the folder are for. For example, the directory for `/results` a planet with a mass of 3 Earth mass, core mass fraction of 0.326, evolving time of 12 Gyr, same level of radiogenic elements concentration to that of Earth, and equilibrium temperature of 255 K, the directory will be named `/results_Mpl3.0_CMF0.326_time12.0_Qrad1.0_1.0_1.0_1.0_Teq255.0`.
 
 In addition, planet thermal history is saved in `evolution.txt` in the
 sub-directory `/results`. Each column from left to right represents 
