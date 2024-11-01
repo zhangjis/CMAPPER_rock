@@ -22,7 +22,9 @@ read on if you have any additional difficulties.
       Github website)
 3) Change into the code directory and type `make`
     - This will install dependencies, build the code, and run a test script
-4) View evolutionary plots and movies in the `results/image` folder
+4) View evolutionary plots and movies in the `results_case/image` and `results_case/movie` folders. `case` indicates the spcific planet the results saved in the folder are for. 
+
+5) (Optional) Use routines provided in the jupyter notebook, `plot.ipynb`, to make some plots yourself. The notebook includes all tbe routines used in the file `test.py` where we generated plots and movies. Feel free to use your own graphing tools or routines in the jupyter notebook to make plots and/or movies for future simulations. 
 
 ## Full Installation Instructions
 ### 1) Python
