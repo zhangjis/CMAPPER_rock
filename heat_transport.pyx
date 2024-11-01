@@ -679,6 +679,7 @@ MO_dynamo_bot_array=[]
 MO_dynamo_top_array=[]
 
 core_dipole_m=[]
+solid_index_arr=[]
 
 Fconv_1=[]
 Fconv_2=[]
@@ -1896,6 +1897,7 @@ while t<end_time:
         core_m=0.0
 
     if iteration%10.0==0.0:
+        solid_index_arr.append(solid_index)
         Buoy_T.append(Buoy_T_value)
         Buoy_x.append(Buoy_x_value)
         core_dipole_m.append(core_m)
@@ -1904,11 +1906,11 @@ while t<end_time:
     if t<1000*86400.0*365.0:
         ds_thres=ds_thres_xl
     elif t>=1000*86400.0*365.0 and t<1e6*86400.0*365.0:
-        ds_thres=ds_thres_m
-    elif t>=1e6*86400.0*365.0 and t<5e8*86400.0*365.0 and delta_r_flag==0.0:
         ds_thres=ds_thres_s
-    elif t>=1e6*86400.0*365.0 and t<5e8*86400.0*365.0 and delta_r_flag==1.0:
+    elif t>=1e6*86400.0*365.0 and t<5e8*86400.0*365.0:# and delta_r_flag==0.0:
         ds_thres=ds_thres_m
+    #elif t>=1e6*86400.0*365.0 and t<5e8*86400.0*365.0 and delta_r_flag==1.0:
+    #    ds_thres=ds_thres_m
     else:
         ds_thres=ds_thres_l
 
@@ -1976,5 +1978,5 @@ for i in range(len(t_array)):
     Buoy_x[i]=Buoy_x[i]*10.0**log10_dRicdt_hat[i]
     core_dipole_m[i]=core_dipole_m[i]*(Buoy_T[i]+Buoy_x[i])**(1.0/3.0)
 
-np.savetxt(results_foldername+'/evolution.txt',np.transpose([t_array,dt_array,average_Tm,average_Tc,Tsurf_array,Tcmb_array,T_center_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,Buoy_T,Buoy_x,core_dipole_m]),
-    header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature,surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment')
+np.savetxt(results_foldername+'/evolution.txt',np.transpose([t_array,dt_array,average_Tm,average_Tc,Tsurf_array,Tcmb_array,T_center_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,Buoy_T,Buoy_x,core_dipole_m,solid_index_arr]),
+    header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature,surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment, the indices of the inner and outer core boundary')

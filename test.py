@@ -20,12 +20,12 @@ os.makedirs(results_foldername+'/profile/t0', exist_ok=True)
 filefolders = [
     results_foldername+'/image/TemperatureVsPressure/step',
     results_foldername+'/image/TemperatureVsMass/step',
-    results_foldername+'/image/MantleConvectiveHeatFluxVsMass/step',
+    results_foldername+'/image/HeatFluxVsMass/step',
     results_foldername+'/image/DensityVsMass/step',
-    results_foldername+'/image/MagneticReynoldsNumberInMagmaOceanVsMass/step',
+    results_foldername+'/image/MagneticReynoldsNumberVsMass/step',
     results_foldername+'/image/MantleViscosityVsMass/step',
-    results_foldername+'/image/MantleConvectiveVelocityVsMass/step',
-    results_foldername+'/image/PressureVsMass/step',
+    results_foldername+'/image/ConvectiveVelocityVsMass/step',
+    results_foldername+'/image/PressureVsRadius/step',
     results_foldername+'/image/GravityVsMass/step'
 ]
 
@@ -38,15 +38,28 @@ for program in program_list:
     subprocess.check_call(['python3', program])
     print("Simulation finished")
 
+def f_axis_max_min(v_min,v_max,axis_scale):
+    if axis_scale=='log':
+        v_max=np.log10(v_max)
+        v_min=np.log10(v_min)
+        dv=np.abs(v_max-v_min)/10.0
+        v_max=10.0**(v_max+dv)
+        v_min=10.0**(v_min-dv)
+    else:
+        dv=np.abs(v_max-v_min)/10.0
+        v_max=v_max+dv
+        v_min=v_min-dv
+    return v_min,v_max
+
 previous=np.loadtxt(results_foldername+'/profile/t0/previous0.txt')
-core_zone=previous[-1]
+core_zone=previous[-2]
 
 N_PLOTS = 182
 print('Plotting %d timesteps...' % N_PLOTS)
 
 evo=np.loadtxt(results_foldername+'/evolution.txt')
-plt.figure(figsize=(8,6))
-plt.plot(evo[:,0]/86400.0/365.0,evo[:,7],color='black',linewidth=2.0,label='Surface heat flux')
+plt.figure(figsize=(9,6))
+plt.plot(evo[:,0]/86400.0/365.0,evo[:,7],color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
 plt.xscale('log')
@@ -54,22 +67,20 @@ plt.yscale('log')
 plt.ylabel(r'Surface heat flux ($Wm^{-2}$)',fontsize=16.5)
 plt.xlabel('Time (years)',fontsize=16.5)
 plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1]) ,fontsize=16)
-plt.legend(frameon=True,loc='upper left')
 plt.savefig(results_foldername+'/image/SurfaceHeatFlux.png',dpi=200)
 plt.close()
 
-plt.figure(figsize=(8,6))
-plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,4],color='black',linewidth=2.0,label='surface temperature')
+plt.figure(figsize=(9,6))
+plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,4],color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
 plt.ylabel('Surface temperature (K)',fontsize=16.5)
 plt.xlabel('Time (Gyr)',fontsize=16.5)
 plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1]) ,fontsize=16)
-plt.legend(frameon=True,loc='upper left')
 plt.savefig(results_foldername+'/image/SurfaceTemperature.png',dpi=200)
 plt.close()
 
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(9,6))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,8],color='black',linewidth=2.0,label='Heat flux at core mantle boundary')
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,9],color='black',linestyle='dashed',linewidth=2.0, label='Conductive heat flux along core adiabat')
 plt.yscale('log')
@@ -82,7 +93,7 @@ plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fr
 plt.savefig(results_foldername+'/image/HeatFluxAtCoreMantleBoundary.png',dpi=200)
 plt.close()
 
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(9,6))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,10]/6371000.0,color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -92,7 +103,7 @@ plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fr
 plt.savefig(results_foldername+'/image/PlanetRadius.png',dpi=200)
 plt.close()
 
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(9,6))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,11]/6371000.0,color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -102,7 +113,7 @@ plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fr
 plt.savefig(results_foldername+'/image/CoreRadius.png',dpi=200)
 plt.close()
 
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(9,6))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,12]/1e9,color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -112,7 +123,7 @@ plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fr
 plt.savefig(results_foldername+'/image/CentralPressure.png',dpi=200)
 plt.close()
 
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(9,6))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,6],color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -122,7 +133,7 @@ plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fr
 plt.savefig(results_foldername+'/image/CentralTemperature.png',dpi=200)
 plt.close()
 
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(9,6))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,13]/1e9,color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -132,7 +143,7 @@ plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fr
 plt.savefig(results_foldername+'/image/PressureAtCoreMantleBoundary.png',dpi=200)
 plt.close()
 
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(9,6))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,5],color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -141,7 +152,7 @@ plt.xlabel('Time (Gyr)',fontsize=16.5)
 plt.savefig(results_foldername+'/image/TemperatureAtCoreMantleBoundary.png',dpi=200)
 plt.close()
 
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(9,6))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,14]/1e3,color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -151,7 +162,7 @@ plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fr
 plt.savefig(results_foldername+'/image/RadiusOfSolidInnerCore.png',dpi=200)
 plt.close()
 
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(9,6))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,15]/5.97e24,color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -161,7 +172,7 @@ plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fr
 plt.savefig(results_foldername+'/image/MassOfSolidInnerCore.png',dpi=200)
 plt.close()
 
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(9,6))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,16]/1000.0,color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -172,7 +183,7 @@ plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fr
 plt.savefig(results_foldername+'/image/ThicknessOfDynamoSourceRegionInMagmaOcean.png',dpi=200)
 plt.close()
 
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(9,6))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,17]/1e12,color='tomato',linewidth=2.0,label='Mantle')
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,18]/1e12,color='royalblue',linewidth=2.0,label='Core')
 plt.yticks(fontsize=14)
@@ -184,7 +195,7 @@ plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fr
 plt.savefig(results_foldername+'/image/RadiogenicHeatingInCoreAndMantle.png',dpi=200)
 plt.close()
 
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(9,6))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,2],color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -194,7 +205,7 @@ plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fr
 plt.savefig(results_foldername+'/image/MassAveragedMantleTemperature.png',dpi=200)
 plt.close()
 
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(9,6))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,3],color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -204,7 +215,7 @@ plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fr
 plt.savefig(results_foldername+'/image/MassAveragedCoreTemperature.png',dpi=200)
 plt.close()
 
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(9,6))
 plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,22]/1e21,color='black',linewidth=2.0)
 plt.yticks(fontsize=14)
 plt.xticks(fontsize=14)
@@ -258,37 +269,59 @@ mass_profile=np.loadtxt(results_foldername+'/profile/t0/structure0.txt')
 mass=mass_profile[:,8]
 
 s=np.loadtxt(results_foldername+'/profile/StructureProfile_'+str(int(save_t[0]))+'.txt')
-T_max=max(s[:,4])+max(s[:,4])*0.01
-R_max=max(s[:,0])+max(s[:,0])*0.01
-Fconv_max=(max(s[:,7][5:-2])+max(s[:,7][5:-2])*0.01)
-s=np.loadtxt(results_foldername+'/profile/StructureProfile_'+str(int(save_t[N_PLOTS-1]))+'.txt')
-T_min=min(s[:,4])-50.0
-P_max=max(s[:,1])/1e9+max(s[:,1])/1e11
-P_min=-1.0
-rho_max=max(s[:,2])+max(s[:,2])*0.01
-g_max=max(s[:,3])+max(s[:,3])*0.01
-eta_max=max(s[:,12])+max(s[:,12])*0.01
+T_max=max(s[:,4])#+max(s[:,4])*0.01
+R_max=max(s[:,0])#+max(s[:,0])*0.01
+Fconv_max=max(s[:,7][5:-2])#+max(s[:,7][5:-2])*0.01
+eta_min=min(s[:,12][int(core_zone+5):])
+g_min=min(s[:,3])
+rho_min=min(s[:,2])
+
+s=np.loadtxt(results_foldername+'/profile/StructureProfile_'+str(int(save_t[-1]))+'.txt')
+T_min=min(s[:,4])#-50.0
+P_max=max(s[:,1])/1e9#+max(s[:,1])/1e11
+P_min=1e5/1e9
+rho_max=max(s[:,2])#+max(s[:,2])*0.01
+g_max=max(s[:,3])#+max(s[:,3])*0.01
+vconv_min=min(s[:,10][int(core_zone+10):-10])
+eta_max=max(s[:,12])#+max(s[:,12])*0.01
+Rem_min=min(s[:,11]+1e-3)
+R_min=min(s[:,0])
+Fconv_min=min(s[:,7][5:-2]+1e-7)
+
 s=np.loadtxt(results_foldername+'/profile/StructureProfile_'+str(int(save_t[1]))+'.txt')
-Rem_max=max(s[:,11])*5.0#+max(s[:,11])*0.01
-vconv_max=max(s[:,10][5:-2])*5.0#+max(s[:,10][5:-2])*0.01
+Rem_max=max(s[:,11])#+max(s[:,11])*0.01
+vconv_max=max(s[:,10][5:-2])#+max(s[:,10][5:-2])*0.01
+
+axis_scale='linear'
+T_min,T_max=f_axis_max_min(T_min,T_max,axis_scale)
+R_min,R_max=f_axis_max_min(R_min,R_max,axis_scale)
+g_min,g_max=f_axis_max_min(g_min,g_max,axis_scale)
+rho_min,rho_max=f_axis_max_min(rho_min,rho_max,axis_scale)
+P_min,P_max=f_axis_max_min(P_min,P_max,axis_scale)
+axis_scale='log'
+eta_min,eta_max=f_axis_max_min(eta_min,eta_max,axis_scale)
+Fconv_min,Fconv_max=f_axis_max_min(Fconv_min,Fconv_max,axis_scale)
+vconv_min,vconv_max=f_axis_max_min(vconv_min,vconv_max,axis_scale)
+Rem_min,Rem_max=f_axis_max_min(Rem_min,Rem_max,axis_scale)
 
 for i in tqdm(range(1,N_PLOTS)):
     s=np.loadtxt(results_foldername+'/profile/StructureProfile_'+str(int(save_t[i]))+'.txt')
     
-    plt.figure(figsize=(8,6))
-    plt.plot(mass/5.972e24,s[:,1]/1e9,color='black',linewidth=2.0)
+    plt.figure(figsize=(9,6))
+    plt.plot(s[:,0]/6371000.0,s[:,1]/1e9,color='black',linewidth=2.0)
     plt.ylim(P_min,P_max)
+    plt.xlim(R_min/6371000.0,R_max/6371000.0)
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
     plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1])+'   '+t_title[i] ,fontsize=16)
     plt.ylabel('Pressure (GPa)',fontsize=16.5)
-    plt.xlabel(r'Mass ($M_{\oplus}$)',fontsize=16.5)
-    plt.savefig(results_foldername+'/image/PressureVsMass/step/%04d.png' % i,dpi=200)
+    plt.xlabel(r'Radius ($R_{\oplus}$)',fontsize=16.5)
+    plt.savefig(results_foldername+'/image/PressureVsRadius/step/%04d.png' % i,dpi=200)
     plt.close()
 
-    plt.figure(figsize=(8,6))
+    plt.figure(figsize=(9,6))
     plt.plot(mass/5.972e24,s[:,2],color='black',linewidth=2.0)
-    plt.ylim(0.01,rho_max)
+    plt.ylim(rho_min,rho_max)
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
     plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1])+'   '+t_title[i] ,fontsize=16)
@@ -297,9 +330,9 @@ for i in tqdm(range(1,N_PLOTS)):
     plt.savefig(results_foldername+'/image/DensityVsMass/step/%04d.png' % i,dpi=200)
     plt.close()
 
-    plt.figure(figsize=(8,6))
+    plt.figure(figsize=(9,6))
     plt.plot(mass/5.972e24,s[:,3],color='black',linewidth=2.0)
-    plt.ylim(0.01,g_max)
+    plt.ylim(g_min,g_max)
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
     plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1])+'   '+t_title[i] ,fontsize=16)
@@ -308,8 +341,8 @@ for i in tqdm(range(1,N_PLOTS)):
     plt.savefig(results_foldername+'/image/GravityVsMass/step/%04d.png' % i,dpi=200)
     plt.close()
 
-    plt.figure(figsize=(8,6))
-    plt.ylim(0.0,T_max)
+    plt.figure(figsize=(9,6))
+    plt.ylim(T_min,T_max)
     plt.plot(mass/5.972e24,s[:,4],color='black',linewidth=2.0)
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
@@ -319,10 +352,10 @@ for i in tqdm(range(1,N_PLOTS)):
     plt.savefig(results_foldername+'/image/TemperatureVsMass/step/%04d.png' % i,dpi=200)
     plt.close()
 
-    plt.figure(figsize=(8,6))
+    plt.figure(figsize=(9,6))
     plt.plot(s[:,1]/1e9,s[:,4],color='black',linewidth=2.0)
-    plt.xlim(0.0,P_max)
-    plt.ylim(0.0,T_max)
+    plt.xlim(P_min,P_max)
+    plt.ylim(T_min,T_max)
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
     plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1])+'   '+t_title[i] ,fontsize=16)
@@ -331,48 +364,59 @@ for i in tqdm(range(1,N_PLOTS)):
     plt.savefig(results_foldername+'/image/TemperatureVsPressure/step/%04d.png' % i,dpi=200)
     plt.close()
     
-    plt.figure(figsize=(8,6))
-    plt.plot(mass/5.972e24,s[:,9],color='black',linewidth=2.0)
-    plt.plot(mass/5.972e24,s[:,7],color='tomato',linewidth=2.0)
-    plt.plot(mass/5.972e24,s[:,8],color='royalblue',linewidth=2.0)
+    solid_core_index=0
+    for j in range(int(core_zone-1)):
+        if s[:,8][j]>0 and s[:,8][j+1]==0.0:
+            solid_core_index=j
+    plt.figure(figsize=(9,6))
+    plt.plot(mass/5.972e24,s[:,9],color='black',linewidth=4.0,label='Total flux')
+    plt.plot(mass[int(core_zone+1):-2]/5.972e24,s[:,7][int(core_zone+1):-2],color='tomato',linewidth=1.5,label='Convective heat flux in mantle')
+    plt.plot(mass[int(core_zone):]/5.972e24,s[:,8][int(core_zone):],color='royalblue',linewidth=1.5,label='Conductive heat flux in mantle')
+    plt.plot(mass[int(solid_core_index+1):int(core_zone)]/5.972e24,s[:,7][int(solid_core_index+1):int(core_zone)],linestyle='dashed',color='tomato',linewidth=1.5,label='Total heat flux in liquid core')
+    plt.plot(mass[:int(solid_core_index)]/5.972e24,s[:,8][:int(solid_core_index)],linestyle='dashed',color='royalblue',linewidth=1.5,label='Conductive heat flux in solid core')
     plt.yscale('log')
-    plt.ylim(1e-5,Fconv_max)
+    plt.ylim(Fconv_min,Fconv_max*10000.0)
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
     plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1])+'   '+t_title[i] ,fontsize=16)
     plt.ylabel(r'Convective heat flux ($Wm^{-2}$)',fontsize=16.5)
     plt.xlabel(r'Mass ($M_{\oplus}$)',fontsize=16.5)
-    plt.savefig(results_foldername+'/image/MantleConvectiveHeatFluxVsMass/step/%04d.png' % i,dpi=200)
+    plt.legend(frameon=True,loc='upper left',fontsize=12)
+    plt.savefig(results_foldername+'/image/HeatFluxVsMass/step/%04d.png' % i,dpi=200)
     plt.close()
 
-    
-    plt.figure(figsize=(8,6))
+    plt.figure(figsize=(9,6))
     plt.plot(mass/5.972e24,s[:,10],color='black',linewidth=2.0)
-    plt.ylim(1e-14,vconv_max)
+    plt.ylim(vconv_min,vconv_max)
     plt.yscale('log')
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
     plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1])+'   '+t_title[i] ,fontsize=16)
     plt.ylabel(r'Convective velocity ($ms^{-1}$)',fontsize=16.5)
     plt.xlabel(r'Mass ($M_{\oplus}$)',fontsize=16.5)
-    plt.savefig(results_foldername+'/image/MantleConvectiveVelocityVsMass/step/%04d.png' % i,dpi=200)
+    plt.savefig(results_foldername+'/image/ConvectiveVelocityVsMass/step/%04d.png' % i,dpi=200)
     plt.close()
     
-    plt.figure(figsize=(8,6))
-    plt.plot(mass/5.972e24,s[:,11],color='black',linewidth=2.0)
-    plt.ylim(0.01,Rem_max)
+    plt.figure(figsize=(9,6))
+    plt.plot(mass/5.972e24,s[:,11],color='white',linewidth=2.0)
+    plt.plot(mass/5.972e24,s[:,11],color='black',linewidth=2.0,label='Profile of magnetic Reynolds Number')
+    plt.ylim(Rem_min,Rem_max*5.0)
     plt.yscale('log')
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
+    threshold_Bfield=np.ones(len(mass))*50.0
+    plt.plot(mass/5.972e24,threshold_Bfield,color='black',linestyle=':',label='Threshold for potential dynamo')
     plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1])+'   '+t_title[i] ,fontsize=16)
     plt.ylabel('Magnetic Reynolds number',fontsize=16.5)
     plt.xlabel(r'Mass ($M_{\oplus}$)',fontsize=16.5)
-    plt.savefig(results_foldername+'/image/MagneticReynoldsNumberInMagmaOceanVsMass/step/%04d.png' % i,dpi=200)
+    plt.legend(frameon=True,loc='upper right',fontsize=12)
+    plt.savefig(results_foldername+'/image/MagneticReynoldsNumberVsMass/step/%04d.png' % i,dpi=200)
     plt.close()
 
-    plt.figure(figsize=(8,6))
-    plt.plot(mass/5.972e24,s[:,12],color='black',linewidth=2.0)
-    plt.ylim(0.01,eta_max)
+    plt.figure(figsize=(9,6))
+    plt.plot(mass/5.972e24,s[:,12],color='white',linewidth=2.0)
+    plt.plot(mass[int(core_zone):]/5.972e24,s[:,12][int(core_zone):],color='black',linewidth=2.0)
+    plt.ylim(eta_min,eta_max)
     plt.yscale('log')
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
@@ -385,7 +429,7 @@ for i in tqdm(range(1,N_PLOTS)):
 
 print('Making movies')
 os.makedirs(results_foldername+'/movie', exist_ok=True)
-out_names=['TemperatureVsPressure','TemperatureVsMass','MantleConvectiveHeatFluxVsMass','DensityVsMass','MagneticReynoldsNumberInMagmaOceanVsMass','MantleViscosityVsMass', 'MantleConvectiveVelocityVsMass','PressureVsMass','GravityVsMass']
+out_names=['TemperatureVsPressure','TemperatureVsMass','HeatFluxVsMass','DensityVsMass','MagneticReynoldsNumberVsMass','MantleViscosityVsMass', 'ConvectiveVelocityVsMass','PressureVsRadius','GravityVsMass']
 for i in range(len(out_names)):
     outnames=os.path.join(filefolders[i][:len(results_foldername+'/image')],out_names[i]+'.mp4')
     # Construct the argument parser and parse the arguments
