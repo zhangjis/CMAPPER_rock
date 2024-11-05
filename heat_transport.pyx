@@ -981,6 +981,23 @@ cdef Py_ssize_t ind
 
 cdef double core_m
 
+dTdT0_cmb_interp = interpolate.RegularGridInterpolator(
+    (
+        x_core_grid[x_idx:x_idx+2],
+        Tref_core_grid[Tref_idx:Tref_idx+2],
+        P_core_grid,
+    ),
+    load_original_dTdT0[x_idx:x_idx+2,Tref_idx:Tref_idx+2]
+)
+T_interp = interpolate.RegularGridInterpolator(
+    (
+        x_core_grid[x_idx:x_idx+2],
+        Tref_core_grid[Tref_idx:Tref_idx+2],
+        P_core_grid,
+    ),
+    load_original_T[x_idx:x_idx+2,Tref_idx:Tref_idx+2]
+)
+
 #while iteration<end_ite:
 #while solid_index<core_outer_index:
 while t<end_time:
@@ -1400,10 +1417,26 @@ while t<end_time:
     x_idx=find_nearest(x_core_grid,x_alloy)
     Tref_idx=find_nearest(Tref_core_grid,min_pre_adia_T)
 
-    dTdT0_cmb=interpolate3d(np.ones(1)*x_alloy,np.ones(1)*min_pre_adia_T,np.ones(1)*initial_pressure[core_outer_index],x_core_grid[x_idx:x_idx+2],Tref_core_grid[Tref_idx:Tref_idx+2],P_core_grid,load_original_dTdT0[x_idx:x_idx+2,Tref_idx:Tref_idx+2])[0]
+    dTdT0_cmb=interpolate3d(
+        np.ones(1)*x_alloy,
+        np.ones(1)*min_pre_adia_T,
+        np.ones(1)*initial_pressure[core_outer_index],
+        x_core_grid[x_idx:x_idx+2],
+        Tref_core_grid[Tref_idx:Tref_idx+2],
+        P_core_grid,load_original_dTdT0[x_idx:x_idx+2,Tref_idx:Tref_idx+2]
+    )[0]
+    # dTdT0_cmb = dTdT0_cmb_interp((
+    #     [x_alloy],
+    #     [min_pre_adia_T],
+    #     [initial_pressure[core_outer_index]],
+    # ))[0]
     dT0dPcmb=f_dT0dP([x_alloy,min_pre_adia_T,initial_temperature[core_outer_index]])[0]
     delta_Pcmb=initial_pressure[core_outer_index]-old_pressure[core_outer_index]
-    dTdT0_array=interpolate3d(np.ones(core_outer_index+1)*x_alloy,np.ones(core_outer_index+1)*min_pre_adia_T,pressure_np[:core_outer_index+1],x_core_grid[x_idx:x_idx+2],Tref_core_grid[Tref_idx:Tref_idx+2],P_core_grid,load_original_dTdT0[x_idx:x_idx+2,Tref_idx:Tref_idx+2])
+    dTdT0_array=dTdT0_cmb_interp((
+        np.ones(core_outer_index+1)*x_alloy,
+        np.ones(core_outer_index+1)*min_pre_adia_T,
+        pressure_np[:core_outer_index+1],
+    ))
     for i in range(core_outer_index+1):
         outer_adiabat_value=h_core*C_P_Fe*dTdT0_array[i]
         outer_adiabat_array[i]=outer_adiabat_value/dTdT0_cmb
@@ -1414,7 +1447,11 @@ while t<end_time:
     #outer_adiabat_Pi=np.sum(outer_adiabat_Pi_array)
     # Latent heat when there's ongoing inner core solidification
     if initial_phase[0]==ph_Fe_sol and initial_phase[core_outer_index]==ph_Fe_liq:
-        dTdT0_ic=interpolate3d(np.ones(1)*x_alloy,np.ones(1)*min_pre_adia_T,np.ones(1)*Pic,x_core_grid[x_idx:x_idx+2],Tref_core_grid[Tref_idx:Tref_idx+2],P_core_grid,load_original_dTdT0[x_idx:x_idx+2,Tref_idx:Tref_idx+2])[0]
+        dTdT0_ic=dTdT0_cmb_interp((
+            [x_alloy],
+            [min_pre_adia_T],
+            [Pic],
+        ))[0]
         dmicdPic=-4.0*math.pi/G*Ric**4.0/Mic
         dPicdTic=1.0/(alpha_ic/rho_ic*Tic/C_P_Fe)
         dTicdTcmb=dTdT0_ic/dTdT0_cmb
@@ -1447,7 +1484,11 @@ while t<end_time:
     min_pre_adia_T=pre_adia_T[len(pre_adia_T)-1]
 
     # update the temperature profile in the core.
-    adiabat_array=interpolate3d(np.ones(core_outer_index+1)*x_alloy,np.ones(core_outer_index+1)*min_pre_adia_T,pressure_np[:core_outer_index+1], x_core_grid[x_idx:x_idx+2], Tref_core_grid[Tref_idx:Tref_idx+2], P_core_grid, load_original_T[x_idx:x_idx+2,Tref_idx:Tref_idx+2])
+    adiabat_array = T_interp((
+        np.ones(core_outer_index+1)*x_alloy,
+        np.ones(core_outer_index+1)*min_pre_adia_T,
+        pressure_np[:core_outer_index+1],
+    ))
     for i in range(core_outer_index+1):
         if initial_phase[i]==0.0:
             Tc_array[i]=f_interp_Tsimon(melt_pressure_Fe_GPa[i]).tolist()#T_simon(initial_pressure[i]/10.0**9.0,x_core)
@@ -1534,11 +1575,11 @@ while t<end_time:
         x_core=x_init*(M_pl*CMF-mass[0])/(M_pl*CMF-Mic)
         if x_core>0.1519:
             x_core=0.1519
-    
-    # calculating dT/dr. Borrow the first portion of dsdr_array for the mantle to save dTdr in the core. 
+
+    # calculating dT/dr. Borrow the first portion of dsdr_array for the mantle to save dTdr in the core.
     for i in range(core_outer_index):
         dsdr[i]=(temperature_cell[i]-temperature_cell[i+1])/(radius_cell[i]-radius_cell[i+1])
-    
+
     for i in range(core_outer_index+1):
         if i>=solid_index:
             Fconv[i]=Fcmb#*4.0*np.pi*initial_radius[i]**2.0
@@ -1848,7 +1889,7 @@ while t<end_time:
         if melt_frac[i]>0.0 and i>S_MO_index-1:
             L_sigma=L_sigma+dr[i]
 
-    # calculate convective velocity and Magnetic Reynolds number in the core. 
+    # calculate convective velocity and Magnetic Reynolds number in the core.
     if Fcmb>=0.0 and solid_index<core_outer_index:
         for i in range(core_outer_index+1):
             if i>=solid_index:
@@ -1974,7 +2015,7 @@ dRicdt[start_ind:]=f_dRicdt(t_array[start_ind:])
 log10_dRicdt=dRicdt.copy()
 log10_dRicdt_hat=dRicdt.copy()
 log10_dRicdt[start_ind:]=np.log10(dRicdt[start_ind:])
-log10_dRicdt_hat[start_ind:]=savgol_filter(log10_dRicdt[start_ind:], window_length=99,polyorder=9) 
+log10_dRicdt_hat[start_ind:]=savgol_filter(log10_dRicdt[start_ind:], window_length=99,polyorder=9)
 for i in range(len(t_array)):
     Buoy_x[i]=Buoy_x[i]*10.0**log10_dRicdt_hat[i]
     core_dipole_m[i]=core_dipole_m[i]*(Buoy_T[i]+Buoy_x[i])**(1.0/3.0)
