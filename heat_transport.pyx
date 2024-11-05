@@ -7,8 +7,6 @@ import numpy as np
 from scipy import interpolate
 from scipy.signal import savgol_filter
 from scipy.optimize import fsolve
-from pynbody.analysis.interpolate import interpolate3d
-from pynbody.analysis.interpolate import interpolate2d
 from scipy.interpolate import CubicSpline
 from libc cimport math
 cimport cython
