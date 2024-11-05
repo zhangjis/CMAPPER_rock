@@ -981,13 +981,17 @@ cdef Py_ssize_t ind
 
 cdef double core_m
 
+# migration from pynbody.interpolate3d. We have to extrapolate these values;
+# @Jisheng, does this make sense?
+interp_kwargs = dict(bounds_error=False, fill_value=None)
 dTdT0_cmb_interp = interpolate.RegularGridInterpolator(
     (
         x_core_grid[x_idx:x_idx+2],
         Tref_core_grid[Tref_idx:Tref_idx+2],
         P_core_grid,
     ),
-    load_original_dTdT0[x_idx:x_idx+2,Tref_idx:Tref_idx+2]
+    load_original_dTdT0[x_idx:x_idx+2,Tref_idx:Tref_idx+2],
+    **interp_kwargs,
 )
 T_interp = interpolate.RegularGridInterpolator(
     (
@@ -995,7 +999,238 @@ T_interp = interpolate.RegularGridInterpolator(
         Tref_core_grid[Tref_idx:Tref_idx+2],
         P_core_grid,
     ),
-    load_original_T[x_idx:x_idx+2,Tref_idx:Tref_idx+2]
+    load_original_T[x_idx:x_idx+2,Tref_idx:Tref_idx+2],
+    **interp_kwargs,
+)
+T_interp_2d_liq = interpolate.RegularGridInterpolator(
+    (P_grid_np, y_grid),
+    T_liq,
+    **interp_kwargs,
+)
+T_interp_2d_sol_pv = interpolate.RegularGridInterpolator(
+    (P_grid_pv, y_grid),
+    T_sol_pv,
+    **interp_kwargs,
+)
+T_interp_2d_sol_ppv = interpolate.RegularGridInterpolator(
+    (P_grid_ppv, y_grid),
+    T_sol_ppv,
+    **interp_kwargs,
+)
+T_interp_2d_sol_en = interpolate.RegularGridInterpolator(
+    (P_grid_en, y_grid),
+    T_sol_en,
+    **interp_kwargs,
+)
+T_interp_2d_mix_pv = interpolate.RegularGridInterpolator(
+    (P_grid_pv, y_grid),
+    T_mix_pv,
+    **interp_kwargs,
+)
+T_interp_2d_mix_ppv = interpolate.RegularGridInterpolator(
+    (P_grid_ppv, y_grid),
+    T_mix_ppv,
+    **interp_kwargs,
+)
+T_interp_2d_mix_en = interpolate.RegularGridInterpolator(
+    (P_grid_en, y_grid),
+    T_mix_en,
+    **interp_kwargs,
+)
+T_interp_2d_liq = interpolate.RegularGridInterpolator(
+    (P_grid_np, y_grid),
+    T_liq,
+    **interp_kwargs,
+)
+T_interp_2d_sol_pv = interpolate.RegularGridInterpolator(
+    (P_grid_pv, y_grid),
+    T_sol_pv,
+    **interp_kwargs,
+)
+T_interp_2d_sol_ppv = interpolate.RegularGridInterpolator(
+    (P_grid_ppv, y_grid),
+    T_sol_ppv,
+    **interp_kwargs,
+)
+T_interp_2d_sol_en = interpolate.RegularGridInterpolator(
+    (P_grid_en, y_grid),
+    T_sol_en,
+    **interp_kwargs,
+)
+T_interp_2d_mix_pv = interpolate.RegularGridInterpolator(
+    (P_grid_pv, y_grid),
+    T_mix_pv,
+    **interp_kwargs,
+)
+T_interp_2d_mix_ppv = interpolate.RegularGridInterpolator(
+    (P_grid_ppv, y_grid),
+    T_mix_ppv,
+    **interp_kwargs,
+)
+T_interp_2d_mix_en = interpolate.RegularGridInterpolator(
+    (P_grid_en, y_grid),
+    T_mix_en,
+    **interp_kwargs,
+)
+T_interp_2d_dy_liq = interpolate.RegularGridInterpolator(
+    (P_grid_np, y_grid),
+    dqdy_liq,
+    **interp_kwargs,
+)
+T_interp_2d_dy_sol_pv = interpolate.RegularGridInterpolator(
+    (P_grid_pv, y_grid),
+    dqdy_sol_pv,
+    **interp_kwargs,
+)
+T_interp_2d_dy_sol_ppv = interpolate.RegularGridInterpolator(
+    (P_grid_ppv, y_grid),
+    dqdy_sol_ppv,
+    **interp_kwargs,
+)
+T_interp_2d_dy_sol_en = interpolate.RegularGridInterpolator(
+    (P_grid_en, y_grid),
+    dqdy_sol_en,
+    **interp_kwargs,
+)
+T_interp_2d_dy_mix_pv = interpolate.RegularGridInterpolator(
+    (P_grid_pv, y_grid),
+    dqdy_mix_pv,
+    **interp_kwargs,
+)
+T_interp_2d_dy_mix_ppv = interpolate.RegularGridInterpolator(
+    (P_grid_ppv, y_grid),
+    dqdy_mix_ppv,
+    **interp_kwargs,
+)
+T_interp_2d_dy_mix_en = interpolate.RegularGridInterpolator(
+    (P_grid_en, y_grid),
+    dqdy_mix_en,
+    **interp_kwargs,
+)
+T_interp_2d_o_liq = interpolate.RegularGridInterpolator(
+    (P_grid_np, y_grid),
+    rho_liq,
+    **interp_kwargs,
+)
+T_interp_2d_o_sol_pv = interpolate.RegularGridInterpolator(
+    (P_grid_pv, y_grid),
+    rho_sol_pv,
+    **interp_kwargs,
+)
+T_interp_2d_o_sol_ppv = interpolate.RegularGridInterpolator(
+    (P_grid_ppv, y_grid),
+    rho_sol_ppv,
+    **interp_kwargs,
+)
+T_interp_2d_o_sol_en = interpolate.RegularGridInterpolator(
+    (P_grid_en, y_grid),
+    rho_sol_en,
+    **interp_kwargs,
+)
+T_interp_2d_o_mix_pv = interpolate.RegularGridInterpolator(
+    (P_grid_pv, y_grid),
+    rho_mix_pv,
+    **interp_kwargs,
+)
+T_interp_2d_o_mix_ppv = interpolate.RegularGridInterpolator(
+    (P_grid_ppv, y_grid),
+    rho_mix_ppv,
+    **interp_kwargs,
+)
+T_interp_2d_o_mix_en = interpolate.RegularGridInterpolator(
+    (P_grid_en, y_grid),
+    rho_mix_en,
+    **interp_kwargs,
+)
+T_interp_2d__liq = interpolate.RegularGridInterpolator(
+    (P_grid_np, y_grid),
+    CP_liq,
+    **interp_kwargs,
+)
+T_interp_2d__mix_pv = interpolate.RegularGridInterpolator(
+    (P_grid_pv, y_grid),
+    CP_mix_pv,
+    **interp_kwargs,
+)
+T_interp_2d__mix_ppv = interpolate.RegularGridInterpolator(
+    (P_grid_ppv, y_grid),
+    CP_mix_ppv,
+    **interp_kwargs,
+)
+T_interp_2d__mix_en = interpolate.RegularGridInterpolator(
+    (P_grid_en, y_grid),
+    CP_mix_en,
+    **interp_kwargs,
+)
+T_interp_2d_pha_liq = interpolate.RegularGridInterpolator(
+    (P_grid_np, y_grid),
+    alpha_liq,
+    **interp_kwargs,
+)
+T_interp_2d_pha_sol_pv = interpolate.RegularGridInterpolator(
+    (P_grid_pv, y_grid),
+    alpha_sol_pv,
+    **interp_kwargs,
+)
+T_interp_2d_pha_sol_ppv = interpolate.RegularGridInterpolator(
+    (P_grid_ppv, y_grid),
+    alpha_sol_ppv,
+    **interp_kwargs,
+)
+T_interp_2d_pha_sol_en = interpolate.RegularGridInterpolator(
+    (P_grid_en, y_grid),
+    alpha_sol_en,
+    **interp_kwargs,
+)
+T_interp_2d_pha_mix_pv = interpolate.RegularGridInterpolator(
+    (P_grid_pv, y_grid),
+    alpha_mix_pv,
+    **interp_kwargs,
+)
+T_interp_2d_pha_mix_ppv = interpolate.RegularGridInterpolator(
+    (P_grid_ppv, y_grid),
+    alpha_mix_ppv,
+    **interp_kwargs,
+)
+T_interp_2d_pha_mix_en = interpolate.RegularGridInterpolator(
+    (P_grid_en, y_grid),
+    alpha_mix_en,
+    **interp_kwargs,
+)
+T_interp_2d_dP_liq = interpolate.RegularGridInterpolator(
+    (P_grid_np, y_grid),
+    dTdP_liq,
+    **interp_kwargs,
+)
+T_interp_2d_dP_sol_pv = interpolate.RegularGridInterpolator(
+    (P_grid_pv, y_grid),
+    dTdP_sol_pv,
+    **interp_kwargs,
+)
+T_interp_2d_dP_sol_ppv = interpolate.RegularGridInterpolator(
+    (P_grid_ppv, y_grid),
+    dTdP_sol_ppv,
+    **interp_kwargs,
+)
+T_interp_2d_dP_sol_en = interpolate.RegularGridInterpolator(
+    (P_grid_en, y_grid),
+    dTdP_sol_en,
+    **interp_kwargs,
+)
+T_interp_2d_dP_mix_pv = interpolate.RegularGridInterpolator(
+    (P_grid_pv, y_grid),
+    dTdP_mix_pv,
+    **interp_kwargs,
+)
+T_interp_2d_dP_mix_ppv = interpolate.RegularGridInterpolator(
+    (P_grid_ppv, y_grid),
+    dTdP_mix_ppv,
+    **interp_kwargs,
+)
+T_interp_2d_dP_mix_en = interpolate.RegularGridInterpolator(
+    (P_grid_en, y_grid),
+    dTdP_mix_en,
+    **interp_kwargs,
 )
 
 #while iteration<end_ite:
@@ -1202,13 +1437,13 @@ while t<end_time:
         else:
             y_array[i]=(new_Scell[i]-S_solidus_cell[i])/(S_liquidus_cell[i]-S_solidus_cell[i])
             new_x_cell[i]=y_array[i]
-    new_T_cell_l[core_outer_index+1:]=interpolate2d(pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_np, y_grid, T_liq)
-    new_T_cell_pv[core_outer_index+1:]=interpolate2d(pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, T_sol_pv)
-    new_T_cell_ppv[core_outer_index+1:]=interpolate2d(pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, T_sol_ppv)
-    new_T_cell_en[core_outer_index+1:]=interpolate2d(pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, T_sol_en)
-    new_T_cell_pv_mix[core_outer_index+1:]=interpolate2d(pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, T_mix_pv)
-    new_T_cell_ppv_mix[core_outer_index+1:]=interpolate2d(pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, T_mix_ppv)
-    new_T_cell_en_mix[core_outer_index+1:]=interpolate2d(pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, T_mix_en)
+    new_T_cell_l[core_outer_index+1:]=T_interp_2d_liq((pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_cell_pv[core_outer_index+1:]=T_interp_2d_sol_pv((pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_cell_ppv[core_outer_index+1:]=T_interp_2d_sol_ppv((pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_cell_en[core_outer_index+1:]=T_interp_2d_sol_en((pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_cell_pv_mix[core_outer_index+1:]=T_interp_2d_mix_pv((pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_cell_ppv_mix[core_outer_index+1:]=T_interp_2d_mix_ppv((pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_cell_en_mix[core_outer_index+1:]=T_interp_2d_mix_en((pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:]))
     for i in range(core_outer_index+1,zone):
         if new_Scell[i]>=S_liquidus_cell[i]:
             new_T_cell[i]=new_T_cell_l[i]
@@ -1263,53 +1498,53 @@ while t<end_time:
             else:
                 k_array[i]=k_pv
 
-    new_T_l[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_np, y_grid, T_liq)
-    new_T_pv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, T_sol_pv)
-    new_T_ppv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, T_sol_ppv)
-    new_T_en[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, T_sol_en)
-    new_T_pv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, T_mix_pv)
-    new_T_ppv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, T_mix_ppv)
-    new_T_en_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, T_mix_en)
+    new_T_l[core_outer_index+1:] = T_interp_2d_liq((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_pv[core_outer_index+1:] = T_interp_2d_sol_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_ppv[core_outer_index+1:] = T_interp_2d_sol_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_en[core_outer_index+1:] = T_interp_2d_sol_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_pv_mix[core_outer_index+1:] = T_interp_2d_mix_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_ppv_mix[core_outer_index+1:] = T_interp_2d_mix_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_en_mix[core_outer_index+1:] = T_interp_2d_mix_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
 
-    new_dqdy_l[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_np, y_grid, dqdy_liq)
-    new_dqdy_pv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, dqdy_sol_pv)
-    new_dqdy_ppv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, dqdy_sol_ppv)
-    new_dqdy_en[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, dqdy_sol_en)
-    new_dqdy_pv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, dqdy_mix_pv)
-    new_dqdy_ppv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, dqdy_mix_ppv)
-    new_dqdy_en_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, dqdy_mix_en)
+    new_dqdy_l[core_outer_index+1:] = T_interp_2d_dy_liq((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dqdy_pv[core_outer_index+1:] = T_interp_2d_dy_sol_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dqdy_ppv[core_outer_index+1:] = T_interp_2d_dy_sol_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dqdy_en[core_outer_index+1:] = T_interp_2d_dy_sol_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dqdy_pv_mix[core_outer_index+1:] = T_interp_2d_dy_mix_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dqdy_ppv_mix[core_outer_index+1:] = T_interp_2d_dy_mix_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dqdy_en_mix[core_outer_index+1:] = T_interp_2d_dy_mix_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
 
-    new_density_l[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_np, y_grid, rho_liq)
-    new_density_pv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, rho_sol_pv)
-    new_density_ppv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, rho_sol_ppv)
-    new_density_en[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, rho_sol_en)
-    new_density_pv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, rho_mix_pv)
-    new_density_ppv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, rho_mix_ppv)
-    new_density_en_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, rho_mix_en)
+    new_density_l[core_outer_index+1:] = T_interp_2d_o_liq((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_density_pv[core_outer_index+1:] = T_interp_2d_o_sol_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_density_ppv[core_outer_index+1:] = T_interp_2d_o_sol_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_density_en[core_outer_index+1:] = T_interp_2d_o_sol_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_density_pv_mix[core_outer_index+1:] = T_interp_2d_o_mix_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_density_ppv_mix[core_outer_index+1:] = T_interp_2d_o_mix_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_density_en_mix[core_outer_index+1:] = T_interp_2d_o_mix_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
 
-    new_CP_l[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_np, y_grid, CP_liq)
+    new_CP_l[core_outer_index+1:] = T_interp_2d__liq((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
     new_CP_pv[core_outer_index+1:]=CP_s*np.ones(mantle_zone)
     new_CP_ppv[core_outer_index+1:]=CP_s*np.ones(mantle_zone)
     new_CP_en[core_outer_index+1:]=CP_s*np.ones(mantle_zone)
-    new_CP_pv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, CP_mix_pv)
-    new_CP_ppv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, CP_mix_ppv)
-    new_CP_en_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, CP_mix_en)
+    new_CP_pv_mix[core_outer_index+1:] = T_interp_2d__mix_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_CP_ppv_mix[core_outer_index+1:] = T_interp_2d__mix_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_CP_en_mix[core_outer_index+1:] = T_interp_2d__mix_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
 
-    new_alpha_l[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_np, y_grid, alpha_liq)
-    new_alpha_pv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, alpha_sol_pv)
-    new_alpha_ppv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, alpha_sol_ppv)
-    new_alpha_en[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, alpha_sol_en)
-    new_alpha_pv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, alpha_mix_pv)
-    new_alpha_ppv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, alpha_mix_ppv)
-    new_alpha_en_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, alpha_mix_en)
+    new_alpha_l[core_outer_index+1:] = T_interp_2d_pha_liq((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_alpha_pv[core_outer_index+1:] = T_interp_2d_pha_sol_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_alpha_ppv[core_outer_index+1:] = T_interp_2d_pha_sol_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_alpha_en[core_outer_index+1:] = T_interp_2d_pha_sol_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_alpha_pv_mix[core_outer_index+1:] = T_interp_2d_pha_mix_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_alpha_ppv_mix[core_outer_index+1:] = T_interp_2d_pha_mix_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_alpha_en_mix[core_outer_index+1:] = T_interp_2d_pha_mix_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
 
-    new_dTdP_l[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_np, y_grid, dTdP_liq)
-    new_dTdP_pv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, dTdP_sol_pv)
-    new_dTdP_ppv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, dTdP_sol_ppv)
-    new_dTdP_en[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, dTdP_sol_en)
-    new_dTdP_pv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, dTdP_mix_pv)
-    new_dTdP_ppv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, dTdP_mix_ppv)
-    new_dTdP_en_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, dTdP_mix_en)
+    new_dTdP_l[core_outer_index+1:] = T_interp_2d_dP_liq((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dTdP_pv[core_outer_index+1:] = T_interp_2d_dP_sol_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dTdP_ppv[core_outer_index+1:] = T_interp_2d_dP_sol_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dTdP_en[core_outer_index+1:] = T_interp_2d_dP_sol_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dTdP_pv_mix[core_outer_index+1:] = T_interp_2d_dP_mix_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dTdP_ppv_mix[core_outer_index+1:] = T_interp_2d_dP_mix_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dTdP_en_mix[core_outer_index+1:] = T_interp_2d_dP_mix_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
 
     for i in range(core_outer_index+1,zone):
         if new_phase[i]==ph_pv_liq:
@@ -1417,19 +1652,11 @@ while t<end_time:
     x_idx=find_nearest(x_core_grid,x_alloy)
     Tref_idx=find_nearest(Tref_core_grid,min_pre_adia_T)
 
-    dTdT0_cmb=interpolate3d(
-        np.ones(1)*x_alloy,
-        np.ones(1)*min_pre_adia_T,
-        np.ones(1)*initial_pressure[core_outer_index],
-        x_core_grid[x_idx:x_idx+2],
-        Tref_core_grid[Tref_idx:Tref_idx+2],
-        P_core_grid,load_original_dTdT0[x_idx:x_idx+2,Tref_idx:Tref_idx+2]
-    )[0]
-    # dTdT0_cmb = dTdT0_cmb_interp((
-    #     [x_alloy],
-    #     [min_pre_adia_T],
-    #     [initial_pressure[core_outer_index]],
-    # ))[0]
+    dTdT0_cmb = dTdT0_cmb_interp((
+        [x_alloy],
+        [min_pre_adia_T],
+        [initial_pressure[core_outer_index]],
+    ))[0]
     dT0dPcmb=f_dT0dP([x_alloy,min_pre_adia_T,initial_temperature[core_outer_index]])[0]
     delta_Pcmb=initial_pressure[core_outer_index]-old_pressure[core_outer_index]
     dTdT0_array=dTdT0_cmb_interp((
