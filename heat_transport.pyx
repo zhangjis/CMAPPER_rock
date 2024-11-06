@@ -984,20 +984,20 @@ cdef double core_m
 interp_kwargs = dict(bounds_error=False, fill_value=None)
 dTdT0_cmb_interp = interpolate.RegularGridInterpolator(
     (
-        x_core_grid[x_idx:x_idx+2],
-        Tref_core_grid[Tref_idx:Tref_idx+2],
+        x_core_grid,
+        Tref_core_grid,
         P_core_grid,
     ),
-    load_original_dTdT0[x_idx:x_idx+2,Tref_idx:Tref_idx+2],
+    load_original_dTdT0,
     **interp_kwargs,
 )
 T_interp = interpolate.RegularGridInterpolator(
     (
-        x_core_grid[x_idx:x_idx+2],
-        Tref_core_grid[Tref_idx:Tref_idx+2],
+        x_core_grid,
+        Tref_core_grid,
         P_core_grid,
     ),
-    load_original_T[x_idx:x_idx+2,Tref_idx:Tref_idx+2],
+    load_original_T,
     **interp_kwargs,
 )
 T_interp_2d_liq = interpolate.RegularGridInterpolator((P_grid_np, y_grid), T_liq, **interp_kwargs)
@@ -1476,8 +1476,6 @@ while t<end_time:
 
     # Heating related to change in the pressure level in the core due to cooling
     x_alloy=x_core/mf_l
-    x_idx=find_nearest(x_core_grid,x_alloy)
-    Tref_idx=find_nearest(Tref_core_grid,min_pre_adia_T)
 
     dTdT0_cmb = dTdT0_cmb_interp((
         [x_alloy],
