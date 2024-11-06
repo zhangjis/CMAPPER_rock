@@ -435,7 +435,7 @@ def run():
     Rem_min,Rem_max=f_axis_max_min(Rem_min,Rem_max,axis_scale)
 
     ncpus = os.cpu_count()
-    nthreads = os.getenv('NTHREADS', ncpus - 1)
+    nthreads = max(os.getenv('NTHREADS', ncpus - 1), 1)
     print(f'Plotting with {nthreads} simultaneous threads (out of {ncpus} detected cpus)')
     args = [
         (
