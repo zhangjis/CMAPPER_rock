@@ -11,11 +11,7 @@ from libc cimport math
 cimport cython
 import time
 
-# # suppress certain warnings
-# import warnings
-# warnings.filterwarnings('ignore', 'The iteration is not making good progress')
-# warnings.filterwarnings('ignore', 'divide by zero')
-
+### TODO @Jisheng this needs updating
 ###### Overall structure of the code.
 # line 25-25    : load input file
 # line 27-161   : load EoS tables
@@ -901,9 +897,3 @@ T_melt_P[0]=2.0*T_melt_P[1]-T_melt_P[2]
 T_Fe_melt[0]=2.0*T_Fe_melt[1]-T_Fe_melt[2]
 
 np.savetxt(results_foldername+'/profile/t0/Fe_melt.txt',np.transpose([T_melt_P[:c_z],T_Fe_melt]),header='pressure, core melting temperature')
-
-
-
-
-
-
