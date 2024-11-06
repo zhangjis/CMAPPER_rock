@@ -40,5 +40,10 @@ run: build
 		"************************************************\n"
 	@source .venv/bin/activate && ${PYTHON} test.py
 
+# removes all python packages and compiled Cython code
 clean:
 	rm -rf venv .venv build *.so *.c
+
+# removes everything, including results folders
+clean-all:
+	git clean -fdx
