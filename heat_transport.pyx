@@ -1000,236 +1000,65 @@ T_interp = interpolate.RegularGridInterpolator(
     load_original_T[x_idx:x_idx+2,Tref_idx:Tref_idx+2],
     **interp_kwargs,
 )
-T_interp_2d_liq = interpolate.RegularGridInterpolator(
-    (P_grid_np, y_grid),
-    T_liq,
-    **interp_kwargs,
-)
-T_interp_2d_sol_pv = interpolate.RegularGridInterpolator(
-    (P_grid_pv, y_grid),
-    T_sol_pv,
-    **interp_kwargs,
-)
-T_interp_2d_sol_ppv = interpolate.RegularGridInterpolator(
-    (P_grid_ppv, y_grid),
-    T_sol_ppv,
-    **interp_kwargs,
-)
-T_interp_2d_sol_en = interpolate.RegularGridInterpolator(
-    (P_grid_en, y_grid),
-    T_sol_en,
-    **interp_kwargs,
-)
-T_interp_2d_mix_pv = interpolate.RegularGridInterpolator(
-    (P_grid_pv, y_grid),
-    T_mix_pv,
-    **interp_kwargs,
-)
-T_interp_2d_mix_ppv = interpolate.RegularGridInterpolator(
-    (P_grid_ppv, y_grid),
-    T_mix_ppv,
-    **interp_kwargs,
-)
-T_interp_2d_mix_en = interpolate.RegularGridInterpolator(
-    (P_grid_en, y_grid),
-    T_mix_en,
-    **interp_kwargs,
-)
-T_interp_2d_liq = interpolate.RegularGridInterpolator(
-    (P_grid_np, y_grid),
-    T_liq,
-    **interp_kwargs,
-)
-T_interp_2d_sol_pv = interpolate.RegularGridInterpolator(
-    (P_grid_pv, y_grid),
-    T_sol_pv,
-    **interp_kwargs,
-)
-T_interp_2d_sol_ppv = interpolate.RegularGridInterpolator(
-    (P_grid_ppv, y_grid),
-    T_sol_ppv,
-    **interp_kwargs,
-)
-T_interp_2d_sol_en = interpolate.RegularGridInterpolator(
-    (P_grid_en, y_grid),
-    T_sol_en,
-    **interp_kwargs,
-)
-T_interp_2d_mix_pv = interpolate.RegularGridInterpolator(
-    (P_grid_pv, y_grid),
-    T_mix_pv,
-    **interp_kwargs,
-)
-T_interp_2d_mix_ppv = interpolate.RegularGridInterpolator(
-    (P_grid_ppv, y_grid),
-    T_mix_ppv,
-    **interp_kwargs,
-)
-T_interp_2d_mix_en = interpolate.RegularGridInterpolator(
-    (P_grid_en, y_grid),
-    T_mix_en,
-    **interp_kwargs,
-)
-T_interp_2d_dy_liq = interpolate.RegularGridInterpolator(
-    (P_grid_np, y_grid),
-    dqdy_liq,
-    **interp_kwargs,
-)
-T_interp_2d_dy_sol_pv = interpolate.RegularGridInterpolator(
-    (P_grid_pv, y_grid),
-    dqdy_sol_pv,
-    **interp_kwargs,
-)
-T_interp_2d_dy_sol_ppv = interpolate.RegularGridInterpolator(
-    (P_grid_ppv, y_grid),
-    dqdy_sol_ppv,
-    **interp_kwargs,
-)
-T_interp_2d_dy_sol_en = interpolate.RegularGridInterpolator(
-    (P_grid_en, y_grid),
-    dqdy_sol_en,
-    **interp_kwargs,
-)
-T_interp_2d_dy_mix_pv = interpolate.RegularGridInterpolator(
-    (P_grid_pv, y_grid),
-    dqdy_mix_pv,
-    **interp_kwargs,
-)
-T_interp_2d_dy_mix_ppv = interpolate.RegularGridInterpolator(
-    (P_grid_ppv, y_grid),
-    dqdy_mix_ppv,
-    **interp_kwargs,
-)
-T_interp_2d_dy_mix_en = interpolate.RegularGridInterpolator(
-    (P_grid_en, y_grid),
-    dqdy_mix_en,
-    **interp_kwargs,
-)
-T_interp_2d_o_liq = interpolate.RegularGridInterpolator(
-    (P_grid_np, y_grid),
-    rho_liq,
-    **interp_kwargs,
-)
-T_interp_2d_o_sol_pv = interpolate.RegularGridInterpolator(
-    (P_grid_pv, y_grid),
-    rho_sol_pv,
-    **interp_kwargs,
-)
-T_interp_2d_o_sol_ppv = interpolate.RegularGridInterpolator(
-    (P_grid_ppv, y_grid),
-    rho_sol_ppv,
-    **interp_kwargs,
-)
-T_interp_2d_o_sol_en = interpolate.RegularGridInterpolator(
-    (P_grid_en, y_grid),
-    rho_sol_en,
-    **interp_kwargs,
-)
-T_interp_2d_o_mix_pv = interpolate.RegularGridInterpolator(
-    (P_grid_pv, y_grid),
-    rho_mix_pv,
-    **interp_kwargs,
-)
-T_interp_2d_o_mix_ppv = interpolate.RegularGridInterpolator(
-    (P_grid_ppv, y_grid),
-    rho_mix_ppv,
-    **interp_kwargs,
-)
-T_interp_2d_o_mix_en = interpolate.RegularGridInterpolator(
-    (P_grid_en, y_grid),
-    rho_mix_en,
-    **interp_kwargs,
-)
-T_interp_2d__liq = interpolate.RegularGridInterpolator(
-    (P_grid_np, y_grid),
-    CP_liq,
-    **interp_kwargs,
-)
-T_interp_2d__mix_pv = interpolate.RegularGridInterpolator(
-    (P_grid_pv, y_grid),
-    CP_mix_pv,
-    **interp_kwargs,
-)
-T_interp_2d__mix_ppv = interpolate.RegularGridInterpolator(
-    (P_grid_ppv, y_grid),
-    CP_mix_ppv,
-    **interp_kwargs,
-)
-T_interp_2d__mix_en = interpolate.RegularGridInterpolator(
-    (P_grid_en, y_grid),
-    CP_mix_en,
-    **interp_kwargs,
-)
-T_interp_2d_pha_liq = interpolate.RegularGridInterpolator(
-    (P_grid_np, y_grid),
-    alpha_liq,
-    **interp_kwargs,
-)
-T_interp_2d_pha_sol_pv = interpolate.RegularGridInterpolator(
-    (P_grid_pv, y_grid),
-    alpha_sol_pv,
-    **interp_kwargs,
-)
-T_interp_2d_pha_sol_ppv = interpolate.RegularGridInterpolator(
-    (P_grid_ppv, y_grid),
-    alpha_sol_ppv,
-    **interp_kwargs,
-)
-T_interp_2d_pha_sol_en = interpolate.RegularGridInterpolator(
-    (P_grid_en, y_grid),
-    alpha_sol_en,
-    **interp_kwargs,
-)
-T_interp_2d_pha_mix_pv = interpolate.RegularGridInterpolator(
-    (P_grid_pv, y_grid),
-    alpha_mix_pv,
-    **interp_kwargs,
-)
-T_interp_2d_pha_mix_ppv = interpolate.RegularGridInterpolator(
-    (P_grid_ppv, y_grid),
-    alpha_mix_ppv,
-    **interp_kwargs,
-)
-T_interp_2d_pha_mix_en = interpolate.RegularGridInterpolator(
-    (P_grid_en, y_grid),
-    alpha_mix_en,
-    **interp_kwargs,
-)
-T_interp_2d_dP_liq = interpolate.RegularGridInterpolator(
-    (P_grid_np, y_grid),
-    dTdP_liq,
-    **interp_kwargs,
-)
-T_interp_2d_dP_sol_pv = interpolate.RegularGridInterpolator(
-    (P_grid_pv, y_grid),
-    dTdP_sol_pv,
-    **interp_kwargs,
-)
-T_interp_2d_dP_sol_ppv = interpolate.RegularGridInterpolator(
-    (P_grid_ppv, y_grid),
-    dTdP_sol_ppv,
-    **interp_kwargs,
-)
-T_interp_2d_dP_sol_en = interpolate.RegularGridInterpolator(
-    (P_grid_en, y_grid),
-    dTdP_sol_en,
-    **interp_kwargs,
-)
-T_interp_2d_dP_mix_pv = interpolate.RegularGridInterpolator(
-    (P_grid_pv, y_grid),
-    dTdP_mix_pv,
-    **interp_kwargs,
-)
-T_interp_2d_dP_mix_ppv = interpolate.RegularGridInterpolator(
-    (P_grid_ppv, y_grid),
-    dTdP_mix_ppv,
-    **interp_kwargs,
-)
-T_interp_2d_dP_mix_en = interpolate.RegularGridInterpolator(
-    (P_grid_en, y_grid),
-    dTdP_mix_en,
-    **interp_kwargs,
-)
+T_interp_2d_liq = interpolate.RegularGridInterpolator((P_grid_np, y_grid), T_liq, **interp_kwargs)
+T_interp_2d_sol_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), T_sol_pv, **interp_kwargs)
+T_interp_2d_sol_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), T_sol_ppv, **interp_kwargs)
+T_interp_2d_sol_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), T_sol_en, **interp_kwargs)
+T_interp_2d_mix_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), T_mix_pv, **interp_kwargs)
+T_interp_2d_mix_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), T_mix_ppv, **interp_kwargs)
+T_interp_2d_mix_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), T_mix_en, **interp_kwargs)
+T_interp_2d_liq = interpolate.RegularGridInterpolator((P_grid_np, y_grid), T_liq, **interp_kwargs)
+T_interp_2d_sol_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), T_sol_pv, **interp_kwargs)
+T_interp_2d_sol_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), T_sol_ppv, **interp_kwargs)
+T_interp_2d_sol_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), T_sol_en, **interp_kwargs)
+T_interp_2d_mix_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), T_mix_pv, **interp_kwargs)
+T_interp_2d_mix_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), T_mix_ppv, **interp_kwargs)
+T_interp_2d_mix_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), T_mix_en, **interp_kwargs)
+T_interp_2d_dy_liq = interpolate.RegularGridInterpolator((P_grid_np, y_grid), dqdy_liq, **interp_kwargs)
+T_interp_2d_dy_sol_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), dqdy_sol_pv, **interp_kwargs)
+T_interp_2d_dy_sol_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), dqdy_sol_ppv, **interp_kwargs)
+T_interp_2d_dy_sol_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), dqdy_sol_en, **interp_kwargs)
+T_interp_2d_dy_mix_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), dqdy_mix_pv, **interp_kwargs)
+T_interp_2d_dy_mix_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), dqdy_mix_ppv, **interp_kwargs)
+T_interp_2d_dy_mix_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), dqdy_mix_en, **interp_kwargs)
+T_interp_2d_o_liq = interpolate.RegularGridInterpolator((P_grid_np, y_grid), rho_liq, **interp_kwargs)
+T_interp_2d_o_sol_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), rho_sol_pv, **interp_kwargs)
+T_interp_2d_o_sol_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), rho_sol_ppv, **interp_kwargs)
+T_interp_2d_o_sol_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), rho_sol_en, **interp_kwargs)
+T_interp_2d_o_mix_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), rho_mix_pv, **interp_kwargs)
+T_interp_2d_o_mix_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), rho_mix_ppv, **interp_kwargs)
+T_interp_2d_o_mix_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), rho_mix_en, **interp_kwargs)
+T_interp_2d__liq = interpolate.RegularGridInterpolator((P_grid_np, y_grid), CP_liq, **interp_kwargs)
+T_interp_2d__mix_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), CP_mix_pv, **interp_kwargs)
+T_interp_2d__mix_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), CP_mix_ppv, **interp_kwargs)
+T_interp_2d__mix_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), CP_mix_en, **interp_kwargs)
+T_interp_2d_pha_liq = interpolate.RegularGridInterpolator((P_grid_np, y_grid), alpha_liq, **interp_kwargs)
+T_interp_2d_pha_sol_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), alpha_sol_pv, **interp_kwargs)
+T_interp_2d_pha_sol_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), alpha_sol_ppv, **interp_kwargs)
+T_interp_2d_pha_sol_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), alpha_sol_en, **interp_kwargs)
+T_interp_2d_pha_mix_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), alpha_mix_pv, **interp_kwargs)
+T_interp_2d_pha_mix_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), alpha_mix_ppv, **interp_kwargs)
+T_interp_2d_pha_mix_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), alpha_mix_en, **interp_kwargs)
+T_interp_2d_dP_liq = interpolate.RegularGridInterpolator((P_grid_np, y_grid), dTdP_liq, **interp_kwargs)
+T_interp_2d_dP_sol_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), dTdP_sol_pv, **interp_kwargs)
+T_interp_2d_dP_sol_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), dTdP_sol_ppv, **interp_kwargs)
+T_interp_2d_dP_sol_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), dTdP_sol_en, **interp_kwargs)
+T_interp_2d_dP_mix_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), dTdP_mix_pv, **interp_kwargs)
+T_interp_2d_dP_mix_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), dTdP_mix_ppv, **interp_kwargs)
+T_interp_2d_dP_mix_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), dTdP_mix_en, **interp_kwargs)
+interp_2d_rho_Fel = interpolate.RegularGridInterpolator((P_Fel, T_Fel), rho_Fel, **interp_kwargs)
+interp_2d_rho_Fes = interpolate.RegularGridInterpolator((P_Fes, T_Fes), rho_Fes, **interp_kwargs)
+interp_2d_rho_Fea = interpolate.RegularGridInterpolator((P_Fea, T_Fea), rho_Fea, **interp_kwargs)
+interp_2d_alpha_Fel = interpolate.RegularGridInterpolator((P_Fel, T_Fel), alpha_Fel, **interp_kwargs)
+interp_2d_alpha_Fes = interpolate.RegularGridInterpolator((P_Fes, T_Fes), alpha_Fes, **interp_kwargs)
+interp_2d_alpha_Fea = interpolate.RegularGridInterpolator((P_Fea, T_Fea), alpha_Fea, **interp_kwargs)
+interp_2d_dqdy_Fel = interpolate.RegularGridInterpolator((P_Fel, T_Fel), dqdy_Fel, **interp_kwargs)
+interp_2d_dqdy_Fes = interpolate.RegularGridInterpolator((P_Fes, T_Fes), dqdy_Fes, **interp_kwargs)
+interp_2d_dqdy_Fea = interpolate.RegularGridInterpolator((P_Fea, T_Fea), dqdy_Fea, **interp_kwargs)
+interp_2d_rho_Fel_a = interpolate.RegularGridInterpolator((P_Fel, T_Fel), rho_Fel, **interp_kwargs)
+interp_2d_rho_Fea_a = interpolate.RegularGridInterpolator((P_Fea, T_Fea), rho_Fea, **interp_kwargs)
+interp_2d_alpha_Fel_a = interpolate.RegularGridInterpolator((P_Fel, T_Fel), alpha_Fel, **interp_kwargs)
+interp_2d_alpha_Fea_a = interpolate.RegularGridInterpolator((P_Fea, T_Fea), alpha_Fea, **interp_kwargs)
 
 #while iteration<end_ite:
 #while solid_index<core_outer_index:
@@ -1815,19 +1644,20 @@ while t<end_time:
             Fcond[i]=-k_array[i]*dsdr[i]#*4.0*np.pi*initial_radius[i]**2.0
             Ftot[i]=Fcond[i]
 
-    rho_liquid_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fel, T_Fel, rho_Fel)
-    rho_solid_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fes, T_Fes, rho_Fes)
-    rho_alloy_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fea, T_Fea, rho_Fea)
-    alpha_liquid_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fel, T_Fel, alpha_Fel)
-    alpha_solid_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fes, T_Fes, alpha_Fes)
-    alpha_alloy_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fea, T_Fea, alpha_Fea)
-    dqdy_liquid_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fel, T_Fel, dqdy_Fel)
-    dqdy_solid_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fes, T_Fes, dqdy_Fes)
-    dqdy_alloy_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fea, T_Fea, dqdy_Fea)
-    rho_liquid_array_a=interpolate2d(pressure_np[:core_outer_index+1], Tc_adiabat_np[:core_outer_index+1], P_Fel, T_Fel, rho_Fel)
-    rho_alloy_array_a=interpolate2d(pressure_np[:core_outer_index+1], Tc_adiabat_np[:core_outer_index+1], P_Fea, T_Fea, rho_Fea)
-    alpha_liquid_array_a=interpolate2d(pressure_np[:core_outer_index+1], Tc_adiabat_np[:core_outer_index+1], P_Fel, T_Fel, alpha_Fel)
-    alpha_alloy_array_a=interpolate2d(pressure_np[:core_outer_index+1], Tc_adiabat_np[:core_outer_index+1], P_Fea, T_Fea, alpha_Fea)
+    rho_liquid_array=interp_2d_rho_Fel((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+    rho_solid_array=interp_2d_rho_Fes((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+    rho_alloy_array=interp_2d_rho_Fea((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+    alpha_liquid_array=interp_2d_alpha_Fel((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+    alpha_solid_array=interp_2d_alpha_Fes((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+    alpha_alloy_array=interp_2d_alpha_Fea((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+    dqdy_liquid_array=interp_2d_dqdy_Fel((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+    dqdy_solid_array=interp_2d_dqdy_Fes((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+    dqdy_alloy_array=interp_2d_dqdy_Fea((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+
+    rho_liquid_array_a=interp_2d_rho_Fel_a((pressure_np[:core_outer_index+1], Tc_adiabat_np[:core_outer_index+1]))
+    rho_alloy_array_a=interp_2d_rho_Fea_a((pressure_np[:core_outer_index+1], Tc_adiabat_np[:core_outer_index+1]))
+    alpha_liquid_array_a=interp_2d_alpha_Fel_a((pressure_np[:core_outer_index+1], Tc_adiabat_np[:core_outer_index+1]))
+    alpha_alloy_array_a=interp_2d_alpha_Fea_a((pressure_np[:core_outer_index+1], Tc_adiabat_np[:core_outer_index+1]))
 
     for i in range(0,core_outer_index+1):
         if i==0:
