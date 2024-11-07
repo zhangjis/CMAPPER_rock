@@ -7,8 +7,6 @@ import numpy as np
 from scipy import interpolate
 from scipy.signal import savgol_filter
 from scipy.optimize import fsolve
-from pynbody.analysis.interpolate import interpolate3d
-from pynbody.analysis.interpolate import interpolate2d
 from scipy.interpolate import CubicSpline
 from libc cimport math
 cimport cython
@@ -545,7 +543,7 @@ cdef double mantle_mass=M_pl*(1.0-CMF)
 cdef double h_mantle=M_pl*(1.0-CMF)/mantle_zone
 cdef double h_core=M_pl*CMF/core_zone
 
-cdef double Q_rad_c_0=0.0#1e12/(math.exp(-4.5/1.2))/(M_E*0.33)*(M_pl*CMF)
+cdef double Q_rad_c_0=0.0#1e12/(math.exp(-4.5/1.2))/(M_E*0.326)*(M_pl*CMF)
 
 cdef double v_b=4.0/CP[zone-1]
 cdef double v_a=v_b*sigma*Teq**4.0
@@ -981,6 +979,87 @@ cdef Py_ssize_t ind
 
 cdef double core_m
 
+# migration from pynbody.interpolate3d. We have to extrapolate these values;
+# @Jisheng, does this make sense?
+interp_kwargs = dict(bounds_error=False, fill_value=None)
+dTdT0_cmb_interp = interpolate.RegularGridInterpolator(
+    (
+        x_core_grid,
+        Tref_core_grid,
+        P_core_grid,
+    ),
+    load_original_dTdT0,
+    **interp_kwargs,
+)
+T_interp = interpolate.RegularGridInterpolator(
+    (
+        x_core_grid,
+        Tref_core_grid,
+        P_core_grid,
+    ),
+    load_original_T,
+    **interp_kwargs,
+)
+T_interp_2d_liq = interpolate.RegularGridInterpolator((P_grid_np, y_grid), T_liq, **interp_kwargs)
+T_interp_2d_sol_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), T_sol_pv, **interp_kwargs)
+T_interp_2d_sol_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), T_sol_ppv, **interp_kwargs)
+T_interp_2d_sol_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), T_sol_en, **interp_kwargs)
+T_interp_2d_mix_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), T_mix_pv, **interp_kwargs)
+T_interp_2d_mix_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), T_mix_ppv, **interp_kwargs)
+T_interp_2d_mix_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), T_mix_en, **interp_kwargs)
+T_interp_2d_liq = interpolate.RegularGridInterpolator((P_grid_np, y_grid), T_liq, **interp_kwargs)
+T_interp_2d_sol_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), T_sol_pv, **interp_kwargs)
+T_interp_2d_sol_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), T_sol_ppv, **interp_kwargs)
+T_interp_2d_sol_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), T_sol_en, **interp_kwargs)
+T_interp_2d_mix_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), T_mix_pv, **interp_kwargs)
+T_interp_2d_mix_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), T_mix_ppv, **interp_kwargs)
+T_interp_2d_mix_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), T_mix_en, **interp_kwargs)
+T_interp_2d_dy_liq = interpolate.RegularGridInterpolator((P_grid_np, y_grid), dqdy_liq, **interp_kwargs)
+T_interp_2d_dy_sol_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), dqdy_sol_pv, **interp_kwargs)
+T_interp_2d_dy_sol_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), dqdy_sol_ppv, **interp_kwargs)
+T_interp_2d_dy_sol_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), dqdy_sol_en, **interp_kwargs)
+T_interp_2d_dy_mix_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), dqdy_mix_pv, **interp_kwargs)
+T_interp_2d_dy_mix_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), dqdy_mix_ppv, **interp_kwargs)
+T_interp_2d_dy_mix_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), dqdy_mix_en, **interp_kwargs)
+T_interp_2d_o_liq = interpolate.RegularGridInterpolator((P_grid_np, y_grid), rho_liq, **interp_kwargs)
+T_interp_2d_o_sol_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), rho_sol_pv, **interp_kwargs)
+T_interp_2d_o_sol_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), rho_sol_ppv, **interp_kwargs)
+T_interp_2d_o_sol_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), rho_sol_en, **interp_kwargs)
+T_interp_2d_o_mix_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), rho_mix_pv, **interp_kwargs)
+T_interp_2d_o_mix_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), rho_mix_ppv, **interp_kwargs)
+T_interp_2d_o_mix_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), rho_mix_en, **interp_kwargs)
+T_interp_2d__liq = interpolate.RegularGridInterpolator((P_grid_np, y_grid), CP_liq, **interp_kwargs)
+T_interp_2d__mix_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), CP_mix_pv, **interp_kwargs)
+T_interp_2d__mix_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), CP_mix_ppv, **interp_kwargs)
+T_interp_2d__mix_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), CP_mix_en, **interp_kwargs)
+T_interp_2d_pha_liq = interpolate.RegularGridInterpolator((P_grid_np, y_grid), alpha_liq, **interp_kwargs)
+T_interp_2d_pha_sol_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), alpha_sol_pv, **interp_kwargs)
+T_interp_2d_pha_sol_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), alpha_sol_ppv, **interp_kwargs)
+T_interp_2d_pha_sol_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), alpha_sol_en, **interp_kwargs)
+T_interp_2d_pha_mix_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), alpha_mix_pv, **interp_kwargs)
+T_interp_2d_pha_mix_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), alpha_mix_ppv, **interp_kwargs)
+T_interp_2d_pha_mix_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), alpha_mix_en, **interp_kwargs)
+T_interp_2d_dP_liq = interpolate.RegularGridInterpolator((P_grid_np, y_grid), dTdP_liq, **interp_kwargs)
+T_interp_2d_dP_sol_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), dTdP_sol_pv, **interp_kwargs)
+T_interp_2d_dP_sol_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), dTdP_sol_ppv, **interp_kwargs)
+T_interp_2d_dP_sol_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), dTdP_sol_en, **interp_kwargs)
+T_interp_2d_dP_mix_pv = interpolate.RegularGridInterpolator((P_grid_pv, y_grid), dTdP_mix_pv, **interp_kwargs)
+T_interp_2d_dP_mix_ppv = interpolate.RegularGridInterpolator((P_grid_ppv, y_grid), dTdP_mix_ppv, **interp_kwargs)
+T_interp_2d_dP_mix_en = interpolate.RegularGridInterpolator((P_grid_en, y_grid), dTdP_mix_en, **interp_kwargs)
+interp_2d_rho_Fel = interpolate.RegularGridInterpolator((P_Fel, T_Fel), rho_Fel, **interp_kwargs)
+interp_2d_rho_Fes = interpolate.RegularGridInterpolator((P_Fes, T_Fes), rho_Fes, **interp_kwargs)
+interp_2d_rho_Fea = interpolate.RegularGridInterpolator((P_Fea, T_Fea), rho_Fea, **interp_kwargs)
+interp_2d_alpha_Fel = interpolate.RegularGridInterpolator((P_Fel, T_Fel), alpha_Fel, **interp_kwargs)
+interp_2d_alpha_Fes = interpolate.RegularGridInterpolator((P_Fes, T_Fes), alpha_Fes, **interp_kwargs)
+interp_2d_alpha_Fea = interpolate.RegularGridInterpolator((P_Fea, T_Fea), alpha_Fea, **interp_kwargs)
+interp_2d_dqdy_Fel = interpolate.RegularGridInterpolator((P_Fel, T_Fel), dqdy_Fel, **interp_kwargs)
+interp_2d_dqdy_Fes = interpolate.RegularGridInterpolator((P_Fes, T_Fes), dqdy_Fes, **interp_kwargs)
+interp_2d_dqdy_Fea = interpolate.RegularGridInterpolator((P_Fea, T_Fea), dqdy_Fea, **interp_kwargs)
+interp_2d_rho_Fel_a = interpolate.RegularGridInterpolator((P_Fel, T_Fel), rho_Fel, **interp_kwargs)
+interp_2d_rho_Fea_a = interpolate.RegularGridInterpolator((P_Fea, T_Fea), rho_Fea, **interp_kwargs)
+interp_2d_alpha_Fel_a = interpolate.RegularGridInterpolator((P_Fel, T_Fel), alpha_Fel, **interp_kwargs)
+interp_2d_alpha_Fea_a = interpolate.RegularGridInterpolator((P_Fea, T_Fea), alpha_Fea, **interp_kwargs)
+
 #while iteration<end_ite:
 #while solid_index<core_outer_index:
 while t<end_time:
@@ -1072,72 +1151,87 @@ while t<end_time:
     v2=Area[i]/(h_mantle*temperature_cell[i])*k_array[i]*dTdP[i]*dPdr[i]
     v3=0.0
     ff[i]=S_cell[i]/dt+v1+v2+v3+Q_rad_m/temperature_cell[i]
+    
+    if Teq<1800.0:
+        # variable to define: Ra_T_s, old_Ra_r_s, Ra_r_s,delta_T_ra_s
+        g_c_m1=f_ic(old_radius[zone-2],old_radius[zone-1],old_radius_cell[-1],initial_gravity[zone-2],initial_gravity[zone-1])
+        p_c_m1=f_ic(old_radius[zone-2],old_radius[zone-1],old_radius_cell[-1],initial_pressure[zone-2],initial_pressure[zone-1])
+        rho_c_m1=f_ic(old_radius[zone-2],old_radius[zone-1],old_radius_cell[-1],initial_density[zone-2],initial_density[zone-1])
+        S_liq_c_m1=f_ic(old_radius[zone-2],old_radius[zone-1],old_radius_cell[-1],S_liquidus[zone-2],S_liquidus[zone-1])
+        S_sol_c_m1=f_ic(old_radius[zone-2],old_radius[zone-1],old_radius_cell[-1],S_solidus[zone-2],S_solidus[zone-1])
 
-    # variable to define: Ra_T_s, old_Ra_r_s, Ra_r_s,delta_T_ra_s
-    g_c_m1=f_ic(old_radius[zone-2],old_radius[zone-1],old_radius_cell[-1],initial_gravity[zone-2],initial_gravity[zone-1])
-    p_c_m1=f_ic(old_radius[zone-2],old_radius[zone-1],old_radius_cell[-1],initial_pressure[zone-2],initial_pressure[zone-1])
-    rho_c_m1=f_ic(old_radius[zone-2],old_radius[zone-1],old_radius_cell[-1],initial_density[zone-2],initial_density[zone-1])
-    S_liq_c_m1=f_ic(old_radius[zone-2],old_radius[zone-1],old_radius_cell[-1],S_liquidus[zone-2],S_liquidus[zone-1])
-    S_sol_c_m1=f_ic(old_radius[zone-2],old_radius[zone-1],old_radius_cell[-1],S_solidus[zone-2],S_solidus[zone-1])
+        Ra_S_s=f_oc(old_radius_cell[-1], old_radius[zone-2], old_Ra_r_s, S_cell[zone-1], initial_S[zone-2])
+        Ra_g_s=f_oc(old_radius_cell[-1], old_radius[zone-2], old_Ra_r_s, g_c_m1, old_gravity[zone-2])
+        Ra_P_s=f_oc(old_radius_cell[-1], old_radius[zone-2], old_Ra_r_s, p_c_m1, old_pressure[zone-2])
+        Ra_Sliq_s=f_oc(old_radius_cell[-1], old_radius[zone-2], old_Ra_r_s, S_liq_c_m1, old_S_liquidus[zone-2])
+        Ra_Ssol_s=f_oc(old_radius_cell[-1], old_radius[zone-2], old_Ra_r_s, S_sol_c_m1, old_S_solidus[zone-2])
 
-    Ra_S_s=f_oc(old_radius_cell[-1], old_radius[zone-2], old_Ra_r_s, S_cell[zone-1], initial_S[zone-2])
-    Ra_g_s=f_oc(old_radius_cell[-1], old_radius[zone-2], old_Ra_r_s, g_c_m1, old_gravity[zone-2])
-    Ra_P_s=f_oc(old_radius_cell[-1], old_radius[zone-2], old_Ra_r_s, p_c_m1, old_pressure[zone-2])
-    Ra_Sliq_s=f_oc(old_radius_cell[-1], old_radius[zone-2], old_Ra_r_s, S_liq_c_m1, old_S_liquidus[zone-2])
-    Ra_Ssol_s=f_oc(old_radius_cell[-1], old_radius[zone-2], old_Ra_r_s, S_sol_c_m1, old_S_solidus[zone-2])
+        if Ra_S_s>=Ra_Sliq_s:
+            Ra_y_s=(Ra_S_s-Ra_Sliq_s)/(S_max-Ra_Sliq_s)
+            Ra_x_s=1.0
+            Ra_T_s=T_Py_liq(Ra_P_s,Ra_y_s)[0][0]
+            Ra_rho_s=rho_Py_liq(Ra_P_s,Ra_y_s)[0][0]
+            Ra_CP_s=CP_Py_liq(Ra_P_s,Ra_y_s)[0][0]
+            Ra_alpha_s=alpha_Py_liq(Ra_P_s,Ra_y_s)[0][0]
+        elif Ra_S_s<=Ra_Ssol_s:
+            Ra_y_s=(Ra_S_s-S_min)/(Ra_Ssol_s-S_min)
+            Ra_x_s=0.0
+            Ra_T_s=T_Py_sol_en(Ra_P_s,Ra_y_s)[0][0]
+            Ra_rho_s=rho_Py_sol_en(Ra_P_s,Ra_y_s)[0][0]
+            Ra_CP_s=1265.0
+            Ra_alpha_s=alpha_Py_sol_en(Ra_P_s,Ra_y_s)[0][0]
+        else:
+            Ra_y_s=(Ra_S_s-Ra_Ssol_s)/(Ra_Sliq_s-Ra_Ssol_s)
+            Ra_x_s=Ra_y_s
+            Ra_T_s=T_Py_mix_en(Ra_P_s,Ra_y_s)[0][0]
+            Ra_rho_s=rho_Py_mix_en(Ra_P_s,Ra_y_s)[0][0]
+            Ra_CP_s=CP_Py_mix_en(Ra_P_s,Ra_y_s)[0][0]
+            Ra_alpha_s=alpha_Py_mix_en(Ra_P_s,Ra_y_s)[0][0]
+        Ra_nu_s=f_viscosity(Ra_T_s, Ra_P_s, Ra_rho_s, initial_phase[zone-1], Ra_x_s, 3700.0, 4000.0)
 
-    if Ra_S_s>=Ra_Sliq_s:
-        Ra_y_s=(Ra_S_s-Ra_Sliq_s)/(S_max-Ra_Sliq_s)
-        Ra_x_s=1.0
-        Ra_T_s=T_Py_liq(Ra_P_s,Ra_y_s)[0][0]
-        Ra_rho_s=rho_Py_liq(Ra_P_s,Ra_y_s)[0][0]
-        Ra_CP_s=CP_Py_liq(Ra_P_s,Ra_y_s)[0][0]
-        Ra_alpha_s=alpha_Py_liq(Ra_P_s,Ra_y_s)[0][0]
-    elif Ra_S_s<=Ra_Ssol_s:
-        Ra_y_s=(Ra_S_s-S_min)/(Ra_Ssol_s-S_min)
-        Ra_x_s=0.0
-        Ra_T_s=T_Py_sol_en(Ra_P_s,Ra_y_s)[0][0]
-        Ra_rho_s=rho_Py_sol_en(Ra_P_s,Ra_y_s)[0][0]
-        Ra_CP_s=1265.0
-        Ra_alpha_s=alpha_Py_sol_en(Ra_P_s,Ra_y_s)[0][0]
+        Ttol=1.0
+        if surf_flag==1.0:
+            while Ttol>rtol:
+                delta_T_ra_s=Ra_T_s-old_T_s
+                delta_r_s=(4.0*Ra_nu_s*660.0/(Ra_rho_s*Ra_CP_s*Ra_alpha_s*Ra_g_s*delta_T_ra_s))**(1.0/3.0)
+                Fsurf=-k_array[-1]*delta_T_ra_s/delta_r_s
+                T_s=(-Fsurf/sigma+Teq**4.0)**0.25
+                Ttol=abs(old_T_s-T_s)/old_T_s
+                old_T_s=T_s
+        if delta_r_s<=initial_radius[zone-1]-radius_cell[zone-1] and surf_flag==1.0:
+            surf_flag=1.0
+        else:
+            surf_flag=0.0
+        if surf_flag==0.0:
+            delta_r_s=initial_radius[zone-1]-radius_cell[zone-1]
+            delta_T_ra_s=temperature_cell[-1]-Teq
+        old_Ra_r_s=initial_radius[zone-1]-delta_r_s
+
+        Fsurf=-k_array[-1]*delta_T_ra_s/delta_r_s
+        i=zone-1
+        aa[i]=0.0
+        bb[i]=Area[i-1]/(h_mantle*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])
+        cc[i]=1.0/dt-Area[i-1]/(h_mantle*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])
+        dd[i]=0.0
+        ee[i]=0.0
+        v1=0.0
+        v2=-Area[i-1]/(h_mantle*temperature_cell[i])*k_array[i]*dTdP[i-1]*dPdr[i-1]
+        v3=Fsurf*Area[i]/(h_mantle*temperature_cell[i])
+        ff[i]=S_cell[i]/dt+v1+v2+v3+Q_rad_m/temperature_cell[i]
     else:
-        Ra_y_s=(Ra_S_s-Ra_Ssol_s)/(Ra_Sliq_s-Ra_Ssol_s)
-        Ra_x_s=Ra_y_s
-        Ra_T_s=T_Py_mix_en(Ra_P_s,Ra_y_s)[0][0]
-        Ra_rho_s=rho_Py_mix_en(Ra_P_s,Ra_y_s)[0][0]
-        Ra_CP_s=CP_Py_mix_en(Ra_P_s,Ra_y_s)[0][0]
-        Ra_alpha_s=alpha_Py_mix_en(Ra_P_s,Ra_y_s)[0][0]
-    Ra_nu_s=f_viscosity(Ra_T_s, Ra_P_s, Ra_rho_s, initial_phase[zone-1], Ra_x_s, 3700.0, 4000.0)
-
-    Ttol=1.0
-    if surf_flag==1.0:
-        while Ttol>rtol:
-            delta_T_ra_s=Ra_T_s-old_T_s
-            delta_r_s=(4.0*Ra_nu_s*660.0/(Ra_rho_s*Ra_CP_s*Ra_alpha_s*Ra_g_s*delta_T_ra_s))**(1.0/3.0)
-            Fsurf=-k_array[-1]*delta_T_ra_s/delta_r_s
-            T_s=(-Fsurf/sigma+Teq**4.0)**0.25
-            Ttol=abs(old_T_s-T_s)/old_T_s
-            old_T_s=T_s
-    if delta_r_s<=initial_radius[zone-1]-radius_cell[zone-1] and surf_flag==1.0:
-        surf_flag=1.0
-    else:
-        surf_flag=0.0
-    if surf_flag==0.0:
-        delta_r_s=initial_radius[zone-1]-radius_cell[zone-1]
-        delta_T_ra_s=temperature_cell[-1]-Teq
-    old_Ra_r_s=initial_radius[zone-1]-delta_r_s
-
-    Fsurf=-k_array[-1]*delta_T_ra_s/delta_r_s
-    i=zone-1
-    aa[i]=0.0
-    bb[i]=Area[i-1]/(h_mantle*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])
-    cc[i]=1.0/dt-Area[i-1]/(h_mantle*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])
-    dd[i]=0.0
-    ee[i]=0.0
-    v1=0.0
-    v2=-Area[i-1]/(h_mantle*temperature_cell[i])*k_array[i]*dTdP[i-1]*dPdr[i-1]
-    v3=Fsurf*Area[i]/(h_mantle*temperature_cell[i])
-    ff[i]=S_cell[i]/dt+v1+v2+v3+Q_rad_m/temperature_cell[i]
+        i=zone-1
+        Fsurf=-sigma*(initial_temperature[i]**4.0-Teq**4.0)
+        v_b=4.0/CP[zone-1]
+        v_a=v_b*sigma*Teq**4.0
+        aa[i]=0.0
+        bb[i]=Area[i-1]/(h_mantle*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])
+        cc[i]=1.0/dt-Area[i-1]/(h_mantle*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])+(Area[i])/(h_mantle*temperature_cell[i])*(-v_b*Fsurf+v_a)
+        dd[i]=0.0
+        ee[i]=0.0
+        v1=-Area[i]*(-Fsurf-(-v_b*Fsurf+v_a)*S_cell[i])/(h_mantle*temperature_cell[i])
+        v2=-Area[i-1]/(h_mantle*temperature_cell[i])*k_array[i-1]*dTdP[i-1]*dPdr[i-1]
+        v3=0.0
+        ff[i]=S_cell[i]/dt+v1+v2+v3+Q_rad_m/temperature_cell[i]
 
     for i in range(core_outer_index+2,zone-1):
         aa[i]=0.0
@@ -1185,13 +1279,13 @@ while t<end_time:
         else:
             y_array[i]=(new_Scell[i]-S_solidus_cell[i])/(S_liquidus_cell[i]-S_solidus_cell[i])
             new_x_cell[i]=y_array[i]
-    new_T_cell_l[core_outer_index+1:]=interpolate2d(pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_np, y_grid, T_liq)
-    new_T_cell_pv[core_outer_index+1:]=interpolate2d(pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, T_sol_pv)
-    new_T_cell_ppv[core_outer_index+1:]=interpolate2d(pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, T_sol_ppv)
-    new_T_cell_en[core_outer_index+1:]=interpolate2d(pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, T_sol_en)
-    new_T_cell_pv_mix[core_outer_index+1:]=interpolate2d(pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, T_mix_pv)
-    new_T_cell_ppv_mix[core_outer_index+1:]=interpolate2d(pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, T_mix_ppv)
-    new_T_cell_en_mix[core_outer_index+1:]=interpolate2d(pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, T_mix_en)
+    new_T_cell_l[core_outer_index+1:]=T_interp_2d_liq((pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_cell_pv[core_outer_index+1:]=T_interp_2d_sol_pv((pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_cell_ppv[core_outer_index+1:]=T_interp_2d_sol_ppv((pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_cell_en[core_outer_index+1:]=T_interp_2d_sol_en((pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_cell_pv_mix[core_outer_index+1:]=T_interp_2d_mix_pv((pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_cell_ppv_mix[core_outer_index+1:]=T_interp_2d_mix_ppv((pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_cell_en_mix[core_outer_index+1:]=T_interp_2d_mix_en((pressure_cell_np[core_outer_index+1:],y_array[core_outer_index+1:]))
     for i in range(core_outer_index+1,zone):
         if new_Scell[i]>=S_liquidus_cell[i]:
             new_T_cell[i]=new_T_cell_l[i]
@@ -1246,53 +1340,53 @@ while t<end_time:
             else:
                 k_array[i]=k_pv
 
-    new_T_l[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_np, y_grid, T_liq)
-    new_T_pv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, T_sol_pv)
-    new_T_ppv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, T_sol_ppv)
-    new_T_en[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, T_sol_en)
-    new_T_pv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, T_mix_pv)
-    new_T_ppv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, T_mix_ppv)
-    new_T_en_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, T_mix_en)
+    new_T_l[core_outer_index+1:] = T_interp_2d_liq((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_pv[core_outer_index+1:] = T_interp_2d_sol_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_ppv[core_outer_index+1:] = T_interp_2d_sol_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_en[core_outer_index+1:] = T_interp_2d_sol_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_pv_mix[core_outer_index+1:] = T_interp_2d_mix_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_ppv_mix[core_outer_index+1:] = T_interp_2d_mix_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_T_en_mix[core_outer_index+1:] = T_interp_2d_mix_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
 
-    new_dqdy_l[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_np, y_grid, dqdy_liq)
-    new_dqdy_pv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, dqdy_sol_pv)
-    new_dqdy_ppv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, dqdy_sol_ppv)
-    new_dqdy_en[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, dqdy_sol_en)
-    new_dqdy_pv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, dqdy_mix_pv)
-    new_dqdy_ppv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, dqdy_mix_ppv)
-    new_dqdy_en_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, dqdy_mix_en)
+    new_dqdy_l[core_outer_index+1:] = T_interp_2d_dy_liq((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dqdy_pv[core_outer_index+1:] = T_interp_2d_dy_sol_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dqdy_ppv[core_outer_index+1:] = T_interp_2d_dy_sol_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dqdy_en[core_outer_index+1:] = T_interp_2d_dy_sol_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dqdy_pv_mix[core_outer_index+1:] = T_interp_2d_dy_mix_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dqdy_ppv_mix[core_outer_index+1:] = T_interp_2d_dy_mix_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dqdy_en_mix[core_outer_index+1:] = T_interp_2d_dy_mix_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
 
-    new_density_l[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_np, y_grid, rho_liq)
-    new_density_pv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, rho_sol_pv)
-    new_density_ppv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, rho_sol_ppv)
-    new_density_en[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, rho_sol_en)
-    new_density_pv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, rho_mix_pv)
-    new_density_ppv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, rho_mix_ppv)
-    new_density_en_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, rho_mix_en)
+    new_density_l[core_outer_index+1:] = T_interp_2d_o_liq((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_density_pv[core_outer_index+1:] = T_interp_2d_o_sol_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_density_ppv[core_outer_index+1:] = T_interp_2d_o_sol_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_density_en[core_outer_index+1:] = T_interp_2d_o_sol_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_density_pv_mix[core_outer_index+1:] = T_interp_2d_o_mix_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_density_ppv_mix[core_outer_index+1:] = T_interp_2d_o_mix_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_density_en_mix[core_outer_index+1:] = T_interp_2d_o_mix_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
 
-    new_CP_l[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_np, y_grid, CP_liq)
+    new_CP_l[core_outer_index+1:] = T_interp_2d__liq((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
     new_CP_pv[core_outer_index+1:]=CP_s*np.ones(mantle_zone)
     new_CP_ppv[core_outer_index+1:]=CP_s*np.ones(mantle_zone)
     new_CP_en[core_outer_index+1:]=CP_s*np.ones(mantle_zone)
-    new_CP_pv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, CP_mix_pv)
-    new_CP_ppv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, CP_mix_ppv)
-    new_CP_en_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, CP_mix_en)
+    new_CP_pv_mix[core_outer_index+1:] = T_interp_2d__mix_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_CP_ppv_mix[core_outer_index+1:] = T_interp_2d__mix_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_CP_en_mix[core_outer_index+1:] = T_interp_2d__mix_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
 
-    new_alpha_l[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_np, y_grid, alpha_liq)
-    new_alpha_pv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, alpha_sol_pv)
-    new_alpha_ppv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, alpha_sol_ppv)
-    new_alpha_en[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, alpha_sol_en)
-    new_alpha_pv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, alpha_mix_pv)
-    new_alpha_ppv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, alpha_mix_ppv)
-    new_alpha_en_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, alpha_mix_en)
+    new_alpha_l[core_outer_index+1:] = T_interp_2d_pha_liq((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_alpha_pv[core_outer_index+1:] = T_interp_2d_pha_sol_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_alpha_ppv[core_outer_index+1:] = T_interp_2d_pha_sol_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_alpha_en[core_outer_index+1:] = T_interp_2d_pha_sol_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_alpha_pv_mix[core_outer_index+1:] = T_interp_2d_pha_mix_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_alpha_ppv_mix[core_outer_index+1:] = T_interp_2d_pha_mix_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_alpha_en_mix[core_outer_index+1:] = T_interp_2d_pha_mix_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
 
-    new_dTdP_l[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_np, y_grid, dTdP_liq)
-    new_dTdP_pv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, dTdP_sol_pv)
-    new_dTdP_ppv[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, dTdP_sol_ppv)
-    new_dTdP_en[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, dTdP_sol_en)
-    new_dTdP_pv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_pv, y_grid, dTdP_mix_pv)
-    new_dTdP_ppv_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_ppv, y_grid, dTdP_mix_ppv)
-    new_dTdP_en_mix[core_outer_index+1:]=interpolate2d(pressure_np[core_outer_index+1:],y_array[core_outer_index+1:], P_grid_en, y_grid, dTdP_mix_en)
+    new_dTdP_l[core_outer_index+1:] = T_interp_2d_dP_liq((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dTdP_pv[core_outer_index+1:] = T_interp_2d_dP_sol_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dTdP_ppv[core_outer_index+1:] = T_interp_2d_dP_sol_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dTdP_en[core_outer_index+1:] = T_interp_2d_dP_sol_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dTdP_pv_mix[core_outer_index+1:] = T_interp_2d_dP_mix_pv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dTdP_ppv_mix[core_outer_index+1:] = T_interp_2d_dP_mix_ppv((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
+    new_dTdP_en_mix[core_outer_index+1:] = T_interp_2d_dP_mix_en((pressure_np[core_outer_index+1:],y_array[core_outer_index+1:]))
 
     for i in range(core_outer_index+1,zone):
         if new_phase[i]==ph_pv_liq:
@@ -1397,13 +1491,19 @@ while t<end_time:
 
     # Heating related to change in the pressure level in the core due to cooling
     x_alloy=x_core/mf_l
-    x_idx=find_nearest(x_core_grid,x_alloy)
-    Tref_idx=find_nearest(Tref_core_grid,min_pre_adia_T)
 
-    dTdT0_cmb=interpolate3d(np.ones(1)*x_alloy,np.ones(1)*min_pre_adia_T,np.ones(1)*initial_pressure[core_outer_index],x_core_grid[x_idx:x_idx+2],Tref_core_grid[Tref_idx:Tref_idx+2],P_core_grid,load_original_dTdT0[x_idx:x_idx+2,Tref_idx:Tref_idx+2])[0]
+    dTdT0_cmb = dTdT0_cmb_interp((
+        [x_alloy],
+        [min_pre_adia_T],
+        [initial_pressure[core_outer_index]],
+    ))[0]
     dT0dPcmb=f_dT0dP([x_alloy,min_pre_adia_T,initial_temperature[core_outer_index]])[0]
     delta_Pcmb=initial_pressure[core_outer_index]-old_pressure[core_outer_index]
-    dTdT0_array=interpolate3d(np.ones(core_outer_index+1)*x_alloy,np.ones(core_outer_index+1)*min_pre_adia_T,pressure_np[:core_outer_index+1],x_core_grid[x_idx:x_idx+2],Tref_core_grid[Tref_idx:Tref_idx+2],P_core_grid,load_original_dTdT0[x_idx:x_idx+2,Tref_idx:Tref_idx+2])
+    dTdT0_array=dTdT0_cmb_interp((
+        np.ones(core_outer_index+1)*x_alloy,
+        np.ones(core_outer_index+1)*min_pre_adia_T,
+        pressure_np[:core_outer_index+1],
+    ))
     for i in range(core_outer_index+1):
         outer_adiabat_value=h_core*C_P_Fe*dTdT0_array[i]
         outer_adiabat_array[i]=outer_adiabat_value/dTdT0_cmb
@@ -1414,7 +1514,11 @@ while t<end_time:
     #outer_adiabat_Pi=np.sum(outer_adiabat_Pi_array)
     # Latent heat when there's ongoing inner core solidification
     if initial_phase[0]==ph_Fe_sol and initial_phase[core_outer_index]==ph_Fe_liq:
-        dTdT0_ic=interpolate3d(np.ones(1)*x_alloy,np.ones(1)*min_pre_adia_T,np.ones(1)*Pic,x_core_grid[x_idx:x_idx+2],Tref_core_grid[Tref_idx:Tref_idx+2],P_core_grid,load_original_dTdT0[x_idx:x_idx+2,Tref_idx:Tref_idx+2])[0]
+        dTdT0_ic=dTdT0_cmb_interp((
+            [x_alloy],
+            [min_pre_adia_T],
+            [Pic],
+        ))[0]
         dmicdPic=-4.0*math.pi/G*Ric**4.0/Mic
         dPicdTic=1.0/(alpha_ic/rho_ic*Tic/C_P_Fe)
         dTicdTcmb=dTdT0_ic/dTdT0_cmb
@@ -1447,7 +1551,11 @@ while t<end_time:
     min_pre_adia_T=pre_adia_T[len(pre_adia_T)-1]
 
     # update the temperature profile in the core.
-    adiabat_array=interpolate3d(np.ones(core_outer_index+1)*x_alloy,np.ones(core_outer_index+1)*min_pre_adia_T,pressure_np[:core_outer_index+1], x_core_grid[x_idx:x_idx+2], Tref_core_grid[Tref_idx:Tref_idx+2], P_core_grid, load_original_T[x_idx:x_idx+2,Tref_idx:Tref_idx+2])
+    adiabat_array = T_interp((
+        np.ones(core_outer_index+1)*x_alloy,
+        np.ones(core_outer_index+1)*min_pre_adia_T,
+        pressure_np[:core_outer_index+1],
+    ))
     for i in range(core_outer_index+1):
         if initial_phase[i]==0.0:
             Tc_array[i]=f_interp_Tsimon(melt_pressure_Fe_GPa[i]).tolist()#T_simon(initial_pressure[i]/10.0**9.0,x_core)
@@ -1534,11 +1642,11 @@ while t<end_time:
         x_core=x_init*(M_pl*CMF-mass[0])/(M_pl*CMF-Mic)
         if x_core>0.1519:
             x_core=0.1519
-    
-    # calculating dT/dr. Borrow the first portion of dsdr_array for the mantle to save dTdr in the core. 
+
+    # calculating dT/dr. Borrow the first portion of dsdr_array for the mantle to save dTdr in the core.
     for i in range(core_outer_index):
         dsdr[i]=(temperature_cell[i]-temperature_cell[i+1])/(radius_cell[i]-radius_cell[i+1])
-    
+
     for i in range(core_outer_index+1):
         if i>=solid_index:
             Fconv[i]=Fcmb#*4.0*np.pi*initial_radius[i]**2.0
@@ -1549,19 +1657,20 @@ while t<end_time:
             Fcond[i]=-k_array[i]*dsdr[i]#*4.0*np.pi*initial_radius[i]**2.0
             Ftot[i]=Fcond[i]
 
-    rho_liquid_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fel, T_Fel, rho_Fel)
-    rho_solid_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fes, T_Fes, rho_Fes)
-    rho_alloy_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fea, T_Fea, rho_Fea)
-    alpha_liquid_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fel, T_Fel, alpha_Fel)
-    alpha_solid_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fes, T_Fes, alpha_Fes)
-    alpha_alloy_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fea, T_Fea, alpha_Fea)
-    dqdy_liquid_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fel, T_Fel, dqdy_Fel)
-    dqdy_solid_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fes, T_Fes, dqdy_Fes)
-    dqdy_alloy_array=interpolate2d(pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1], P_Fea, T_Fea, dqdy_Fea)
-    rho_liquid_array_a=interpolate2d(pressure_np[:core_outer_index+1], Tc_adiabat_np[:core_outer_index+1], P_Fel, T_Fel, rho_Fel)
-    rho_alloy_array_a=interpolate2d(pressure_np[:core_outer_index+1], Tc_adiabat_np[:core_outer_index+1], P_Fea, T_Fea, rho_Fea)
-    alpha_liquid_array_a=interpolate2d(pressure_np[:core_outer_index+1], Tc_adiabat_np[:core_outer_index+1], P_Fel, T_Fel, alpha_Fel)
-    alpha_alloy_array_a=interpolate2d(pressure_np[:core_outer_index+1], Tc_adiabat_np[:core_outer_index+1], P_Fea, T_Fea, alpha_Fea)
+    rho_liquid_array=interp_2d_rho_Fel((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+    rho_solid_array=interp_2d_rho_Fes((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+    rho_alloy_array=interp_2d_rho_Fea((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+    alpha_liquid_array=interp_2d_alpha_Fel((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+    alpha_solid_array=interp_2d_alpha_Fes((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+    alpha_alloy_array=interp_2d_alpha_Fea((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+    dqdy_liquid_array=interp_2d_dqdy_Fel((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+    dqdy_solid_array=interp_2d_dqdy_Fes((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+    dqdy_alloy_array=interp_2d_dqdy_Fea((pressure_np[:core_outer_index+1], new_T_np[:core_outer_index+1]))
+
+    rho_liquid_array_a=interp_2d_rho_Fel_a((pressure_np[:core_outer_index+1], Tc_adiabat_np[:core_outer_index+1]))
+    rho_alloy_array_a=interp_2d_rho_Fea_a((pressure_np[:core_outer_index+1], Tc_adiabat_np[:core_outer_index+1]))
+    alpha_liquid_array_a=interp_2d_alpha_Fel_a((pressure_np[:core_outer_index+1], Tc_adiabat_np[:core_outer_index+1]))
+    alpha_alloy_array_a=interp_2d_alpha_Fea_a((pressure_np[:core_outer_index+1], Tc_adiabat_np[:core_outer_index+1]))
 
     for i in range(0,core_outer_index+1):
         if i==0:
@@ -1599,6 +1708,9 @@ while t<end_time:
             new_alpha[i]=alpha_mix(x_core/mf_l,alpha_alloy,alpha_liquid,new_density[i],rho_alloy,rho_liquid)
             rho_Fe_l[i]=new_density[i]
             alpha_Fe_l[i]=new_alpha[i]
+
+        if iteration<2:
+            melt_frac[i]=0.0
 
     if initial_phase[0]==ph_Fe_sol:
         for i in range(core_outer_index+1):
@@ -1662,7 +1774,7 @@ while t<end_time:
         T_liq_mbase_array.append(T_liquidus[core_outer_index+1])
         T_sol_mbase_array.append(T_solidus[core_outer_index+1])
         """
-        delta_r_s_array.append(delta_r_s)
+        #delta_r_s_array.append(delta_r_s)
         """
         Ra_r_cs_array.append(old_Ra_r_s)
         Ra_T_s_array.append(Ra_T_s)
@@ -1848,7 +1960,7 @@ while t<end_time:
         if melt_frac[i]>0.0 and i>S_MO_index-1:
             L_sigma=L_sigma+dr[i]
 
-    # calculate convective velocity and Magnetic Reynolds number in the core. 
+    # calculate convective velocity and Magnetic Reynolds number in the core.
     if Fcmb>=0.0 and solid_index<core_outer_index:
         for i in range(core_outer_index+1):
             if i>=solid_index:
@@ -1935,8 +2047,8 @@ while t<end_time:
             dt=dt*0.975
         if dt<30.0:
             dt=30.0
-    if dt>86400.0*365.0*3000000.0:
-        dt=86400.0*365.0*3000000.0
+    if dt>86400.0*365.0*2000000.0:
+        dt=86400.0*365.0*2000000.0
     if t>1000.0*86400.0*365.0 and dt<3.65*86400.0:
         dt=3.65*86400.0
 
@@ -1957,27 +2069,37 @@ while t<end_time:
     for ind in range(len(save_t)):
         if t<save_t[ind]*86400.0*365.0+dt and t>save_t[ind]*86400.0*365.0-dt:
             np.savetxt(results_foldername+'/profile/StructureProfile_'+str(int(save_t[ind]))+'.txt',np.transpose([initial_radius,initial_pressure,initial_density,initial_gravity,
-                initial_temperature,alpha,CP,Fconv,Fcond,Ftot,v_MO,Rem_MO,viscosity, mass]), header='radius, pressure, density, gravitational acceleration, temperature, thermal expansion coefficient, specific heat, convective heat flux, conductivt heat flux, total heat flux, convective velocity, mantle magnetic Reynolds number, mantle viscosity, mass')
+                initial_temperature,alpha,CP,Fconv,Fcond,Ftot,v_MO,Rem_MO,viscosity, mass, melt_frac]), header='radius, pressure, density, gravitational acceleration, temperature, thermal expansion coefficient, specific heat, convective heat flux, conductivt heat flux, total heat flux, convective velocity, mantle magnetic Reynolds number, mantle viscosity, mass, mantle melt fraction')
             np.savetxt(results_foldername+'/evolution.txt',np.transpose([t_array,dt_array,average_Tm,average_Tc,Tsurf_array,Tcmb_array,T_center_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,Buoy_T,Buoy_x,core_dipole_m]),
                 header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature,surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment')
 
     iteration=iteration+1
     t=t+dt
 cdef Py_ssize_t start_ind
-for i in range(1,len(t_array)):
-    if Ric_array[i-1]==0.0 and Ric_array[i]>0.0:
-        start_ind=i
-f_Ric_t=CubicSpline(t_array[start_ind:],Ric_array[start_ind:])
-f_dRicdt=f_Ric_t.derivative()
-dRicdt=Ric_array.copy()
-dRicdt[start_ind:]=f_dRicdt(t_array[start_ind:])
-log10_dRicdt=dRicdt.copy()
-log10_dRicdt_hat=dRicdt.copy()
-log10_dRicdt[start_ind:]=np.log10(dRicdt[start_ind:])
-log10_dRicdt_hat[start_ind:]=savgol_filter(log10_dRicdt[start_ind:], window_length=99,polyorder=9) 
-for i in range(len(t_array)):
-    Buoy_x[i]=Buoy_x[i]*10.0**log10_dRicdt_hat[i]
-    core_dipole_m[i]=core_dipole_m[i]*(Buoy_T[i]+Buoy_x[i])**(1.0/3.0)
-
+if sum(Buoy_x)>0.0:
+    for i in range(1,len(t_array)):
+        if Ric_array[i-1]==0.0 and Ric_array[i]>0.0:
+            start_ind=i
+    f_Ric_t=CubicSpline(t_array[start_ind:],Ric_array[start_ind:])
+    f_dRicdt=f_Ric_t.derivative()
+    dRicdt=Ric_array.copy()
+    dRicdt[start_ind:]=f_dRicdt(t_array[start_ind:])
+    log10_dRicdt=dRicdt.copy()
+    log10_dRicdt_hat=dRicdt.copy()
+    log10_dRicdt[start_ind:]=np.log10(dRicdt[start_ind:])
+    log10_dRicdt_hat[start_ind:]=savgol_filter(log10_dRicdt[start_ind:], window_length=99,polyorder=9) 
+    for i in range(len(t_array)):
+        Buoy_x[i]=Buoy_x[i]*10.0**log10_dRicdt_hat[i]
+        if Buoy_x[i]+Buoy_T[i]>0.0:
+            core_dipole_m[i]=core_dipole_m[i]*(Buoy_T[i]+Buoy_x[i])**(1.0/3.0)
+        else:
+            core_dipole_m[i]=0.0
+else:
+    for i in range(len(t_array)):
+        Buoy_x[i]=0.0
+        if Buoy_T[i]>0.0:
+            core_dipole_m[i]=core_dipole_m[i]*(Buoy_T[i]+Buoy_x[i])**(1.0/3.0)
+        else:
+            core_dipole_m[i]=0.0
 np.savetxt(results_foldername+'/evolution.txt',np.transpose([t_array,dt_array,average_Tm,average_Tc,Tsurf_array,Tcmb_array,T_center_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,Buoy_T,Buoy_x,core_dipole_m,solid_index_arr]),
-    header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature,surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment, the indices of the inner and outer core boundary')
+    header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature, surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment, the indices of the inner and outer core boundary')
