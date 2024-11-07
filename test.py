@@ -166,7 +166,10 @@ def run():
     for program in program_list:
         print("Start:" + program)
         subprocess.check_call(['python3', program])
-        print("Simulation finished")
+        if program==program_list[0]:
+            print("Initial profiles obtained")
+        else:
+            print("Simulation finished")
 
     def f_axis_max_min(v_min,v_max,axis_scale):
         if axis_scale=='log':
