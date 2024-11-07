@@ -4,8 +4,8 @@
 # CMAPPER
 
 This is a repository for an 1D model of thermal evolution of rocky exoplanets
-with masses between 1 and 6 Earth-mass and core mass fractions between 0.1 and
-0.8. We are currently extending the equations of state tables so the code can be applied to planets with a wider range of planet mass. The model outputs detailed planet thermal history and tracks possible phase transitions including magma ocean and inner core solidification (see results).
+with masses between 0.5 and 6 Earth-mass and core mass fractions between 0.1 and
+0.8. Additioanlly, the range for planet equilibrium temperature is between 255 and 1800K/ We are currently extending the equations of state tables so the code can be applied to planets with a wider range of planet mass with higher equilbrium temperature. The model outputs detailed planet thermal history and tracks possible phase transitions including magma ocean and inner core solidification (see results).
 
 ## Quickstart
 

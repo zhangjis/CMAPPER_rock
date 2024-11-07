@@ -1756,6 +1756,7 @@ while t<end_time:
         x_core_array.append(x_core)
         T_Fe_en.append(min_pre_adia_T)
         delta_r_array.append(delta_r)
+        T_s_array.append(T_s)
         """
         #vmbase_array.append(viscosity[core_outer_index+1])
         vmbase_array.append(Ra_nu)
@@ -1774,7 +1775,7 @@ while t<end_time:
         T_liq_mbase_array.append(T_liquidus[core_outer_index+1])
         T_sol_mbase_array.append(T_solidus[core_outer_index+1])
         """
-        #delta_r_s_array.append(delta_r_s)
+        delta_r_s_array.append(delta_r_s)
         """
         Ra_r_cs_array.append(old_Ra_r_s)
         Ra_T_s_array.append(Ra_T_s)
@@ -2014,19 +2015,22 @@ while t<end_time:
         Buoy_x.append(Buoy_x_value)
         core_dipole_m.append(core_m)
 
-    if melt_frac[-2]==1.0:#t<1000*86400.0*365.0:
-        ds_thres=ds_thres_xl
-    else:
-        #elif t>=1000*86400.0*365.0 and t<1e6*86400.0*365.0:
-        #    ds_thres=ds_thres_s
-        #elif t>=1e6*86400.0*365.0 and t<5e8*86400.0*365.0:# and delta_r_flag==0.0:
-        #    ds_thres=ds_thres_m
-        #else:
-        #    ds_thres=ds_thres_l
-        if t<5e7*86400.0*365.0:
-            ds_thres=ds_thres_s
+    if melt_frac[-2]==1.0:
+        if Teq>=1800.0:
+            ds_thres=ds_thres_xl/10.0
         else:
             ds_thres=ds_thres_xl
+    else:
+        if t<5e7*86400.0*365.0:
+            if Teq>=1800.0:
+                ds_thres=ds_thres_s/10.0
+            else:
+                ds_thres=ds_thres_s
+        else:
+            if Teq>=1800.0:
+                ds_thres=ds_thres_s/10.0
+            else:
+                ds_thres=ds_thres_xl
     if dt_thres<ds_thres:
         if dt_thres<0.975*ds_thres:
             if iteration<200:
@@ -2072,7 +2076,13 @@ while t<end_time:
                 initial_temperature,alpha,CP,Fconv,Fcond,Ftot,v_MO,Rem_MO,viscosity, mass, melt_frac]), header='radius, pressure, density, gravitational acceleration, temperature, thermal expansion coefficient, specific heat, convective heat flux, conductivt heat flux, total heat flux, convective velocity, mantle magnetic Reynolds number, mantle viscosity, mass, mantle melt fraction')
             np.savetxt(results_foldername+'/evolution.txt',np.transpose([t_array,dt_array,average_Tm,average_Tc,Tsurf_array,Tcmb_array,T_center_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,Buoy_T,Buoy_x,core_dipole_m]),
                 header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature,surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment')
-
+            np.savetxt(results_foldername+'/test.txt',np.transpose([t_array,Tsurf_array,T_s_array,delta_r_s_array]))
+    if t>5650.0*86400.0*365.0 and t<5660.0*86400.0*365.0:
+        np.savetxt(results_foldername+'/profile/test_'+str(int(iteration))+'.txt',np.transpose([initial_radius,initial_pressure,initial_density,initial_gravity,
+            initial_temperature,alpha,CP,Fconv,Fcond,Ftot,v_MO,Rem_MO,viscosity, mass, melt_frac]), header='radius, pressure, density, gravitational acceleration, temperature, thermal expansion coefficient, specific heat, convective heat flux, conductivt heat flux, total heat flux, convective velocity, mantle magnetic Reynolds number, mantle viscosity, mass, mantle melt fraction')
+    if t>1000.0*86400.0*365.0 and t<5600.0*86400.0*365.0:
+        np.savetxt(results_foldername+'/profile/test_'+str(int(iteration))+'.txt',np.transpose([initial_radius,initial_pressure,initial_density,initial_gravity,initial_temperature,alpha,CP,Fconv,Fcond,Ftot,v_MO,Rem_MO,viscosity, mass, melt_frac]), header='radius, pressure, density, gravitational acceleration, temperature, thermal expansion coefficient, specific heat, convective heat flux, conductivt heat flux, total heat flux, convective velocity, mantle magnetic Reynolds number, mantle viscosity, mass, mantle melt fraction')
+             
     iteration=iteration+1
     t=t+dt
 cdef Py_ssize_t start_ind
