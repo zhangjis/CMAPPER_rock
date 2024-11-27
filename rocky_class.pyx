@@ -897,3 +897,157 @@ T_melt_P[0]=2.0*T_melt_P[1]-T_melt_P[2]
 T_Fe_melt[0]=2.0*T_Fe_melt[1]-T_Fe_melt[2]
 
 np.savetxt(results_foldername+'/profile/t0/Fe_melt.txt',np.transpose([T_melt_P[:c_z],T_Fe_melt]),header='pressure, core melting temperature')
+
+#### pre-tabulate surface flux table F(s)
+
+cpdef double f_oc(double r1, double r2, double rx, double v1, double v2):
+    cdef double value=v1-(r1-rx)*(v2-v1)/(r2-r1)
+    return value
+
+cpdef double f_viscosity(double T, double P, double density, double phase, double x, double rho_m, double rho_s):
+    cdef double A=1.67
+    cdef double B=7.4e-17
+    cdef double n=3.5
+    cdef double E=5.0e+5
+    cdef double V=1.0e-5
+    cdef double R=8.314
+    cdef double epsilon=1.0e-15
+    cdef double y=0.0
+    cdef double z=0.0
+    if P<23.0*10.0**9.0:
+        B=3.5e-15
+        n=3.0
+        E=4.3e+5
+    cdef double eta_s=0.5*(1.0/B**(1.0/n))*np.exp((E+P*V)/(n*R*T))*epsilon**((1.0-n)/n)/density
+    cdef double eta0=0.0
+    cdef double p_decay=0.0
+    if P>=125e9:
+        eta0=1.05e34#1.9e21#
+        E=7.8e5#1.62e5#
+        p_decay=1100e9#1610e9#
+        V=1.7e-6*np.exp(-P/p_decay)#1.4e-6*np.exp(-P/p_decay)#
+        eta_s=eta0*np.exp((E+P*V)/(R*T)-E/(R*1600.0))/density
+    cdef double eta_m=100.0/density
+    cdef double value1=0.0
+    cdef double value2=0.0
+    cdef double value=0.0
+    y=(x-0.4)/0.25
+    z=0.5*(1.0+math.tanh(y))
+    value=10.0**(z*math.log10(eta_m)+(1.0-z)*math.log10(eta_s))
+    return value
+
+cdef double Racr=660.0 # critical rayleigh number
+
+cdef double[:] s=ri['s_array'],
+cdef double[:] s_cell=rh['s_cell']
+cdef double[:] P=rh['pressure']
+cdef double[:] P_cell=rh['p_cell']
+cdef double[:] R=rh['radius']
+cdef double[:] R_cell=rh['r_cell']
+cdef double[:] g=rh['gravity']
+
+cdef double[:] g_cell=g.copy()
+cdef double[:] s_sol=np.ones(len(g))
+cdef double[:] s_sol_cell=np.ones(len(g))
+cdef double[:] s_liq=np.ones(len(g))
+cdef double[:] s_liq_cell=np.ones(len(g))
+
+for i in range(len(g)):
+    if i==0:
+        g_cell[i]=g[i]/2.0
+    else:
+        g_cell[i]=(g[i-1]+g[i])/2.0
+    if i>len(g)-10:
+        s_sol[i]=S_sol_P(P[i]).tolist()
+        s_sol_cell[i]=S_sol_P(P_cell[i]).tolist()
+        s_liq[i]=S_liq_P(P[i]).tolist()
+        s_liq_cell[i]=S_liq_P(P_cell[i]).tolist()
+
+#cdef double[:] s_grid=np.linspace(rh['s_cell'][-1]+50.0,2800.0,8800)
+cdef double[:] s_grid=np.linspace(5000.0,2800.0,8801)
+
+cdef double[:] Fsurf_grid=np.zeros(len(s_grid))
+cdef double[:] delta_BL_grid=np.zeros(len(s_grid))
+cdef double[:] Tsurf_grid=np.zeros(len(s_grid))
+cdef double[:] vissurf_grid=np.zeros(len(s_grid))
+
+rtol=1e-3
+
+#### this is only for the first grid point in s. the rest grid points in s will use delta_BL and T_s obtained from the previous grid point. 
+# start with delta_BL=1cm
+cdef double delta_BL=0.01
+# provide an T_s as an initial guess for f = lambda x: x**4+k_l/sigma/old_delta_BL*x-Teq**4.0-k_l/sigma/old_delta_BL*T_BL
+cdef double T_s=ri['temperature'][-1]-500.0
+cdef double break_flag=0.0 # flag for breaking the for loop/while loop
+
+cdef double rerr=1.0
+cdef double old_T_s, old_delta_BL, R_BL 
+cdef double g_BL, P_BL, sliq_BL, ssol_BL
+cdef double y_BL, x_BL, T_BL, rho_BL, cP_BL, alpha_BL, nu_BL
+cdef int i_r
+for i in range(0, len(s_grid)):
+    rerr=1.0
+    while rerr>rtol:
+        old_T_s=T_s
+        old_delta_BL=delta_BL
+        R_BL=R[-1]-old_delta_BL
+
+        # using values at boundary[-2] and cell_center[-1] 
+        # extrapolate to R=R[-1]-old_delta_BL ->(R_BL)
+        g_BL=f_oc(R_cell[-1],R[-2],R_BL,g_cell[-1],g[-2])
+        P_BL=f_oc(R_cell[-1],R[-2],R_BL,P_cell[-1],P[-2])
+        sliq_BL=S_liq_P(P_BL).tolist()
+        ssol_BL=S_sol_P(P_BL).tolist()
+
+        # find properties at R_BL
+        if s_grid[i]>=sliq_BL:
+            y_BL=(s_grid[i]-sliq_BL)/(S_max-sliq_BL)
+            x_BL=1.0
+            T_BL=T_Py_liq(P_BL,y_BL)[0][0]
+            rho_BL=rho_Py_liq(P_BL,y_BL)[0][0]
+            cP_BL=CP_Py_liq(P_BL,y_BL)[0][0]
+            alpha_BL=alpha_Py_liq(P_BL,y_BL)[0][0]
+        elif s_grid[i]<=ssol_BL:
+            print('should not happen')
+        else:
+            y_BL=(s_grid[i]-ssol_BL)/(sliq_BL-ssol_BL)
+            x_BL=y_BL
+            T_BL=T_Py_mix_en(P_BL,y_BL)[0][0]
+            rho_BL=rho_Py_mix_en(P_BL,y_BL)[0][0]
+            cP_BL=CP_Py_mix_en(P_BL,y_BL)[0][0]
+            alpha_BL=alpha_Py_mix_en(P_BL,y_BL)[0][0]
+        nu_BL=f_viscosity(T_BL, P_BL, rho_BL, 0.0, x_BL, 0.0,0.0)
+
+        # solving for new T_surface using new entropy and old delta_BL
+        f = lambda x: x**4+k_en/sigma/old_delta_BL*x-Teq**4.0-k_en/sigma/old_delta_BL*T_BL
+        T_s=fsolve(f,old_T_s)[0]
+
+        # update delta_BL using new delta_T_BL=T_BL-T_s
+        delta_T_BL=T_BL-T_s
+        delta_BL=(Racr*nu_BL*(k_en/(rho_BL*cP_BL))/(alpha_BL*g_BL*delta_T_BL))**(1.0/3.0)
+        if delta_BL>R[-1]-R_cell[-1]:
+            i_r=i+1
+            break_flag=1.0
+            break
+        rerr=abs(delta_BL-old_delta_BL)/old_delta_BL
+    Fsurf_grid[i]=k_en*delta_T_BL/delta_BL
+    delta_BL_grid[i]=delta_BL
+    Tsurf_grid[i]=T_s
+    vissurf_grid[i]=nu_BL
+    if break_flag==1.0:
+        break
+
+from scipy.interpolate import UnivariateSpline
+dFds=np.zeros(len(s_grid))
+s_array=np.linspace(5000.0,2800.0,8801)
+Fsurf_array=np.zeros(len(s_array))
+for i in range(len(s_array)):
+    Fsurf_array[i]=Fsurf_grid[i]
+
+
+F_of_s=UnivariateSpline(s_array[::-1], Fsurf_array[::-1])
+f_dFds=F_of_s.derivative()
+for i in range(len(dFds)):
+    dFds[i]=f_dFds(s_grid[i]).tolist()
+
+np.savetxt(results_foldername+'/profile/t0/Fsurf.txt',np.transpose([s_grid[:i_r],Fsurf_grid[:i_r],delta_BL_grid[:i_r],Tsurf_grid[:i_r], dFds[:i_r], vissurf_grid[:i_r]]),header='surface entropy, surface flux, surface boundary layer thickness, surface temperature, dFsurf/ds')
