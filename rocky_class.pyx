@@ -479,6 +479,10 @@ cdef class c_initial_profile:
                         s_liq_val=S_liq_P(pressure[i-1]).tolist()
                         y_value=self.y_T_liq(0.5,pressure[i-1],temperature[i-1])
                         s_array[i-1]=y_value*(S_max-s_liq_val)+s_liq_val
+                        if s_array[i-1]>5075.0:
+                            s_array[i-1]=5075.0
+                            y_value=(s_array[i-1]-s_liq_val)/(S_max-s_liq_val)
+
                     s_sol_val=S_sol_P(pressure[i-1]).tolist()
                     s_liq_val=S_liq_P(pressure[i-1]).tolist()
                     s_new=s_array[i-1]
@@ -904,7 +908,7 @@ cpdef double f_oc(double r1, double r2, double rx, double v1, double v2):
     cdef double value=v1-(r1-rx)*(v2-v1)/(r2-r1)
     return value
 
-cpdef double f_viscosity(double T, double P, double density, double phase, double x, double rho_m, double rho_s):
+cpdef double f_viscosity(double T, double P, double density, double phase, double x, double rho_m, double rho_s, double width):
     cdef double A=1.67
     cdef double B=7.4e-17
     cdef double n=3.5
@@ -931,7 +935,7 @@ cpdef double f_viscosity(double T, double P, double density, double phase, doubl
     cdef double value1=0.0
     cdef double value2=0.0
     cdef double value=0.0
-    y=(x-0.4)/0.25
+    y=(x-0.4)/width
     z=0.5*(1.0+math.tanh(y))
     value=10.0**(z*math.log10(eta_m)+(1.0-z)*math.log10(eta_s))
     return value
@@ -964,7 +968,7 @@ for i in range(len(g)):
         s_liq_cell[i]=S_liq_P(P_cell[i]).tolist()
 
 #cdef double[:] s_grid=np.linspace(rh['s_cell'][-1]+50.0,2800.0,8800)
-cdef double[:] s_grid=np.linspace(5000.0,2800.0,8801)
+cdef double[:] s_grid=np.linspace(5080.0,2800.0,8801)
 
 cdef double[:] Fsurf_grid=np.zeros(len(s_grid))
 cdef double[:] delta_BL_grid=np.zeros(len(s_grid))
@@ -985,8 +989,10 @@ cdef double old_T_s, old_delta_BL, R_BL
 cdef double g_BL, P_BL, sliq_BL, ssol_BL
 cdef double y_BL, x_BL, T_BL, rho_BL, cP_BL, alpha_BL, nu_BL
 cdef int i_r
+cdef double smoothing_width=0.25
 for i in range(0, len(s_grid)):
     rerr=1.0
+    iteration=0
     while rerr>rtol:
         old_T_s=T_s
         old_delta_BL=delta_BL
@@ -1016,7 +1022,7 @@ for i in range(0, len(s_grid)):
             rho_BL=rho_Py_mix_en(P_BL,y_BL)[0][0]
             cP_BL=CP_Py_mix_en(P_BL,y_BL)[0][0]
             alpha_BL=alpha_Py_mix_en(P_BL,y_BL)[0][0]
-        nu_BL=f_viscosity(T_BL, P_BL, rho_BL, 0.0, x_BL, 0.0,0.0)
+        nu_BL=f_viscosity(T_BL, P_BL, rho_BL, 0.0, x_BL, 0.0,0.0,smoothing_width)
 
         # solving for new T_surface using new entropy and old delta_BL
         f = lambda x: x**4+k_en/sigma/old_delta_BL*x-Teq**4.0-k_en/sigma/old_delta_BL*T_BL
@@ -1025,21 +1031,33 @@ for i in range(0, len(s_grid)):
         # update delta_BL using new delta_T_BL=T_BL-T_s
         delta_T_BL=T_BL-T_s
         delta_BL=(Racr*nu_BL*(k_en/(rho_BL*cP_BL))/(alpha_BL*g_BL*delta_T_BL))**(1.0/3.0)
+        
+        rerr=abs(delta_BL-old_delta_BL)/old_delta_BL
+        
+        if iteration>20:
+            if abs(delta_BL-delta_BL_grid[i-1])<abs(old_delta_BL-delta_BL_grid[i-1]):
+                break 
+            else:
+                delta_BL=old_delta_BL
+                T_s=old_T_s
+                break
         if delta_BL>R[-1]-R_cell[-1]:
             i_r=i+1
             break_flag=1.0
-            break
-        rerr=abs(delta_BL-old_delta_BL)/old_delta_BL
+            break    
+
+        iteration=iteration+1
     Fsurf_grid[i]=k_en*delta_T_BL/delta_BL
     delta_BL_grid[i]=delta_BL
     Tsurf_grid[i]=T_s
     vissurf_grid[i]=nu_BL
+
     if break_flag==1.0:
         break
 
 from scipy.interpolate import UnivariateSpline
 dFds=np.zeros(len(s_grid))
-s_array=np.linspace(5000.0,2800.0,8801)
+s_array=np.linspace(5080.0,2800.0,8801)
 Fsurf_array=np.zeros(len(s_array))
 for i in range(len(s_array)):
     Fsurf_array[i]=Fsurf_grid[i]
