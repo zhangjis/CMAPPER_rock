@@ -26,7 +26,8 @@ filefolders = [
     results_foldername+'/image/MantleViscosityVsMass/step',
     results_foldername+'/image/ConvectiveVelocityVsMass/step',
     results_foldername+'/image/PressureVsRadius/step',
-    results_foldername+'/image/GravityVsMass/step'
+    results_foldername+'/image/GravityVsMass/step',
+    results_foldername+'/image/MantleMeltFractionVsMass/step'
 ]
 
 for filefolder in filefolders:
@@ -161,6 +162,17 @@ def plot_for_index(args):
     plt.savefig(results_foldername+'/image/MantleViscosityVsMass/step/%04d.png' % i,dpi=200)
     plt.close()
 
+    plt.figure(figsize=(9,6))
+    plt.plot(mass/5.972e24,s[:,14],color='black',linewidth=2.0)
+    plt.ylim(-0.05,1.05)
+    plt.yticks(fontsize=14)
+    plt.xticks(fontsize=14)
+    plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1])+'   '+t_title[i] ,fontsize=16)
+    plt.ylabel('Melt fraction by mass',fontsize=16.5)
+    plt.xlabel(r'Mass ($M_{\oplus}$)',fontsize=16.5)
+    plt.savefig(results_foldername+'/image/MantleMeltFractionVsMass/step/%04d.png' % i,dpi=200)
+    plt.close()
+
 def run():
     program_list=['rocky_class.py','heat_transport.py']
     for program in program_list:
@@ -186,8 +198,11 @@ def run():
 
     previous=np.loadtxt(results_foldername+'/profile/t0/previous0.txt')
     core_zone=previous[-2]
+    
+    # re-ad in list of time at which results are saved
+    save_t=np.loadtxt(results_foldername+'/profile/files_saved_at_these_time_list.txt')
 
-    N_PLOTS = 182
+    N_PLOTS = len(save_t)
     print('Plotting %d timesteps...' % N_PLOTS)
 
     evo=np.loadtxt(results_foldername+'/evolution.txt')
@@ -214,8 +229,8 @@ def run():
     plt.close()
 
     plt.figure(figsize=(9,6))
-    plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,8],color='black',linewidth=2.0,label='Heat flux at core mantle boundary')
-    plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,9],color='black',linestyle='dashed',linewidth=2.0, label='Conductive heat flux along core adiabat')
+    plt.plot(evo[:,0][15:]/1e9/86400.0/365.0,evo[:,8][15:],color='black',linewidth=2.0,label='Heat flux at core mantle boundary')
+    plt.plot(evo[:,0][15:]/1e9/86400.0/365.0,evo[:,9][15:],color='black',linestyle='dashed',linewidth=2.0, label='Conductive heat flux along core adiabat')
     plt.yscale('log')
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
@@ -359,16 +374,7 @@ def run():
     plt.savefig(results_foldername+'/image/CoreDipolarMagneticMoment.png',dpi=200)
     plt.close()
 
-    save_t=[1.0]
-    for i in range(1,N_PLOTS):
-        if save_t[i-1]<5000.0:
-            save_t.append(save_t[i-1]+80.0)
-        elif save_t[i-1]<1e8 and save_t[i-1]>=5000.0:
-            save_t.append(save_t[i-1]+int(save_t[i-1]/3.0))
-        elif save_t[i-1]>=1e8 and save_t[i-1]<1e9:
-            save_t.append(save_t[i-1]+int(save_t[i-1]/10.0))
-        else:
-            save_t.append(save_t[i-1]+int(save_t[i-1]/25.0))
+    
     save_t_title=save_t.copy()
     t_title=[]
     for i in range(len(save_t)):
@@ -456,7 +462,7 @@ def run():
 
     print('Making movies')
     os.makedirs(results_foldername+'/movie', exist_ok=True)
-    out_names=['TemperatureVsPressure','TemperatureVsMass','HeatFluxVsMass','DensityVsMass','MagneticReynoldsNumberVsMass','MantleViscosityVsMass', 'ConvectiveVelocityVsMass','PressureVsRadius','GravityVsMass']
+    out_names=['TemperatureVsPressure','TemperatureVsMass','HeatFluxVsMass','DensityVsMass','MagneticReynoldsNumberVsMass','MantleViscosityVsMass', 'ConvectiveVelocityVsMass','PressureVsRadius','GravityVsMass','MantleMeltFractionVsMass']
     for i in range(len(out_names)):
         outnames=os.path.join(filefolders[i][:len(results_foldername+'/image')],out_names[i]+'.mp4')
         # Construct the argument parser and parse the arguments

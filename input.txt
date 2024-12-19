@@ -6,7 +6,7 @@
 # Core mass fraction (Current version of the model takes values between 0.1 and 0.8)
 0.326
 # t_end in billion years (Gyr)
-12.0
+14.0
 # Radiogenic heating relative to that of Earth's mantle 
 # K 
 1.0
@@ -17,9 +17,9 @@
 # U235
 1.0
 # We currently don't consider Al24 for its short half life time.
-# viscosity models. For the current version, two different models for the viscosity of ppl is considered. 1 is for diffusion creep and 2 is for dislocation creep. See Tackley et al. 2013.
-1
+# viscosity models. For the current version, two different models for the viscosity of ppl is considered. 1.0 is for diffusion creep and 2.0 is for dislocation creep. See Tackley et al. 2013.
+2.0
 # Equilibrium temperature (Current version takes values between 255.0 and 1800.0)
-255.0
+1500.0
 # path to eos tables. (Will be updated in future versions)
 

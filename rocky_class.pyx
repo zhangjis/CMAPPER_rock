@@ -981,7 +981,7 @@ rtol=1e-3
 # start with delta_BL=1cm
 cdef double delta_BL=0.01
 # provide an T_s as an initial guess for f = lambda x: x**4+k_l/sigma/old_delta_BL*x-Teq**4.0-k_l/sigma/old_delta_BL*T_BL
-cdef double T_s=ri['temperature'][-1]-500.0
+cdef double T_s=ri['temperature'][-1]-100.0
 cdef double break_flag=0.0 # flag for breaking the for loop/while loop
 
 cdef double rerr=1.0
@@ -989,7 +989,7 @@ cdef double old_T_s, old_delta_BL, R_BL
 cdef double g_BL, P_BL, sliq_BL, ssol_BL
 cdef double y_BL, x_BL, T_BL, rho_BL, cP_BL, alpha_BL, nu_BL
 cdef int i_r
-cdef double smoothing_width=0.25
+cdef double smoothing_width=0.3
 for i in range(0, len(s_grid)):
     rerr=1.0
     iteration=0
@@ -1030,11 +1030,12 @@ for i in range(0, len(s_grid)):
 
         # update delta_BL using new delta_T_BL=T_BL-T_s
         delta_T_BL=T_BL-T_s
+        print('iiiiiii',i,nu_BL,T_BL,x_BL,rho_BL,cP_BL, alpha_BL, g_BL,T_s,delta_T_BL)
         delta_BL=(Racr*nu_BL*(k_en/(rho_BL*cP_BL))/(alpha_BL*g_BL*delta_T_BL))**(1.0/3.0)
         
         rerr=abs(delta_BL-old_delta_BL)/old_delta_BL
         
-        if iteration>20:
+        if iteration>5:
             if abs(delta_BL-delta_BL_grid[i-1])<abs(old_delta_BL-delta_BL_grid[i-1]):
                 break 
             else:
