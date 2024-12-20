@@ -325,6 +325,8 @@ S_sol_P=interpolate.interp1d(P_grid,S_sol_array)
 T_liq_P=interpolate.interp1d(P_grid,T_liq_array)
 T_sol_P=interpolate.interp1d(P_grid,T_sol_array)
 
+interp_kwargs = dict(bounds_error=False, fill_value=None)
+
 print('Read Fe table')
 if load_file[0]<1.25:
     rho_Fel=np.loadtxt('EoS/Fe_core/rho_Fel_60GPa.txt')
@@ -430,12 +432,13 @@ Tsurf_sgrid=Fsurf_table[:,3]
 dFds_sgrid=Fsurf_table[:,4]
 vissurf_sgrid=Fsurf_table[:,5]
 
+cdef double Ts_FsTable_min=np.min(Tsurf_sgrid)
+
 f_Fsurf_s=interpolate.interp1d(sgrid,Fsurf_sgrid)
 f_deltaUBL_s=interpolate.interp1d(sgrid,delta_UBL_sgrid)
 f_Tsurf_s=interpolate.interp1d(sgrid,Tsurf_sgrid)
 f_dFds_s=interpolate.interp1d(sgrid,dFds_sgrid)
 f_vissurf_s=interpolate.interp1d(sgrid,vissurf_sgrid)
-
 
 cdef double t=0.0#previous[0]
 cdef double dt=5e7#previous[1]
@@ -447,13 +450,14 @@ cdef double end_time=load_file[2]*86400.0*365.0*1e9
 cdef double P_surf=1e5 # Surface pressure in Pa.
 cdef double ppv_eta_model=load_file[7]
 
-cdef double dt_thres
-cdef double ds_thres=0.0
-cdef double ds_thres_xl=1e-2#25.0*10.0**(-5.0)
-cdef double ds_thres_m=5e-4#8.0*10.0**(-5.0)
-cdef double ds_thres_s=1e-3#6.0*10.0**(-5.0)
-cdef double ds_thres_xs=5e-7
-cdef double ds_thres_l=1e-2#10.0*10.0**(-5.0)
+cdef double dt_thres, ds_thres
+cdef double ds_thres_xl=1e-2
+cdef double ds_thres_ma=0.0#1e-2
+cdef double ds_thres_dr=1.0#1e-3
+cdef double ds_thres_MO=2.0#2e-2
+cdef double ds_thres_cmb=3.0
+cdef double ds_thres_Fs=4.0#2e-2
+rdiff=np.zeros(5)
 
 cdef double[:] initial_radius=initial_henyey[:,0]
 cdef double[:] radius_cell=initial_henyey[:,2]
@@ -479,7 +483,6 @@ cdef double[:] old_Scell=initial_profile[:,7]
 cdef double[:] x_cell=initial_profile[:,10]
 
 cdef double Fsurf
-print(S_cell[-1])
 Fsurf=f_Fsurf_s(S_cell[-1]).tolist()
 cdef double dFds
 
@@ -610,7 +613,6 @@ for i in range(core_outer_index+1,zone):
     T_solidus_cell[i]=T_sol_P(melt_pressure_cell[i])
     T_liquidus_cell[i]=T_liq_P(melt_pressure_cell[i])
 
-#np.savetxt('text.txt',np.transpose([S_solidus, S_solidus_cell, S_solidus_hat, S_solidus_cell_hat]))
 cdef double rho_m_v, rho_s_v, alpha_s_v, alpha_m_v, CP_m_v, dqdy_m_v, dqdy_s_v,density_value
 cdef double[:] rho_m_array=np.zeros(zone)
 cdef double[:] rho_s_array=np.zeros(zone)
@@ -806,7 +808,7 @@ for i in range(zone):
         else:
             k_array[i]=k_pv
 
-cdef double Fcmb, Q_rad_m, v1,v2,v3,y,Y_s,Z_s,Y_m,Z_m,v4,v5,Z_Re,Y_Re
+cdef double Fcmb, Q_rad_m, v1,v2,v3,y,Y_s,Z_s,Y_m,Z_m,v4,v5,v6,v7,Z_Re,Y_Re
 cdef double ds_top
 cdef double S_max=5100.0#5384.0#5100.0#4739.0
 cdef double S_min=100.0
@@ -973,17 +975,6 @@ cdef double[:] Rem_MO=np.zeros(zone)
 
 cdef double t_val
 
-#save_t=[1.0]
-#for i in range(1,182):
-#    if save_t[i-1]<5000.0:
-#        save_t.append(save_t[i-1]+80.0)
-#    elif save_t[i-1]<1e8 and save_t[i-1]>=5000.0:
-#        save_t.append(save_t[i-1]+int(save_t[i-1]/3.0))
-#    elif save_t[i-1]>=1e8 and save_t[i-1]<1e9:
-#        save_t.append(save_t[i-1]+int(save_t[i-1]/10.0))
-#    else:
-#        save_t.append(save_t[i-1]+int(save_t[i-1]/25.0))
-
 cdef double[:] t_save1=10.0**np.linspace(1.0,8.9,80)
 cdef double[:] t_save2=np.linspace(1.0,20.0,77)*1e9
 cdef double[:] t_save=np.concatenate((np.asarray(t_save1),np.asarray(t_save2)))
@@ -992,9 +983,6 @@ cdef Py_ssize_t ind
 
 cdef double core_m
 
-# migration from pynbody.interpolate3d. We have to extrapolate these values;
-# @Jisheng, does this make sense?
-interp_kwargs = dict(bounds_error=False, fill_value=None)
 dTdT0_cmb_interp = interpolate.RegularGridInterpolator(
     (
         x_core_grid,
@@ -1074,37 +1062,50 @@ interp_2d_alpha_Fel_a = interpolate.RegularGridInterpolator((P_Fel, T_Fel), alph
 interp_2d_alpha_Fea_a = interpolate.RegularGridInterpolator((P_Fea, T_Fea), alpha_Fea, **interp_kwargs)
 
 
-#cdef double[:] old_viscosity=
-
-cdef double old_delta_r_s, old_vis_surf_value
+cdef double old_delta_r_s, old_vis_surf_value, old_Fsurf
 
 cdef double[:] save_test=np.linspace(12500.0,50000.0,7501)
 
 cdef double width
 cdef double solid_core_flag=0.0
 cdef double t_final=0.0
+cdef Py_ssize_t solid_core_end_ind=core_outer_index-2
 
-print(core_outer_index)
+testing_delta_T_ra=[]
+testing_delta_r=[]
+testing_t=[]
+testing_dt=[]
+testing_x=[]
+
+rdiff0_list=[]
+rdiff1_list=[]
+rdiff2_list=[]
+rdiff3_list=[]
+rdiff4_list=[]
 
 #while iteration<end_ite:
 #while solid_index<core_outer_index:
 while t<end_time:
     #if solid_index>core_outer_index-2:
-    if initial_radius[int(solid_index)]>initial_radius[int(core_outer_index-2)]:
+    if initial_radius[solid_index]>initial_radius[solid_core_end_ind]:
         solid_core_flag=1.0
         t_final=t
         break
     dsdr=np.zeros(zone)
     for i in range(core_outer_index+1,zone-1):
         dsdr[i]=(S_cell[i]-S_cell[i+1])/(radius_cell[i]-radius_cell[i+1])
-    #dxdr=np.zeros(zone)
-    #for i in range(zone-1):
-    #    dxdr[i]=(x_cell[i]-x_cell[i+1])/(radius_cell[i]-radius_cell[i+1])
-
+    
     viscosity=np.zeros(zone) # evaluated at the cell center
     for i in range(core_outer_index+1, zone):
         if initial_pressure[i]<23.0e9:
-            width=0.3
+            if load_file[0]<2.0:
+                width=0.15
+            elif load_file[0]>=2.0 and load_file[0]<2.5:
+                width=0.2
+            elif load_file[0]>=2.5 and load_file[0]<3.0:
+                width=0.25
+            else:
+                width=0.3
         else:
             width=0.15
         viscosity[i]=f_viscosity(initial_temperature[i], initial_pressure[i], initial_density[i], initial_phase[i], melt_frac[i], 3700.0, 4000.0, width, ppv_eta_model)
@@ -1151,20 +1152,17 @@ while t<end_time:
     #Ra_x=(initial_tempearture[core_outer_index+1]-)/(-)
     Ra_nu=f_viscosity(Ra_T, Ra_P, initial_density[core_outer_index+1], initial_phase[core_outer_index+1], melt_frac[core_outer_index+1], 3700.0, 4000.0, 0.15,ppv_eta_model)
     Ra_g=initial_gravity[core_outer_index]+(initial_gravity[core_outer_index+1]-initial_gravity[core_outer_index])/(initial_radius[core_outer_index+1]-initial_radius[core_outer_index])*old_delta_r
-
+    old_delta_r=delta_r
     if delta_T_ra<1e-3:
         delta_T_ra=1e-3
     delta_r=(10.0*Ra_nu*660.0/(initial_density[core_outer_index+1]*CP[core_outer_index+1]*alpha[core_outer_index+1]*Ra_g*delta_T_ra))**(1.0/3.0)
-    delta_r_flag=0.0
     if delta_r>initial_radius[core_outer_index+1]-initial_radius[core_outer_index]:
         delta_r_flag=1.0
         delta_r=initial_radius[core_outer_index+1]-initial_radius[core_outer_index]
         delta_T_ra=initial_temperature[core_outer_index]-initial_temperature[core_outer_index+1]
         Ra_T=initial_temperature[core_outer_index+1]
 
-    old_delta_r=delta_r
     Fcmb=-10.0*(delta_T_ra)/(-delta_r)
-
     Q_rad_m=Q_radm_Th*math.exp(math.log(2.0)*(4.5-t/86400.0/365.0/10.0**9.0)/tau_m_Th)+Q_radm_K*math.exp(math.log(2.0)*(4.5-t/86400.0/365.0/10.0**9.0)/tau_m_K)+Q_radm_U5*math.exp(math.log(2.0)*(4.5-t/86400.0/365.0/10.0**9.0)/tau_m_U5)+Q_radm_U8*math.exp(math.log(2.0)*(4.5-t/86400.0/365.0/10.0**9.0)/tau_m_U8)
 
     aa=np.zeros(zone)
@@ -1186,7 +1184,8 @@ while t<end_time:
     ff[i]=S_cell[i]/dt+v1+v2+v3+Q_rad_m/temperature_cell[i]
 
     old_vis_surf_value=vis_surf_value
-    if S_cell[-1]>sgrid[-1] and surf_flag==1.0:
+    old_Fsurf=Fsurf
+    if S_cell[-1]>sgrid[-1]:# and surf_flag==1.0:
     #if surf_flag==1.0:
         Fsurf=f_Fsurf_s(S_cell[-1]).tolist()
         dFds=f_dFds_s(S_cell[-1]).tolist()
@@ -1194,7 +1193,7 @@ while t<end_time:
         T_s=f_Tsurf_s(S_cell[-1]).tolist()
         vis_surf_value=f_vissurf_s(S_cell[-1]).tolist()
     else:
-        surf_flag=0.0
+        #surf_flag=0.0
         delta_r_s=initial_radius[zone-1]-radius_cell[zone-1]
         delta_T_ra_s=temperature_cell[-1]-T_s
         Fsurf=k_array[-1]*delta_T_ra_s/delta_r_s
@@ -1202,7 +1201,7 @@ while t<end_time:
 
     i=zone-1
     #if surf_flag==1.0:
-    if S_cell[-1]>sgrid[-1] and surf_flag==1.0:
+    if S_cell[-1]>sgrid[-1]:# and surf_flag==1.0:
         aa[i]=0.0
         bb[i]=Area[i-1]/(h_mantle*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])
         cc[i]=1.0/dt-Area[i-1]/(h_mantle*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])+dFds*Area[i]/(h_mantle*temperature_cell[i])
@@ -1236,9 +1235,9 @@ while t<end_time:
         ff[i]=S_cell[i]/dt+v1+v2+v3+Q_rad_m/temperature_cell[i]
     solution=penta_solver(aa[core_outer_index+1:],bb[core_outer_index+1:],cc[core_outer_index+1:],dd[core_outer_index+1:],ee[core_outer_index+1:],ff[core_outer_index+1:],zone-core_outer_index-1)
 
-    if surf_flag==0.0:
+    #if surf_flag==0.0:
     #if S_cell[-1]<=sgrid[-1]:
-        T_s=(Fsurf/sigma+Teq**4.0)**0.25
+    T_s=(Fsurf/sigma+Teq**4.0)**0.25
 
     new_Scell=np.zeros(zone)
     for i in range(core_outer_index+1,zone):
@@ -1504,10 +1503,8 @@ while t<end_time:
         outer_adiabat_value=h_core*C_P_Fe*dTdT0_array[i]
         outer_adiabat_array[i]=outer_adiabat_value/dTdT0_cmb
         outer_adiabat_Pcmb_array[i]=outer_adiabat_value*dT0dPcmb
-        #outer_adiabat_Pi_array[i]=alpha[i]*new_V[i]*initial_temperature[i]*(initial_pressure[i]-old_pressure[i])
     outer_adiabat=np.sum(outer_adiabat_array[solid_index:])
     outer_adiabat_Pcmb=np.sum(outer_adiabat_Pcmb_array[solid_index:])*delta_Pcmb
-    #outer_adiabat_Pi=np.sum(outer_adiabat_Pi_array)
     # Latent heat when there's ongoing inner core solidification
     if initial_phase[0]==ph_Fe_sol and initial_phase[core_outer_index]==ph_Fe_liq:
         dTdT0_ic=dTdT0_cmb_interp((
@@ -1725,8 +1722,7 @@ while t<end_time:
                 new_density[i]=rho_tot
                 new_dqdy[i]=dqdy_tot
 
-
-    if iteration%10.0==0.0:
+    if iteration%25.0==0.0:
         t_array.append(t)
         dt_array.append(dt)
         average_Tm.append(np.sum(new_T[core_outer_index+1:])/mantle_zone)
@@ -1755,12 +1751,9 @@ while t<end_time:
         Tsurf_array.append(T_s)
         
         delta_r_s_array.append(delta_r_s)
-
-        delta_r_list.append(delta_r)
         Tcmb_list.append(T_cmb)
         Qrad_c_array.append(Q_rad_c)
         T_center_array.append(new_T[0])
-
         vis_surf_array.append(vis_surf_value)
 
         Fconv1_m1.append(Fconv[-2])
@@ -1955,27 +1948,12 @@ while t<end_time:
             MO_dynamo_top=initial_radius[i]
             flag_top=1.0
 
-    if iteration%10.0==0.0:
+    if iteration%25.0==0.0:
         L_sigma_array.append(L_sigma)
         D_MO_dynamo_array.append(D_MO_dynamo)
         MO_dynamo_bot_array.append(MO_dynamo_bot)
         MO_dynamo_top_array.append(MO_dynamo_top)
-    #if t>=220e6*86400.0*365.0 and t<234e6*86400.0*365.0:
-    #    v5=np.max(np.abs((np.asarray(old_Scell[core_outer_index+1:-1])-np.asarray(S_cell[core_outer_index+1:-1]))/np.asarray(old_Scell[core_outer_index+1:-1])))
-    #else:
-    v5=np.max(np.abs((np.asarray(old_Scell[core_outer_index+1:])-np.asarray(S_cell[core_outer_index+1:]))/np.asarray(old_Scell[core_outer_index+1:])))
-    if old_vis_surf_value==0.0:
-        old_vis_surf_value=1.0
-    #v4=np.abs(old_vis_surf_value-vis_surf_value)/old_vis_surf_value
-
-    #if melt_frac[-1]>0.05 and v5<=v4:
-    #    dt_thres=v4
-    #else:
-    #    dt_thres=v5
-    dt_thres=v5
-    #v4=(Fcmb*old_Area[core_outer_index]-Fsurf*old_Area[zone-1]+Q_rad_m*h_mantle*mantle_zone)*dt
-    #v5=sum((np.asarray(initial_S[core_outer_index+1:])-np.asarray(old_S[core_outer_index+1:]))*np.asarray(old_T[core_outer_index+1:])*h_mantle)
-
+    
     Buoy_T_value=alpha[core_outer_index]*initial_gravity[core_outer_index]/(initial_density[core_outer_index]*C_P_Fe)*(Fcmb-k_Fe*(initial_gravity[core_outer_index]*new_alpha[core_outer_index]*new_T[core_outer_index]/C_P_Fe))
     rho_core=M_pl*CMF/(4.0/3.0*math.pi*initial_radius[core_outer_index]**3.0)
     if solid_index==0:
@@ -1987,24 +1965,106 @@ while t<end_time:
     else:
         core_m=0.0
 
-    if iteration%10.0==0.0:
+    if iteration%25.0==0.0:
         solid_index_arr.append(solid_index)
         Buoy_T.append(Buoy_T_value)
         Buoy_x.append(Buoy_x_value)
         core_dipole_m.append(core_m)
+
+
+    if old_vis_surf_value==0.0:
+            old_vis_surf_value=1e-2
+    if old_delta_r==0.0:
+        old_delta_r=1e-2
+    rdiff[0]=np.max(np.abs((np.asarray(old_Scell[core_outer_index+2:-1])-np.asarray(S_cell[core_outer_index+2:-1]))/np.asarray(old_Scell[core_outer_index+2:-1])))
+    rdiff[1]=np.abs(old_delta_r-delta_r)/old_delta_r
+    rdiff[2]=np.abs(old_vis_surf_value-vis_surf_value)/old_vis_surf_value/10.0
+    rdiff[3]=np.abs(delta_Tcmb)/T_cmb
+    rdiff[4]=np.abs(old_Fsurf-Fsurf)/Fsurf/10.0
+
+    dt_thres=np.max(rdiff)
+    ds_thres=ds_thres_xl
+    #if t>1e4*86400.0*365.0 and t<1e8*86400.0*365.0:
+    #    ds_thres=ds_thres_xl
+
     """
-    if melt_frac[-2]==1.0:
-        ds_thres=ds_thres_xl
+    if T_s>Ts_FsTable_min:
+        if delta_r_flag==1.0:
+            dt_thres=v5
+            ds_flag=ds_thres_dr
+        else:
+            dt_thres=v6
+            ds_flag=ds_thres_MO
+        if dt_thres<v5:
+            dt_thres=v5
+            ds_flag=ds_thres_ma
+        if dt_thres<np.abs(delta_Tcmb)/T_cmb:
+            dt_thres=np.abs(delta_Tcmb)/T_cmb
+            ds_flag=ds_thres_cmb
+        if iteration>2:
+            if dt_thres<np.abs(Fsurf_array[-1]-Fsurf_array[-2])/Fsurf_array[-2]:
+                dt_thres=np.abs(Fsurf_array[-1]-Fsurf_array[-2])/Fsurf_array[-2]
+                ds_flag=
     else:
-        if t<5e7*86400.0*365.0:
-            ds_thres=ds_thres_xl
+        dt_thres=v5
+        ds_thres=ds_thres_xl
+        if dt_thres<np.abs(delta_Tcmb)/T_cmb:
+            dt_thres=np.abs(delta_Tcmb)/T_cmb
+            ds_thres=ds_thres_xl*1.05
+    ds_thres=ds_thres_xl
+    #######################
+    if T_s>=Ts_FsTable_min: 
+        v4=np.abs(old_vis_surf_value-vis_surf_value)/old_vis_surf_value/MO_ds_scale*ds_thres_xl
+        v5=np.abs(old_delta_r-delta_r)/(old_delta_r+1e-6)/dr_thres*ds_thres_xl
+        v6=np.max(np.abs((np.asarray(old_Scell[core_outer_index+1:])-np.asarray(S_cell[core_outer_index+1:]))/np.asarray(old_Scell[core_outer_index+1:])))
+        v7=np.abs(delta_Tcmb)/T_cmb
+        
+        dt_thres=v6
+        if v4>dt_thres:
+            dt_thres=v4
+        if v5>dt_thres:
+            dt_thres=v5
+        if v7>dt_thres:
+            dt_thres=v7
+        
+        if dt_thres==v4:
+            ds_thres=MO_ds_scale
+        elif dt_thres==v5:
+            ds_thres=dr_thres
         else:
             ds_thres=ds_thres_xl
-    """
-    ds_thres=ds_thres_xl
-    if melt_frac[-1]<0.8 and melt_frac[-1]>0.05:
-        ds_thres=0.5e-3
+    else:
+        v6=np.max(np.abs((np.asarray(old_Scell[core_outer_index+1:])-np.asarray(S_cell[core_outer_index+1:]))/np.asarray(old_Scell[core_outer_index+1:])))
+        v5=np.abs(old_delta_r-delta_r)/(old_delta_r+1e-6)/dr_thres*ds_thres_xl
+        v7=np.abs(delta_Tcmb)/T_cmb
+        
+        dt_thres=v6
+        if v5>dt_thres:
+            dt_thres=v5
+        if v7>dt_thres:
+            dt_thres=v7
 
+        if dt_thres==v5:
+            ds_thres=dr_thres
+        else:
+            ds_thres=ds_thres_xl
+    ##################
+    v5=np.max(np.abs((np.asarray(old_Scell[core_outer_index+1:])-np.asarray(S_cell[core_outer_index+1:]))/np.asarray(old_Scell[core_outer_index+1:])))
+    if old_vis_surf_value==0.0:
+        old_vis_surf_value=1.0
+    v4=np.abs(old_vis_surf_value-vis_surf_value)/old_vis_surf_value
+
+    if T_s>Ts_FsTable_min and v5<=v4:
+        dt_thres=v4
+        ds_thres=MO_ds_scale
+    else:
+        dt_thres=v5
+    if dt_thres<np.abs(old_delta_r-delta_r)/(old_delta_r+1e-6):
+        dt_thres=np.abs(old_delta_r-delta_r)/(old_delta_r+1e-6)
+        ds_thres=dr_thres
+    if dt_thres<np.abs(delta_Tcmb)/T_cmb:
+        dt_thres=np.abs(delta_Tcmb)/T_cmb
+    """
     if dt_thres<ds_thres:
         if dt_thres<0.975*ds_thres:
             if iteration<200:
@@ -2022,38 +2082,55 @@ while t<end_time:
         if dt_thres>1.05*ds_thres:
             dt=dt*0.8
         else:
-            dt=dt*0.975
-    if dt>86400.0*365.0*1500000.0:
-        dt=86400.0*365.0*1500000.0
+            dt=dt*0.9
+    
+    if t<1e9*86400.0*365.0:
+        if dt>t/1e3:
+            dt=t/1e3
+    else:
+        if dt>1e6*86400.0*365.0:
+            dt=1e6*86400.0*365.0
+    
+    if t/1e5>86400.0*365.0*0.1:
+        if dt<t/1e5:
+            dt=t/1e5
+    else:
+        if dt<86400.0*365.0*0.1:
+            dt=86400.0*365.0*0.1
 
-    if iteration%20==0:
+    if iteration%10==0:
+        rdiff0_list.append(rdiff[0])
+        rdiff1_list.append(rdiff[1])
+        rdiff2_list.append(rdiff[2])
+        rdiff3_list.append(rdiff[3])
+        rdiff4_list.append(rdiff[4])
+        testing_t.append(t)
+
+    if iteration%50==0:
         if t/86400.0/365.0<1e3:
             t_val=t/86400.0/365.0
-            print('time:%2.2fyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s),new_T[0])
+            print('time:%2.2fyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s),dt/86400.0/365.0)
         elif t/86400.0/365.0>=1e3 and t/86400.0/365.0<1e6:
             t_val=t/86400.0/365.0/1e3
-            print('time:%2.2fkyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s),new_T[0])
+            print('time:%2.2fkyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s),dt/86400.0/365.0)
         elif t/86400.0/365.0>=1e6 and t/86400.0/365.0<1e9:
             t_val=t/86400.0/365.0/1e6
-            print('time:%2.2fMyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s),new_T[0])
+            print('time:%2.2fMyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s),dt/86400.0/365.0)
         else:
             t_val=t/86400.0/365.0/1e9
-            print('time:%2.2fGyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s),new_T[0])
-
+            print('time:%2.2fGyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s),dt/86400.0/365.0)
+        
     for ind in range(len(t_save)):
         if t<t_save[ind]*86400.0*365.0+dt and t>t_save[ind]*86400.0*365.0-dt:
             np.savetxt(results_foldername+'/profile/StructureProfile_'+str(int(t_save[ind]))+'.txt',np.transpose([initial_radius,initial_pressure,initial_density,initial_gravity,
                 initial_temperature,alpha,CP,Fconv,Fcond,Ftot,v_MO,Rem_MO,viscosity, mass, melt_frac]), header='radius, pressure, density, gravitational acceleration, temperature, thermal expansion coefficient, specific heat, convective heat flux, conductivt heat flux, total heat flux, convective velocity, mantle magnetic Reynolds number, mantle viscosity, mass, mantle melt fraction')
             np.savetxt(results_foldername+'/evolution.txt',np.transpose([t_array,dt_array,average_Tm,average_Tc,Tsurf_array,Tcmb_array,T_center_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,Buoy_T,Buoy_x,core_dipole_m]),
                 header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature,surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment')
-            #np.savetxt(results_foldername+'/test.txt',np.transpose([t_array,S_m1_array,S_c_m1_array,S_m2_array,S_c_m2_array,T_m1_array,T_c_m1_array,T_m2_array,T_c_m2_array,A_m1_array,A_m2_array,vis_surf_array,Fconv1_m1,Fcond1_m1,Fcond2_m1,v_m2_array,P_m2_array]))
-    
-
-    if iteration%5000==0:
+    if iteration%10000==0:
         np.savetxt(results_foldername+'/evolution.txt',np.transpose([t_array,dt_array,average_Tm,average_Tc,Tsurf_array,Tcmb_array,T_center_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,Buoy_T,Buoy_x,core_dipole_m]),
-            header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature,surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment')
-        
-
+            header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature,surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment')      
+    if iteration%10000==0 and t<1e9*86400.0*365.0:
+        np.savetxt(results_foldername+'/testing.txt',np.transpose([testing_t,rdiff0_list,rdiff1_list,rdiff2_list,rdiff3_list,rdiff4_list]))#np.transpose([testing_t,testing_dt,testing_delta_r,testing_delta_T_ra,testing_x]))
     iteration=iteration+1
     t=t+dt
 
@@ -2063,7 +2140,6 @@ if solid_core_flag==1.0:
 elif solid_core_flag==0.0:
     np.savetxt(results_foldername+'/profile/files_saved_at_these_time_list.txt',t_save[:t_end_ind+1])
 
-print('hihihihi',t/86400.0/365.0/1e9,t_save[:t_end_ind+1])
 cdef Py_ssize_t start_ind
 if sum(Buoy_x)>0.0:
     for i in range(1,len(t_array)):
@@ -2093,5 +2169,3 @@ else:
 
 np.savetxt(results_foldername+'/evolution.txt',np.transpose([t_array,dt_array,average_Tm,average_Tc,Tsurf_array,Tcmb_array,T_center_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,Buoy_T,Buoy_x,core_dipole_m,solid_index_arr,S_c_m1_array]),
     header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature, surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment, the indices of the inner and outer core boundary')
-#np.savetxt(results_foldername+'/test.txt',np.transpose([t_array,S_m1_array,S_c_m1_array,S_m2_array,S_c_m2_array,T_m1_array,T_c_m1_array,T_m2_array,T_c_m2_array,A_m1_array,A_m2_array,vis_surf_array,Fconv1_m1,Fcond1_m1,Fcond2_m1,v_m2_array,P_m2_array]))
-

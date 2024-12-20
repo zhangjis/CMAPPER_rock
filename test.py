@@ -186,6 +186,8 @@ def run():
     def f_axis_max_min(v_min,v_max,axis_scale):
         if axis_scale=='log':
             v_max=np.log10(v_max)
+            if v_min<=0.0:
+                v_min=1e-3
             v_min=np.log10(v_min)
             dv=np.abs(v_max-v_min)/10.0
             v_max=10.0**(v_max+dv)
