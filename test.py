@@ -13,7 +13,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 load_file=np.loadtxt('input.txt')
-results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])
+results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])+'_Qradc'+str(load_file[9])+'_eta'+str(load_file[7])
+
 os.makedirs(results_foldername+'/profile/t0', exist_ok=True)
 
 # filepaths
@@ -461,7 +462,6 @@ def run():
     with Pool(nthreads) as p:
         process_map(plot_for_index, args, max_workers=nthreads)
 
-
     print('Making movies')
     os.makedirs(results_foldername+'/movie', exist_ok=True)
     out_names=['TemperatureVsPressure','TemperatureVsMass','HeatFluxVsMass','DensityVsMass','MagneticReynoldsNumberVsMass','MantleViscosityVsMass', 'ConvectiveVelocityVsMass','PressureVsRadius','GravityVsMass','MantleMeltFractionVsMass']
@@ -513,6 +513,5 @@ def run():
         source_path = os.path.join(filefolders[0][:len(results_foldername+'/image')],out_names[i]+'.mp4')
         destination_path = os.path.join(filefolders[0][:len(results_foldername)],'movie/'+out_names[i]+'.mp4')
         shutil.move(source_path, destination_path)
-
 if __name__ == '__main__':
     run()

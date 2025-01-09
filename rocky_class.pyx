@@ -23,7 +23,7 @@ import time
 # line 1684-1742: while loop for updating thermal profiles using heat transport routines and structural profiles using Henyey solver
 
 load_file=np.loadtxt('input.txt')
-results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])
+results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])+'_Qradc'+str(load_file[9])+'_eta'+str(load_file[7])
 
 print('Read EoS tables')
 T_liq=np.loadtxt('EoS/mantle/T_liq_Py_1500GPa.txt')
@@ -101,7 +101,6 @@ f_alpha_Fel=interpolate.RectBivariateSpline(P_Fel,T_Fel,alpha_Fel)
 f_alpha_Fea=interpolate.RectBivariateSpline(P_Fea,T_Fea,alpha_Fea)
 f_dqdy_Fel=interpolate.RectBivariateSpline(P_Fel,T_Fel,dqdy_Fel)
 f_dqdy_Fea=interpolate.RectBivariateSpline(P_Fea,T_Fea,dqdy_Fea)
-
 
 
 T_sol_pv=np.loadtxt('EoS/mantle/T_sol_pv_Py.txt')
@@ -197,6 +196,7 @@ load_CMFgrid=np.loadtxt('EoS/Guess_initial/CMF_grid.txt')
 f_Pc_i=interpolate.RectBivariateSpline(load_Mplgrid,load_CMFgrid,load_Pc)
 f_Tc_i=interpolate.RectBivariateSpline(load_Mplgrid,load_CMFgrid,load_Tc)
 
+cdef Py_ssize_t iteration, i
 
 # all variables are in SI units, unless otherwise noted.
 cdef double M_pl=load_file[0]*5.972e24 # planet mass in kg
@@ -213,20 +213,31 @@ cdef double Teq=load_file[8] # equilibrium temperature in K.
 cdef double Q_rad_c_0=0.0 # Current day core radiogenic heating in W/kg.
 cdef double P_surf=1e5 # Surface pressure in Pa.
 
-cdef int zone=int((load_file[0]-1.0)*80.0+600.0) # total number of zones in the planet
-cdef int c_z=int(load_file[1]*zone) # zones in the core
-cdef int m_z=zone-c_z # zones in the mantle
-cdef double P_c=f_Pc_i(load_file[0],load_file[1]*100.0)[0][0]#1000e9 # initial guess of the central pressure in Pa. Subsequent update in the code is the actual central pressure in Pa.
+cdef int c_z=int(100*load_file[0]+(load_file[1]-0.1)*250)#int(load_file[11])#int(load_file[1]*zone) # zones in the core
+cdef int m_z=int(200+10*load_file[0])#int(load_file[10])#int(zone-c_z) # zones in the mantle
+cdef int zone=int(c_z+m_z)#int(((load_file[0]-1.0)*80.0+600.0)) # total number of zones in the planet
+cdef double c_array_start=2.0#load_file[13]
+
+cdef double ms_array_0=0.0
+if load_file[0]>=3.0:
+    ms_array_0=-1.0-(load_file[0]-3.0)*0.1
+else:
+    ms_array_0=-1.0-(load_file[0]-3.0)*0.5
+#cdef double[:] ms_array=np.linspace(ms_array_0,ms_array_0+0.7,8)
+cdef double m_array_start=ms_array_0+(load_file[1]-0.1)*1.0#ms_array[int((load_file[1]+1e-10-0.1)*10.0)]
+
+print(c_z,m_z,zone,c_array_start,m_array_start)
+
+cdef double P_c=f_Pc_i(load_file[0],load_file[1]*100.0)[0][0]+20e9#1000e9 # initial guess of the central pressure in Pa. Subsequent update in the code is the actual central pressure in Pa.
 cdef double T_c=f_Tc_i(load_file[0],load_file[1]*100.0)[0][0]#10500.0 # Central temperature in K
 cdef double T_an_c_i=7000.0 # initial guess of the entropy temperature of the core in K.
-
+if load_file[0]<1.5 and load_file[1]<0.3:
+    T_c=T_c+500.0
 cdef double MMF=1.0-CMF # mantle mass fraction
 
 cdef double d_Pc=1.0 # Adjustment in central pressure to find the actual central pressure using Runge-Kutta method.
 cdef double dsdr_c=-1e-6 # initial entropy gradient (an arbitrary choice)
 cdef double rtol=10.0 # initialize relative tolerance for numerical techniques
-
-cdef Py_ssize_t iteration, i
 
 cdef double initial=1.0 # 1.0 for true and 0.0 for false
 cdef double t=0.0 # time in second
@@ -276,9 +287,11 @@ cdef class c_initial_profile:
     cdef double d_Pc
     cdef double rtol
     cdef double T_an_c
+    cdef double c_array_start
+    cdef double m_array_start
 
     def __cinit__(self, double M_pl, int c_z, int m_z, double CMF, double MMF, double P_c,
-        double P_surf, double T_c, double x_c, double dsdr_c, double d_Pc, double rtol, double T_an_c):
+        double P_surf, double T_c, double x_c, double dsdr_c, double d_Pc, double rtol, double T_an_c, double c_array_start, double m_array_start):
         self.M_pl = M_pl
         self.c_z = c_z
         self.m_z = m_z
@@ -291,7 +304,9 @@ cdef class c_initial_profile:
         self.dsdr_c = dsdr_c
         self.d_Pc = d_Pc
         self.rtol = rtol
-        self.T_an_c= T_an_c
+        self.T_an_c = T_an_c
+        self.c_array_start = c_array_start
+        self.m_array_start = m_array_start
 
     cpdef double dlnrdm(self, double r, double p, double density): # mass conservation equation
         return 1.0/(4.0*math.pi*r**3.0*density)
@@ -328,15 +343,54 @@ cdef class c_initial_profile:
         cdef double h_m = m_m/self.m_z
         cdef double[:] mass=np.zeros(zone)
         cdef double[:] h=np.zeros(zone)
-        mass[0]=h_c
-        h[0]=h_c
+        
+        cdef int len_top=int(self.m_z*0.5)
+        cdef int len_bot=self.m_z-len_top
+        cdef double[:] top_array=np.linspace(4.0,self.m_array_start,len_top)
+        cdef double[:] bot_array=np.linspace(self.m_array_start,4.0,len_bot)
+        cdef double[:] mantle_tanh=np.zeros(self.m_z)
+        cdef double[:] mantle_norm=np.zeros(self.m_z)
+        cdef double mantle_tanh_sum=0.0
+        for i in range(self.m_z):
+            if i<len_bot:
+                mantle_tanh[i]=0.5*(1.0+math.tanh(bot_array[i]))
+            else:
+                mantle_tanh[i]=0.5*(1.0+math.tanh(top_array[i-len_bot]))
+            mantle_tanh_sum=mantle_tanh_sum+mantle_tanh[i]
+        for i in range(self.m_z):
+            mantle_norm[i]=mantle_tanh[i]/mantle_tanh_sum*m_m
+        
+        cdef double[:] c_array=np.linspace(self.c_array_start,4.0,self.c_z)
+        cdef double[:] c_tanh=np.zeros(self.c_z)
+        cdef double[:] c_norm=np.zeros(self.c_z)
+        cdef double c_tanh_sum=0.0
+        for i in range(self.c_z):
+            c_tanh[i]=0.5*(1.0+math.tanh(c_array[i]))
+            c_tanh_sum=c_tanh_sum+c_tanh[i]
+        for i in range(self.c_z):
+            c_norm[i]=c_tanh[i]/c_tanh_sum*c_m
+       
+        if self.M_pl<1.5*5.972e24 and self.CMF>0.5:
+            mass[0]=h_c
+            h[0]=h_c  
+        else:
+            mass[0]=c_norm[0]
+            h[0]=c_norm[0]    
         for i in range(1,zone):
             if i<self.c_z:
-                mass[i]=mass[i-1]+h_c
-                h[i]=h_c
+                if self.M_pl<1.5*5.972e24 and self.CMF>0.5:
+                    mass[i]=mass[i-1]+h_c
+                    h[i]=h_c
+                else:
+                    mass[i]=mass[i-1]+c_norm[i]
+                    h[i]=c_norm[i]
             elif i>=self.c_z and i<self.c_z+self.m_z:
-                mass[i]=mass[i-1]+h_m
-                h[i]=h_m
+                if self.M_pl<1.5*5.972e24 and self.CMF>0.5:
+                    mass[i]=mass[i-1]+h_m
+                    h[i]=h_m
+                else:
+                    mass[i]=mass[i-1]+mantle_norm[i-self.c_z]
+                    h[i]=mantle_norm[i-self.c_z]
         return mass, h
 
     cpdef double rho_mix(self, double x, double rho_l, double rho_s):
@@ -437,6 +491,7 @@ cdef class c_initial_profile:
             cP[0]=C_P_liquidFe
 
             for i in range(1, int(zone)):
+                #print(iteration, i, pressure[i-1]/1e9, temperature[i-1], rho[i-1])
                 if i<=self.c_z:
                     k1r=self.dlnrdm(radius[i-1]             , pressure[i-1]             , rho[i-1])
                     k1p=self.dlnPdm(radius[i-1]             , pressure[i-1]             , mass[i-1])
@@ -479,10 +534,10 @@ cdef class c_initial_profile:
                         s_liq_val=S_liq_P(pressure[i-1]).tolist()
                         y_value=self.y_T_liq(0.5,pressure[i-1],temperature[i-1])
                         s_array[i-1]=y_value*(S_max-s_liq_val)+s_liq_val
-                        if s_array[i-1]>5075.0:
-                            s_array[i-1]=5075.0
+                        if s_array[i-1]>5050.0:
+                            s_array[i-1]=5050.0
                             y_value=(s_array[i-1]-s_liq_val)/(S_max-s_liq_val)
-
+                    #print(s_array[i-1],s_liq_val)
                     s_sol_val=S_sol_P(pressure[i-1]).tolist()
                     s_liq_val=S_liq_P(pressure[i-1]).tolist()
                     s_new=s_array[i-1]
@@ -759,6 +814,7 @@ cdef class c_henyey:
                     dqdy_a=f_dqdy_Fea(self.pressure[i],self.T_an_c)[0][0]
                     self.dqdy[i]=self.dqdy_mix(x_alloy,self.rho[i],rho_a,rho_l,dqdy_a,dqdy_l,self.pressure[i])
                 else:
+                    #print(self.pressure[i])
                     s_sol_val=S_sol_P(self.pressure[i]).tolist()
                     s_liq_val=S_liq_P(self.pressure[i]).tolist()
                     y=(self.s_array[i]-s_liq_val)/(S_max-s_liq_val)
@@ -816,7 +872,7 @@ cdef class c_henyey:
 # initialize the structural profile using 4th order Runge Kutta method
 cdef c_initial_profile initial_profile=c_initial_profile(M_pl, c_z, m_z, CMF, MMF,
                                     P_c, P_surf, T_c, x_c,
-                                    dsdr_c, d_Pc, rtol, T_an_c_i)
+                                    dsdr_c, d_Pc, rtol, T_an_c_i, c_array_start, m_array_start)
 cdef dict ri=initial_profile.RK4()
 
 # improve the solution by RK4 using a henyey code
@@ -839,7 +895,7 @@ cdef double[:] kappa=np.zeros(zone)
 cdef double[:] melt_frac=np.ones(zone)
 cdef double[:] dsdr_array=np.ones(zone)*dsdr_c
 
-cdef double[:] mass_cell=np.zeros(zone)
+#cdef double[:] mass_cell=np.zeros(zone)
 cdef double[:] x_cell=np.ones(zone)
 
 cdef double[:] dPdr=np.zeros(zone)
@@ -849,10 +905,10 @@ cdef double[:] dxdr=np.zeros(zone)
 for i in range(zone):
     if i==0:
         new_V[i]=4.0/3.0*math.pi*rh['radius'][i]**3.0
-        mass_cell[i]=ri['mass'][0]/2.0
+        #mass_cell[i]=ri['mass'][0]/2.0
     else:
         new_V[i]=4.0/3.0*math.pi*rh['radius'][i]**3.0-4.0/3.0*math.pi*rh['radius'][i-1]**3.0
-        mass_cell[i]=(ri['mass'][i-1]+ri['mass'][i])/2.0
+        #mass_cell[i]=(ri['mass'][i-1]+ri['mass'][i])/2.0
     new_v_top[i]=4.0/3.0*math.pi*rh['radius'][i]**3.0
 
 for i in range(zone):
@@ -865,7 +921,7 @@ np.savetxt(results_foldername+'/profile/t0/henyey0.txt',np.transpose([rh['radius
                                        rh['radius'],rh['pressure'],rh['r_cell'],rh['p_cell'],rh['rho'], rh['gravity'],
                                        new_V,new_EG,new_v_top,rh['Area']]))
 np.savetxt(results_foldername+'/profile/t0/structure0.txt',np.transpose([ri['temperature'],ri['T_cell'],melt_frac,ri['s_array'],rh['s_cell'],
-                                         dsdr_array,ri['s_array'],rh['s_cell'],ri['mass'],mass_cell,x_cell]))
+                                         dsdr_array,ri['s_array'],rh['s_cell'],ri['mass'],x_cell,x_cell]))
 np.savetxt(results_foldername+'/profile/t0/property0.txt',np.transpose([ri['alpha'],ri['cP'],kappa,ri['dTdP'],dPdr,dxdr]))
 np.savetxt(results_foldername+'/profile/t0/previous0.txt',np.transpose([0.0, 1.0, rh['P_c'], 0.0, ri['temperature'][c_z-1], ri['T_an_c'], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0.0, c_z, m_z]))
 
@@ -889,14 +945,14 @@ for i in range(c_z):
             x=0.1519
     x_melt[i]=x
     if load_file[0]==1.0:
-        T_Fe_melt[i]=T_simon(rh['pressure'][i]/1e9+2.0,x)
+        T_Fe_melt[i]=T_simon(rh['pressure'][i]/1e9+12.0,x)
     else:
         T_Fe_melt[i]=T_simon(rh['pressure'][i]/1e9,x)
 
 cdef double[:] T_melt_P=rh['pressure'].copy()
 if load_file[0]==1.0:
     for i in range(zone):
-        T_melt_P[i]=T_melt_P[i]+2e9
+        T_melt_P[i]=T_melt_P[i]+12e9
 T_melt_P[0]=2.0*T_melt_P[1]-T_melt_P[2]
 T_Fe_melt[0]=2.0*T_Fe_melt[1]-T_Fe_melt[2]
 
@@ -967,7 +1023,6 @@ for i in range(len(g)):
         s_liq[i]=S_liq_P(P[i]).tolist()
         s_liq_cell[i]=S_liq_P(P_cell[i]).tolist()
 
-#cdef double[:] s_grid=np.linspace(rh['s_cell'][-1]+50.0,2800.0,8800)
 cdef double[:] s_grid=np.linspace(5080.0,2800.0,114001)
 
 cdef double[:] Fsurf_grid=np.zeros(len(s_grid))
@@ -989,15 +1044,8 @@ cdef double old_T_s, old_delta_BL, R_BL
 cdef double g_BL, P_BL, sliq_BL, ssol_BL
 cdef double y_BL, x_BL, T_BL, rho_BL, cP_BL, alpha_BL, nu_BL
 cdef int i_r
-cdef double smoothing_width
-if load_file[0]<2.0:
-    smoothing_width=0.15
-elif load_file[0]>=2.0 and load_file[0]<2.5:
-    smoothing_width=0.2
-elif load_file[0]>=2.5 and load_file[0]<3.0:
-    smoothing_width=0.25
-else:
-    smoothing_width=0.3
+cdef double smoothing_width=0.15
+
 for i in range(0, len(s_grid)):
     rerr=1.0
     iteration=0
@@ -1022,7 +1070,6 @@ for i in range(0, len(s_grid)):
             cP_BL=CP_Py_liq(P_BL,y_BL)[0][0]
             alpha_BL=alpha_Py_liq(P_BL,y_BL)[0][0]
         elif s_grid[i]<=ssol_BL:
-            print(s_grid[i],'crust would fully form')
             i_r=i+1
             break_flag=1.0
             break
@@ -1043,7 +1090,6 @@ for i in range(0, len(s_grid)):
         delta_T_BL=T_BL-T_s
         if delta_T_BL<0.0:
             i_r=i+1
-            #delta_T_BL=
             break_flag=1.0
             break
         delta_BL=(Racr*nu_BL*(k_en/(rho_BL*cP_BL))/(alpha_BL*g_BL*delta_T_BL))**(1.0/3.0)
@@ -1063,7 +1109,6 @@ for i in range(0, len(s_grid)):
             break    
 
         iteration=iteration+1
-    #print(s_grid[i],nu_BL,T_BL,x_BL,rho_BL,cP_BL,alpha_BL,g_BL,T_s,delta_T_BL,k_en*delta_T_BL/delta_BL)
     Fsurf_grid[i]=k_en*delta_T_BL/delta_BL
     delta_BL_grid[i]=delta_BL
     Tsurf_grid[i]=T_s
@@ -1078,7 +1123,6 @@ s_array=np.linspace(5080.0,2800.0,114001)
 Fsurf_array=np.zeros(len(s_array))
 for i in range(len(s_array)):
     Fsurf_array[i]=Fsurf_grid[i]
-
 
 F_of_s=UnivariateSpline(s_array[::-1], Fsurf_array[::-1])
 f_dFds=F_of_s.derivative()

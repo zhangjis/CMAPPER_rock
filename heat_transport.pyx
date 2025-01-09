@@ -220,7 +220,7 @@ cpdef double[:] penta_solver(double[:] a, double[:] b, double[:] c, double[:] d,
 cdef Py_ssize_t i,j,x_idx,Tref_idx
 
 load_file=np.loadtxt('input.txt')
-results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])
+results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])+'_Qradc'+str(load_file[9])+'_eta'+str(load_file[7])
 
 T_sol_pv=np.loadtxt('EoS/mantle/T_sol_pv_Py.txt')
 rho_sol_pv=np.loadtxt('EoS/mantle/rho_sol_pv_Py.txt')
@@ -409,7 +409,7 @@ P_profile=np.loadtxt(results_foldername+'/profile/t0/henyey0.txt')
 cdef double[:] mass=mass_profile[:,8]
 cdef double[:] melt_pressure=P_profile[:,1]
 cdef double[:] melt_pressure_cell=P_profile[:,3]
-cdef double[:] mass_cell=mass_profile[:,9]
+#cdef double[:] mass_cell=mass_profile[:,9]
 
 Fe_melt_file=np.loadtxt(results_foldername+'/profile/t0/Fe_melt.txt')
 cdef double[:] melt_pressure_Fe=Fe_melt_file[:,0]
@@ -574,7 +574,7 @@ cdef double mantle_mass=M_pl*(1.0-CMF)
 cdef double h_mantle=M_pl*(1.0-CMF)/mantle_zone
 cdef double h_core=M_pl*CMF/core_zone
 
-cdef double Q_rad_c_0=1.2e12/(math.exp(-4.5/1.2))/(M_E*0.326)*(M_pl*CMF)
+cdef double Q_rad_c_0=load_file[9]*1.2e12/(math.exp(-4.5/1.2))/(M_E*0.326)*(M_pl*CMF)
 
 cdef double v_b=4.0/CP[zone-1]
 cdef double v_a=v_b*sigma*Teq**4.0
@@ -1097,17 +1097,7 @@ while t<end_time:
     
     viscosity=np.zeros(zone) # evaluated at the cell center
     for i in range(core_outer_index+1, zone):
-        if initial_pressure[i]<23.0e9:
-            if load_file[0]<2.0:
-                width=0.15
-            elif load_file[0]>=2.0 and load_file[0]<2.5:
-                width=0.2
-            elif load_file[0]>=2.5 and load_file[0]<3.0:
-                width=0.25
-            else:
-                width=0.3
-        else:
-            width=0.15
+        width=0.15
         viscosity[i]=f_viscosity(initial_temperature[i], initial_pressure[i], initial_density[i], initial_phase[i], melt_frac[i], 3700.0, 4000.0, width, ppv_eta_model)
 
     convection=np.zeros(zone)
@@ -1518,7 +1508,7 @@ while t<end_time:
         dmicdTcmb=dmicdPic*dPicdTic*dTicdTcmb
     else:
         dmicdTcmb=0.0
-    outer_adiabat=outer_adiabat-dmicdTcmb*L_Fe*(core_zone/(core_zone-2.0))
+    outer_adiabat=outer_adiabat-dmicdTcmb*L_Fe*(core_zone/(core_zone-0.0))
 
     PdV_core_sum=0.0
     dEG_core_sum=0.0
@@ -1971,100 +1961,19 @@ while t<end_time:
         Buoy_x.append(Buoy_x_value)
         core_dipole_m.append(core_m)
 
-
     if old_vis_surf_value==0.0:
             old_vis_surf_value=1e-2
     if old_delta_r==0.0:
         old_delta_r=1e-2
     rdiff[0]=np.max(np.abs((np.asarray(old_Scell[core_outer_index+2:-1])-np.asarray(S_cell[core_outer_index+2:-1]))/np.asarray(old_Scell[core_outer_index+2:-1])))
     rdiff[1]=np.abs(old_delta_r-delta_r)/old_delta_r
-    rdiff[2]=np.abs(old_vis_surf_value-vis_surf_value)/old_vis_surf_value/10.0
+    rdiff[2]=np.abs(old_vis_surf_value-vis_surf_value)/old_vis_surf_value
     rdiff[3]=np.abs(delta_Tcmb)/T_cmb
-    rdiff[4]=np.abs(old_Fsurf-Fsurf)/Fsurf/10.0
+    rdiff[4]=np.abs(old_Fsurf-Fsurf)/Fsurf
 
     dt_thres=np.max(rdiff)
     ds_thres=ds_thres_xl
-    #if t>1e4*86400.0*365.0 and t<1e8*86400.0*365.0:
-    #    ds_thres=ds_thres_xl
 
-    """
-    if T_s>Ts_FsTable_min:
-        if delta_r_flag==1.0:
-            dt_thres=v5
-            ds_flag=ds_thres_dr
-        else:
-            dt_thres=v6
-            ds_flag=ds_thres_MO
-        if dt_thres<v5:
-            dt_thres=v5
-            ds_flag=ds_thres_ma
-        if dt_thres<np.abs(delta_Tcmb)/T_cmb:
-            dt_thres=np.abs(delta_Tcmb)/T_cmb
-            ds_flag=ds_thres_cmb
-        if iteration>2:
-            if dt_thres<np.abs(Fsurf_array[-1]-Fsurf_array[-2])/Fsurf_array[-2]:
-                dt_thres=np.abs(Fsurf_array[-1]-Fsurf_array[-2])/Fsurf_array[-2]
-                ds_flag=
-    else:
-        dt_thres=v5
-        ds_thres=ds_thres_xl
-        if dt_thres<np.abs(delta_Tcmb)/T_cmb:
-            dt_thres=np.abs(delta_Tcmb)/T_cmb
-            ds_thres=ds_thres_xl*1.05
-    ds_thres=ds_thres_xl
-    #######################
-    if T_s>=Ts_FsTable_min: 
-        v4=np.abs(old_vis_surf_value-vis_surf_value)/old_vis_surf_value/MO_ds_scale*ds_thres_xl
-        v5=np.abs(old_delta_r-delta_r)/(old_delta_r+1e-6)/dr_thres*ds_thres_xl
-        v6=np.max(np.abs((np.asarray(old_Scell[core_outer_index+1:])-np.asarray(S_cell[core_outer_index+1:]))/np.asarray(old_Scell[core_outer_index+1:])))
-        v7=np.abs(delta_Tcmb)/T_cmb
-        
-        dt_thres=v6
-        if v4>dt_thres:
-            dt_thres=v4
-        if v5>dt_thres:
-            dt_thres=v5
-        if v7>dt_thres:
-            dt_thres=v7
-        
-        if dt_thres==v4:
-            ds_thres=MO_ds_scale
-        elif dt_thres==v5:
-            ds_thres=dr_thres
-        else:
-            ds_thres=ds_thres_xl
-    else:
-        v6=np.max(np.abs((np.asarray(old_Scell[core_outer_index+1:])-np.asarray(S_cell[core_outer_index+1:]))/np.asarray(old_Scell[core_outer_index+1:])))
-        v5=np.abs(old_delta_r-delta_r)/(old_delta_r+1e-6)/dr_thres*ds_thres_xl
-        v7=np.abs(delta_Tcmb)/T_cmb
-        
-        dt_thres=v6
-        if v5>dt_thres:
-            dt_thres=v5
-        if v7>dt_thres:
-            dt_thres=v7
-
-        if dt_thres==v5:
-            ds_thres=dr_thres
-        else:
-            ds_thres=ds_thres_xl
-    ##################
-    v5=np.max(np.abs((np.asarray(old_Scell[core_outer_index+1:])-np.asarray(S_cell[core_outer_index+1:]))/np.asarray(old_Scell[core_outer_index+1:])))
-    if old_vis_surf_value==0.0:
-        old_vis_surf_value=1.0
-    v4=np.abs(old_vis_surf_value-vis_surf_value)/old_vis_surf_value
-
-    if T_s>Ts_FsTable_min and v5<=v4:
-        dt_thres=v4
-        ds_thres=MO_ds_scale
-    else:
-        dt_thres=v5
-    if dt_thres<np.abs(old_delta_r-delta_r)/(old_delta_r+1e-6):
-        dt_thres=np.abs(old_delta_r-delta_r)/(old_delta_r+1e-6)
-        ds_thres=dr_thres
-    if dt_thres<np.abs(delta_Tcmb)/T_cmb:
-        dt_thres=np.abs(delta_Tcmb)/T_cmb
-    """
     if dt_thres<ds_thres:
         if dt_thres<0.975*ds_thres:
             if iteration<200:
@@ -2083,42 +1992,25 @@ while t<end_time:
             dt=dt*0.8
         else:
             dt=dt*0.9
-    
-    if t<1e9*86400.0*365.0:
-        if dt>t/1e3:
-            dt=t/1e3
-    else:
-        if dt>1e6*86400.0*365.0:
-            dt=1e6*86400.0*365.0
-    
-    if t/1e5>86400.0*365.0*0.1:
-        if dt<t/1e5:
-            dt=t/1e5
-    else:
-        if dt<86400.0*365.0*0.1:
-            dt=86400.0*365.0*0.1
 
-    if iteration%10==0:
-        rdiff0_list.append(rdiff[0])
-        rdiff1_list.append(rdiff[1])
-        rdiff2_list.append(rdiff[2])
-        rdiff3_list.append(rdiff[3])
-        rdiff4_list.append(rdiff[4])
-        testing_t.append(t)
+    if dt>1e6*86400.0*365.0:    
+        dt=1e6*86400.0*365.0
+    if dt<86400.0*365.0*0.1:
+        dt=86400.0*365.0*0.1
 
     if iteration%50==0:
         if t/86400.0/365.0<1e3:
             t_val=t/86400.0/365.0
-            print('time:%2.2fyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s),dt/86400.0/365.0)
+            print('time:%2.2fyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s))
         elif t/86400.0/365.0>=1e3 and t/86400.0/365.0<1e6:
             t_val=t/86400.0/365.0/1e3
-            print('time:%2.2fkyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s),dt/86400.0/365.0)
+            print('time:%2.2fkyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s))
         elif t/86400.0/365.0>=1e6 and t/86400.0/365.0<1e9:
             t_val=t/86400.0/365.0/1e6
-            print('time:%2.2fMyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s),dt/86400.0/365.0)
+            print('time:%2.2fMyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s))
         else:
             t_val=t/86400.0/365.0/1e9
-            print('time:%2.2fGyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s),dt/86400.0/365.0)
+            print('time:%2.2fGyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s))
         
     for ind in range(len(t_save)):
         if t<t_save[ind]*86400.0*365.0+dt and t>t_save[ind]*86400.0*365.0-dt:
@@ -2129,11 +2021,10 @@ while t<end_time:
     if iteration%10000==0:
         np.savetxt(results_foldername+'/evolution.txt',np.transpose([t_array,dt_array,average_Tm,average_Tc,Tsurf_array,Tcmb_array,T_center_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,Buoy_T,Buoy_x,core_dipole_m]),
             header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature,surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment')      
-    if iteration%10000==0 and t<1e9*86400.0*365.0:
-        np.savetxt(results_foldername+'/testing.txt',np.transpose([testing_t,rdiff0_list,rdiff1_list,rdiff2_list,rdiff3_list,rdiff4_list]))#np.transpose([testing_t,testing_dt,testing_delta_r,testing_delta_T_ra,testing_x]))
+    
     iteration=iteration+1
     t=t+dt
-
+   
 cdef int t_end_ind=find_nearest(t_save,t/86400.0/365.0)
 if solid_core_flag==1.0:
     np.savetxt(results_foldername+'/profile/files_saved_at_these_time_list.txt',t_save[:t_end_ind])
