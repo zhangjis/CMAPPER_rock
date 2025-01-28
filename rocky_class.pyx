@@ -23,7 +23,7 @@ import time
 # line 1684-1742: while loop for updating thermal profiles using heat transport routines and structural profiles using Henyey solver
 
 load_file=np.loadtxt('input.txt')
-results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])+'_Qradc'+str(load_file[9])+'_eta'+str(load_file[7])
+results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])+'_Qradc'+str(load_file[9])+'_eta'+str(load_file[7])+'_mzmulti'+str(load_file[10])
 
 print('Read EoS tables')
 T_liq=np.loadtxt('EoS/mantle/T_liq_Py_1500GPa.txt')
@@ -214,7 +214,7 @@ cdef double Q_rad_c_0=0.0 # Current day core radiogenic heating in W/kg.
 cdef double P_surf=1e5 # Surface pressure in Pa.
 
 cdef int c_z=int(100*load_file[0]+(load_file[1]-0.1)*250)#int(load_file[11])#int(load_file[1]*zone) # zones in the core
-cdef int m_z=int(200+10*load_file[0])#int(load_file[10])#int(zone-c_z) # zones in the mantle
+cdef int m_z=int((200+10*load_file[0])*load_file[10])#int(load_file[10])#int(zone-c_z) # zones in the mantle
 cdef int zone=int(c_z+m_z)#int(((load_file[0]-1.0)*80.0+600.0)) # total number of zones in the planet
 cdef double c_array_start=2.0#load_file[13]
 
@@ -223,10 +223,7 @@ if load_file[0]>=3.0:
     ms_array_0=-1.0-(load_file[0]-3.0)*0.1
 else:
     ms_array_0=-1.0-(load_file[0]-3.0)*0.5
-#cdef double[:] ms_array=np.linspace(ms_array_0,ms_array_0+0.7,8)
 cdef double m_array_start=ms_array_0+(load_file[1]-0.1)*1.0#ms_array[int((load_file[1]+1e-10-0.1)*10.0)]
-
-print(c_z,m_z,zone,c_array_start,m_array_start)
 
 cdef double P_c=f_Pc_i(load_file[0],load_file[1]*100.0)[0][0]+20e9#1000e9 # initial guess of the central pressure in Pa. Subsequent update in the code is the actual central pressure in Pa.
 cdef double T_c=f_Tc_i(load_file[0],load_file[1]*100.0)[0][0]#10500.0 # Central temperature in K

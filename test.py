@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 load_file=np.loadtxt('input.txt')
-results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])+'_Qradc'+str(load_file[9])+'_eta'+str(load_file[7])
+results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])+'_Qradc'+str(load_file[9])+'_eta'+str(load_file[7])+'_mzmulti'+str(load_file[10])
 
 os.makedirs(results_foldername+'/profile/t0', exist_ok=True)
 
@@ -333,10 +333,8 @@ def run():
     plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1]) ,fontsize=16)
     plt.savefig(results_foldername+'/image/ThicknessOfDynamoSourceRegionInMagmaOcean.png',dpi=200)
     plt.close()
-
+    """
     plt.figure(figsize=(9,6))
-    plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,17]/1e12,color='tomato',linewidth=2.0,label='Mantle')
-    plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,18]/1e12,color='royalblue',linewidth=2.0,label='Core')
     plt.yticks(fontsize=14)
     plt.xticks(fontsize=14)
     plt.ylabel('Radiogenic heating (TW)',fontsize=16.5)
@@ -345,7 +343,7 @@ def run():
     plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1]) ,fontsize=16)
     plt.savefig(results_foldername+'/image/RadiogenicHeatingInCoreAndMantle.png',dpi=200)
     plt.close()
-
+    """
     plt.figure(figsize=(9,6))
     plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,2],color='black',linewidth=2.0)
     plt.yticks(fontsize=14)
@@ -375,6 +373,37 @@ def run():
     plt.xlabel('Time (Gyr)',fontsize=16.5)
     plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1]) ,fontsize=16)
     plt.savefig(results_foldername+'/image/CoreDipolarMagneticMoment.png',dpi=200)
+    plt.close()
+
+    plt.figure(figsize=(9,6))
+    plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,23]/1e12,color='#a6cee3',linewidth=2.0,label='Surface heat flow')
+    plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,24]/1e12,color='#1f78b4',linewidth=2.0,label='Core mantle boundary heat flow')
+    plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,25]/1e12,color='#f08080',linewidth=2.0,label='Latent heat release due to inner core growth')
+    plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,19]/1e12,color='#c71585',linewidth=2.0,label='Inner core boundary heat flow')
+    plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,17]/1e12,color='#c49c94',linewidth=2.0,label='Radiogenic heating in the mantle')
+    plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,18]/1e12,color='#8c564b',linewidth=2.0,label='Radiogenic heating in the core')
+    plt.yticks(fontsize=14)
+    plt.xticks(fontsize=14)
+    plt.yscale('log')
+    plt.ylabel('Heat flow (TW)',fontsize=16.5)
+    plt.xlabel('Time (Gyr)',fontsize=16.5)
+    plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1]) ,fontsize=16)
+    plt.ylim(0.05, (evo[:,23][-100])/1e12*500.0)
+    plt.legend(frameon=True)
+    plt.savefig(results_foldername+'/image/HeatFlow.png',dpi=200)
+    plt.close()
+
+    plt.figure(figsize=(9,6))
+    plt.plot(evo[:,0]/1e9/86400.0/365.0,evo[:,26],color='black',linewidth=2.0)
+    plt.yticks(fontsize=14)
+    plt.xticks(fontsize=14)
+    plt.ylim(1e-3, 1.5)
+    plt.yscale('log')
+    plt.xscale('log')
+    plt.ylabel(r'Urey ratio',fontsize=16.5)
+    plt.xlabel('Time (Gyr)',fontsize=16.5)
+    plt.title(r'$M_{\mathrm{pl}}= $'+str(load_file[0])+r'$ M_{\oplus}$, Core mass fraction = '+str(load_file[1]) ,fontsize=16)
+    plt.savefig(results_foldername+'/image/UreyRatio.png',dpi=200)
     plt.close()
 
     
