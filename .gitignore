@@ -6,3 +6,5 @@ results*
 venv
 .ipynb_checkpoints
 .venv
+old_code_results/
+code_edit/

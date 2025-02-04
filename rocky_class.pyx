@@ -490,7 +490,7 @@ cdef class c_initial_profile:
             cP[0]=C_P_liquidFe
 
             for i in range(1, int(zone)):
-                print(pressure[i-1])
+                #print(pressure[i-1])
                 #print(iteration, i, pressure[i-1]/1e9, temperature[i-1], rho[i-1])
                 if i<=self.c_z:
                     k1r=self.dlnrdm(radius[i-1]             , pressure[i-1]             , rho[i-1])
@@ -534,8 +534,8 @@ cdef class c_initial_profile:
                         s_liq_val=S_liq_P(pressure[i-1]).tolist()
                         y_value=self.y_T_liq(0.5,pressure[i-1],temperature[i-1])
                         s_array[i-1]=y_value*(S_max-s_liq_val)+s_liq_val
-                        if s_array[i-1]>4000.0:#5050.0:
-                            s_array[i-1]=4000.0#5050.0
+                        if s_array[i-1]>5050.0:#4000.0:#5050.0:
+                            s_array[i-1]=5050.0#4000.0#5050.0
                             y_value=(s_array[i-1]-s_liq_val)/(S_max-s_liq_val)
                     #print(s_array[i-1],s_liq_val)
                     s_sol_val=S_sol_P(pressure[i-1]).tolist()
