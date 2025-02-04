@@ -9,18 +9,11 @@ from scipy.signal import savgol_filter
 from scipy.optimize import fsolve
 from scipy.interpolate import CubicSpline
 from libc cimport math
-from libc.math cimport fabs
 cimport cython
 
 # # suppress certain warnings
 # import warnings
 # warnings.filterwarnings('ignore', 'The iteration is not making good progress')
-
-## -- Module-level constants --
-#cdef double SIGMA = 5.670373e-08
-#cdef double G = 6.674e-11
-#cdef double CP_s = 1265.0
-
 
 cpdef double sigma_silicate(double P,double T):
     cdef double E_ion=131000.0
@@ -170,26 +163,13 @@ cpdef double f_eddy_T_low_nu(double T,double C_P,double alpha,double g,double l,
     cdef double value=(alpha*g*l**4.0*T/(16.0*C_P)*(-dsdr))**0.5
     return value
 
-cpdef double[:] penta_solver(double[:] a, double[:] b, double[:] c, double[:] d, double[:] e, double[:] y):
-    """
-    Solve the pentadiagonal system:
-       A[i]*x[i-2] + B[i]*x[i-1] + C[i]*x[i] + D[i]*x[i+1] + E[i]*x[i+2] = F[i],  for i = 0,...,n-1.
-    
-    The inputs A, B, C, D, E, F are assumed to be memoryviews over contiguous double arrays.
-    (The boundary assumptions are that A[0] = A[1] = 0 and E[n-2] = E[n-1] = 0.)
-    
-    All temporary arrays are allocated as memoryviews.
-    The returned object is a NumPy array (backed by a memoryview) containing the solution.
-    """
-    cdef Py_ssize_t zone = y.shape[0]
+cpdef double[:] penta_solver(double[:] a, double[:] b, double[:] c, double[:] d, double[:] e, double[:] y, int zone): # a,e->n-2; b,d->n-1; c->n; y->n or f; zone->n
+    cdef double[:] alpha=np.zeros(zone) #1,2,3,...,n-1; n-1
+    cdef double[:] beta=np.zeros(zone) #1,2,3,...,n-2; n-2
+    cdef double[:] z=np.zeros(zone) #1,2,3,...,n; n
+    cdef double[:] gamma=np.zeros(zone) #2,3,4,...,n; n-1
+    cdef double[:] mu=np.zeros(zone) #1,2,3,...,n; n
     cdef Py_ssize_t i
-
-    cdef double[:] alpha=np.empty(zone, dtype=np.double) #1,2,3,...,n-1; n-1
-    cdef double[:] beta=np.empty(zone, dtype=np.double) #1,2,3,...,n-2; n-2
-    cdef double[:] z=np.empty(zone, dtype=np.double) #1,2,3,...,n; n
-    cdef double[:] gamma=np.empty(zone, dtype=np.double) #2,3,4,...,n; n-1
-    cdef double[:] mu=np.empty(zone, dtype=np.double) #1,2,3,...,n; n
-    cdef double[:] solution=np.empty(zone, dtype=np.double)
     #i=0
     mu[0]=c[0]
     gamma[0]=0.0 # book keeping
@@ -229,6 +209,7 @@ cpdef double[:] penta_solver(double[:] a, double[:] b, double[:] c, double[:] d,
     z[i]=(y[i]-z[i-2]*a[i]-z[i-1]*gamma[i])/mu[i]
 
     # solving for x
+    solution=np.zeros(zone)
     solution[zone-1]=z[zone-1]
     solution[zone-2]=z[zone-2]-alpha[zone-2]*solution[zone-1]
     for i in range(zone-3,-1,-1):
@@ -1248,7 +1229,7 @@ while t<end_time:
         v2=Area[i]/(h_mantle*temperature_cell[i])*k_array[i]*dTdP[i]*dPdr[i]
         v3=0.0
         ff[i]=S_cell[i]/dt+v1+v2+v3+Q_rad_m/temperature_cell[i]
-    solution=penta_solver(aa[core_outer_index+1:],bb[core_outer_index+1:],cc[core_outer_index+1:],dd[core_outer_index+1:],ee[core_outer_index+1:],ff[core_outer_index+1:])#,zone-core_outer_index-1)
+    solution=penta_solver(aa[core_outer_index+1:],bb[core_outer_index+1:],cc[core_outer_index+1:],dd[core_outer_index+1:],ee[core_outer_index+1:],ff[core_outer_index+1:],zone-core_outer_index-1)
 
     #if surf_flag==0.0:
     #if S_cell[-1]<=sgrid[-1]:
@@ -1489,7 +1470,7 @@ while t<end_time:
         dd[i]=-(k_array[i]*Area[i])/(h_core*CP[i])/(radius_cell[i+1]-radius_cell[i])
         ee[i]=0.0
         ff[i]=temperature_cell[i]/dt+alpha[i]*initial_temperature[i]/initial_density[i]/CP[i]*(initial_pressure[i]-old_pressure[i])/dt
-    solution_T=penta_solver(aa[:core_outer_index+1],bb[:core_outer_index+1],cc[:core_outer_index+1],dd[:core_outer_index+1],ee[:core_outer_index+1],ff[:core_outer_index+1])#,core_outer_index+1)
+    solution_T=penta_solver(aa[:core_outer_index+1],bb[:core_outer_index+1],cc[:core_outer_index+1],dd[:core_outer_index+1],ee[:core_outer_index+1],ff[:core_outer_index+1],core_outer_index+1)
     #for i in range(core_outer_index):
 
     # add core stuff
@@ -1744,7 +1725,7 @@ while t<end_time:
                 new_density[i]=rho_tot
                 new_dqdy[i]=dqdy_tot
 
-    if iteration%25==0:
+    if iteration%25.0==0.0:
         t_array.append(t)
         dt_array.append(dt)
         average_Tm.append(np.sum(new_T[core_outer_index+1:])/mantle_zone)
@@ -1975,7 +1956,7 @@ while t<end_time:
             MO_dynamo_top=initial_radius[i]
             flag_top=1.0
 
-    if iteration%25==0:
+    if iteration%25.0==0.0:
         L_sigma_array.append(L_sigma)
         D_MO_dynamo_array.append(D_MO_dynamo)
         MO_dynamo_bot_array.append(MO_dynamo_bot)
@@ -1992,7 +1973,7 @@ while t<end_time:
     else:
         core_m=0.0
 
-    if iteration%25==0:
+    if iteration%25.0==0.0:
         solid_index_arr.append(solid_index)
         Buoy_T.append(Buoy_T_value)
         Buoy_x.append(Buoy_x_value)
@@ -2048,16 +2029,16 @@ while t<end_time:
     if iteration%50==0:
         if t/86400.0/365.0<1e3:
             t_val=t/86400.0/365.0
-            print('time:%2.2fyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s))
+            print('time:%2.2fyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s),melt_frac[core_outer_index+1],initial_S[core_outer_index+2],melt_frac[core_outer_index+2])
         elif t/86400.0/365.0>=1e3 and t/86400.0/365.0<1e6:
             t_val=t/86400.0/365.0/1e3
-            print('time:%2.2fkyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s))
+            print('time:%2.2fkyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s),melt_frac[core_outer_index+1],initial_S[core_outer_index+2],melt_frac[core_outer_index+2])
         elif t/86400.0/365.0>=1e6 and t/86400.0/365.0<1e9:
             t_val=t/86400.0/365.0/1e6
-            print('time:%2.2fMyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s))
+            print('time:%2.2fMyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s),melt_frac[core_outer_index+1],initial_S[core_outer_index+2],melt_frac[core_outer_index+2])
         else:
             t_val=t/86400.0/365.0/1e9
-            print('time:%2.2fGyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s))
+            print('time:%2.2fGyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s),melt_frac[core_outer_index+1],initial_S[core_outer_index+2],melt_frac[core_outer_index+2])
         
     for ind in range(len(t_save)):
         if t<t_save[ind]*86400.0*365.0+dt and t>t_save[ind]*86400.0*365.0-dt:

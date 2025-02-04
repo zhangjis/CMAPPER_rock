@@ -8,13 +8,13 @@
 14.0
 # Radiogenic heating relative to that of Earth's mantle 
 # K 
-0.3
+1.0
 # Th
-0.3
+1.0
 # U238
-0.3
+1.0
 # U235
-0.3
+1.0
 # We currently don't consider Al24 for its short half life time.
 # viscosity models. For the current version, two different models for the viscosity of ppl is considered. 1.0 is for diffusion creep and 2.0 is for dislocation creep. See Tackley et al. 2013.
 1.0

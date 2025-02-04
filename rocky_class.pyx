@@ -230,6 +230,8 @@ cdef double T_c=f_Tc_i(load_file[0],load_file[1]*100.0)[0][0]#10500.0 # Central 
 cdef double T_an_c_i=7000.0 # initial guess of the entropy temperature of the core in K.
 if load_file[0]<1.5 and load_file[1]<0.3:
     T_c=T_c+500.0
+#T_c=T_c-400.0
+#P_c=P_c+0.2e9
 cdef double MMF=1.0-CMF # mantle mass fraction
 
 cdef double d_Pc=1.0 # Adjustment in central pressure to find the actual central pressure using Runge-Kutta method.
@@ -488,6 +490,7 @@ cdef class c_initial_profile:
             cP[0]=C_P_liquidFe
 
             for i in range(1, int(zone)):
+                print(pressure[i-1])
                 #print(iteration, i, pressure[i-1]/1e9, temperature[i-1], rho[i-1])
                 if i<=self.c_z:
                     k1r=self.dlnrdm(radius[i-1]             , pressure[i-1]             , rho[i-1])
@@ -531,8 +534,8 @@ cdef class c_initial_profile:
                         s_liq_val=S_liq_P(pressure[i-1]).tolist()
                         y_value=self.y_T_liq(0.5,pressure[i-1],temperature[i-1])
                         s_array[i-1]=y_value*(S_max-s_liq_val)+s_liq_val
-                        if s_array[i-1]>5050.0:
-                            s_array[i-1]=5050.0
+                        if s_array[i-1]>4000.0:#5050.0:
+                            s_array[i-1]=4000.0#5050.0
                             y_value=(s_array[i-1]-s_liq_val)/(S_max-s_liq_val)
                     #print(s_array[i-1],s_liq_val)
                     s_sol_val=S_sol_P(pressure[i-1]).tolist()
@@ -930,16 +933,17 @@ cpdef double T_simon(double P, double x):
     return T
 
 cdef double x_init=0.105
+cdef double max_impurities_concentration=0.1519
 cdef double[:] T_Fe_melt=np.zeros(c_z)
 cdef double[:] x_melt=np.zeros(c_z)
 
 for i in range(c_z):
     if i==c_z-1:
-        x=0.1519
+        x=max_impurities_concentration
     else:
         x=x_init*(M_pl*CMF-ri['mass'][0])/(M_pl*CMF-ri['mass'][i])
-        if x>0.1519:
-            x=0.1519
+        if x>max_impurities_concentration:
+            x=max_impurities_concentration
     x_melt[i]=x
     if load_file[0]==1.0:
         T_Fe_melt[i]=T_simon(rh['pressure'][i]/1e9+12.0,x)
