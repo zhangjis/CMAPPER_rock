@@ -9,7 +9,7 @@ from scipy.signal import savgol_filter
 from scipy.optimize import fsolve
 from libc cimport math
 cimport cython
-import time
+import eos_tables
 
 ### TODO @Jisheng this needs updating
 ###### Overall structure of the code.
@@ -25,168 +25,80 @@ import time
 load_file=np.loadtxt('input.txt')
 results_foldername='results_Mpl'+str(load_file[0])+'_CMF'+str(load_file[1])+'_time'+str(load_file[2])+'_Qrad'+str(load_file[3])+'_'+str(load_file[4])+'_'+str(load_file[5])+'_'+str(load_file[6])+'_Teq'+str(load_file[8])+'_Qradc'+str(load_file[9])+'_eta'+str(load_file[7])+'_mzmulti'+str(load_file[10])
 
-print('Read EoS tables')
-T_liq=np.loadtxt('EoS/mantle/T_liq_Py_1500GPa.txt')
-rho_liq=np.loadtxt('EoS/mantle/rho_liq_Py_1500GPa.txt')
-CP_liq=np.loadtxt('EoS/mantle/CP_liq_Py_1500GPa.txt')
-alpha_liq=np.loadtxt('EoS/mantle/alpha_liq_Py_1500GPa.txt')
-dTdP_liq=np.loadtxt('EoS/mantle/dTdP_liq_Py_1500GPa.txt')
-dqdy_liq=np.loadtxt('EoS/mantle/dqdy_liq_Py_1500GPa.txt')
-y_grid=np.loadtxt('EoS/mantle/y.txt')
-P_solidus_liquidus=np.loadtxt('EoS/mantle/solid_P.txt')
-S_liq_array=P_solidus_liquidus[:,2][:1500].copy()
-S_sol_array=P_solidus_liquidus[:,1][:1500].copy()
 
-P_grid_pv=np.loadtxt('EoS/mantle/P_pv.txt')
-P_grid_ppv=np.loadtxt('EoS/mantle/P_ppv.txt')
-P_grid_en=np.loadtxt('EoS/mantle/P_en.txt')
-P_grid=P_solidus_liquidus[:,0][:1500].copy()
+cdef object f_adiabat
+cdef object f_dT0dP
+cdef object f_rho_Fel
+cdef object f_rho_Fea
+cdef object f_alpha_Fel
+cdef object f_alpha_Fea
+cdef object f_dqdy_Fel
+cdef object f_dqdy_Fea
 
 if load_file[0]<1.25:
-    rho_Fel=np.loadtxt('EoS/Fe_core/rho_Fel_60GPa.txt')
-    alpha_Fel=np.loadtxt('EoS/Fe_core/alpha_Fel_60GPa.txt')
-    dqdy_Fel=np.loadtxt('EoS/Fe_core/dqdy_Fel_60GPa.txt')
-    T_Fel=np.loadtxt('EoS/Fe_core/T_Fel_60GPa.txt')
-    P_Fel=np.loadtxt('EoS/Fe_core/P_Fel_60GPa.txt')
-    rho_Fea=np.loadtxt('EoS/Fe_core/rho_Fe16Si_60GPa.txt')
-    alpha_Fea=np.loadtxt('EoS/Fe_core/alpha_Fe16Si_60GPa.txt')
-    dqdy_Fea=np.loadtxt('EoS/Fe_core/dqdy_Fe16Si_60GPa.txt')
-    T_Fea=np.loadtxt('EoS/Fe_core/T_Fe16Si_60GPa.txt')
-    P_Fea=np.loadtxt('EoS/Fe_core/P_Fe16Si_60GPa.txt')
-    loaded_T=np.loadtxt('EoS/Fe_core/Fe_adiabat_60GPa.txt')
-    load_original_T=loaded_T.reshape(loaded_T.shape[0],loaded_T.shape[1]//995,995)#141
-    x_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_xgrid_60GPa.txt')
-    Tref_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_Tgrid_60GPa.txt')
-    pre_adiabat_pressure=np.loadtxt('EoS/Fe_core/Fe_adiabat_Pgrid_60GPa.txt')
-    f_adiabat=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, pre_adiabat_pressure), load_original_T)
-
-    loaded_dTdT0=np.loadtxt('EoS/Fe_core/Fe_dTdT0_60GPa.txt')
-    load_original_dTdT0=loaded_dTdT0.reshape(loaded_dTdT0.shape[0],loaded_dTdT0.shape[1]//995,995)
-    loaded_dT0dP=np.loadtxt('EoS/Fe_core/Fe_dT0dP_60GPa.txt')
-    load_original_dT0dP=loaded_dT0dP.reshape(loaded_dT0dP.shape[0],loaded_dT0dP.shape[1]//951,951)
-    Tgrid_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_P_Tgridgrid_60GPa.txt')
-    f_dT0dP=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, Tgrid_core_grid), load_original_dT0dP)
-
+    f_adiabat = eos_tables.f_adiabat60
+    f_dT0dP = eos_tables.f_dT0dP60
+    f_rho_Fel = eos_tables.f_rho_Fel60_structure
+    f_rho_Fea = eos_tables.f_rho_Fea60_structure
+    f_alpha_Fel = eos_tables.f_alpha_Fel60_structure
+    f_alpha_Fea = eos_tables.f_alpha_Fea60_structure
+    f_dqdy_Fel = eos_tables.f_dqdy_Fel60_structure
+    f_dqdy_Fea = eos_tables.f_dqdy_Fea60_structure
 else:
-    rho_Fel=np.loadtxt('EoS/Fe_core/rho_Fel.txt')
-    alpha_Fel=np.loadtxt('EoS/Fe_core/alpha_Fel.txt')
-    dqdy_Fel=np.loadtxt('EoS/Fe_core/dqdy_Fel.txt')
-    T_Fel=np.loadtxt('EoS/Fe_core/T_Fel.txt')
-    P_Fel=np.loadtxt('EoS/Fe_core/P_Fel.txt')
-    rho_Fea=np.loadtxt('EoS/Fe_core/rho_Fe16Si.txt')
-    alpha_Fea=np.loadtxt('EoS/Fe_core/alpha_Fe16Si.txt')
-    dqdy_Fea=np.loadtxt('EoS/Fe_core/dqdy_Fe16Si.txt')
-    T_Fea=np.loadtxt('EoS/Fe_core/T_Fe16Si.txt')
-    P_Fea=np.loadtxt('EoS/Fe_core/P_Fe16Si.txt')
-    loaded_T=np.loadtxt('EoS/Fe_core/Fe_adiabat.txt')
-    load_original_T=loaded_T.reshape(loaded_T.shape[0],loaded_T.shape[1]//989,989)#141
-    x_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_xgrid.txt')
-    Tref_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_Tgrid.txt')
-    pre_adiabat_pressure=np.loadtxt('EoS/Fe_core/Fe_adiabat_Pgrid.txt')
-    f_adiabat=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, pre_adiabat_pressure), load_original_T)
+    f_adiabat = eos_tables.f_adiabat
+    f_dT0dP = eos_tables.f_dT0dP
+    f_rho_Fel = eos_tables.f_rho_Fel_structure
+    f_rho_Fea = eos_tables.f_rho_Fea_structure
+    f_alpha_Fel = eos_tables.f_alpha_Fel_structure
+    f_alpha_Fea = eos_tables.f_alpha_Fea_structure
+    f_dqdy_Fel = eos_tables.f_dqdy_Fel_structure
+    f_dqdy_Fea = eos_tables.f_dqdy_Fea_structure
 
-    loaded_dTdT0=np.loadtxt('EoS/Fe_core/Fe_dTdT0.txt')
-    load_original_dTdT0=loaded_dTdT0.reshape(loaded_dTdT0.shape[0],loaded_dTdT0.shape[1]//989,989)
-    loaded_dT0dP=np.loadtxt('EoS/Fe_core/Fe_dT0dP.txt')
-    load_original_dT0dP=loaded_dT0dP.reshape(loaded_dT0dP.shape[0],loaded_dT0dP.shape[1]//826,826)
-    Tgrid_core_grid=np.loadtxt('EoS/Fe_core/Fe_adiabat_P_Tgridgrid.txt')
-    f_dT0dP=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, Tgrid_core_grid), load_original_dT0dP)
+cdef object S_liq_P=eos_tables.S_liq_P#interpolate.interp1d(P_grid,S_liq_array)
+cdef object S_sol_P=eos_tables.S_sol_P#interpolate.interp1d(P_grid,S_sol_array)
+cdef object T_Py_liq=eos_tables.T_Py_liq#interpolate.RectBivariateSpline(P_grid,y_grid,T_liq)
+cdef object rho_Py_liq=eos_tables.rho_Py_liq#interpolate.RectBivariateSpline(P_grid,y_grid,rho_liq)
+cdef object CP_Py_liq=eos_tables.CP_Py_liq#interpolate.RectBivariateSpline(P_grid,y_grid,CP_liq)
+cdef object alpha_Py_liq=eos_tables.alpha_Py_liq#interpolate.RectBivariateSpline(P_grid,y_grid,alpha_liq)
+cdef object dTdP_Py_liq=eos_tables.dTdP_Py_liq#interpolate.RectBivariateSpline(P_grid,y_grid,dTdP_liq)
+cdef object dqdy_Py_liq=eos_tables.dqdy_Py_liq#interpolate.RectBivariateSpline(P_grid,y_grid,dqdy_liq)
 
+cdef object T_Py_sol_pv=eos_tables.T_Py_sol_pv#interpolate.RectBivariateSpline(P_grid_pv,y_grid,T_sol_pv)
+cdef object rho_Py_sol_pv=eos_tables.rho_Py_sol_pv#interpolate.RectBivariateSpline(P_grid_pv,y_grid,rho_sol_pv)
+cdef object alpha_Py_sol_pv=eos_tables.alpha_Py_sol_pv#interpolate.RectBivariateSpline(P_grid_pv,y_grid,alpha_sol_pv)
+cdef object dTdP_Py_sol_pv=eos_tables.dTdP_Py_sol_pv#interpolate.RectBivariateSpline(P_grid_pv,y_grid,dTdP_sol_pv)
+cdef object dqdy_Py_sol_pv=eos_tables.dqdy_Py_sol_pv#interpolate.RectBivariateSpline(P_grid_pv,y_grid,dqdy_sol_pv)
 
-Tlg,Plg=np.meshgrid(T_Fel,P_Fel,sparse=True)
-Tag,Pag=np.meshgrid(T_Fea,P_Fea,sparse=True)
-f_rho_Fel=interpolate.RectBivariateSpline(P_Fel,T_Fel,rho_Fel)
-f_rho_Fea=interpolate.RectBivariateSpline(P_Fea,T_Fea,rho_Fea)
-f_alpha_Fel=interpolate.RectBivariateSpline(P_Fel,T_Fel,alpha_Fel)
-f_alpha_Fea=interpolate.RectBivariateSpline(P_Fea,T_Fea,alpha_Fea)
-f_dqdy_Fel=interpolate.RectBivariateSpline(P_Fel,T_Fel,dqdy_Fel)
-f_dqdy_Fea=interpolate.RectBivariateSpline(P_Fea,T_Fea,dqdy_Fea)
+cdef object T_Py_sol_en=eos_tables.T_Py_sol_en#interpolate.RectBivariateSpline(P_grid_en,y_grid,T_sol_en)
+cdef object rho_Py_sol_en=eos_tables.rho_Py_sol_en#interpolate.RectBivariateSpline(P_grid_en,y_grid,rho_sol_en)
+cdef object alpha_Py_sol_en=eos_tables.alpha_Py_sol_en#interpolate.RectBivariateSpline(P_grid_en,y_grid,alpha_sol_en)
+cdef object dTdP_Py_sol_en=eos_tables.dTdP_Py_sol_en#interpolate.RectBivariateSpline(P_grid_en,y_grid,dTdP_sol_en)
+cdef object dqdy_Py_sol_en=eos_tables.dqdy_Py_sol_en#interpolate.RectBivariateSpline(P_grid_en,y_grid,dqdy_sol_en)
 
+cdef object T_Py_sol_ppv=eos_tables.T_Py_sol_ppv#interpolate.RectBivariateSpline(P_grid_ppv,y_grid,T_sol_ppv)
+cdef object rho_Py_sol_ppv=eos_tables.rho_Py_sol_ppv#interpolate.RectBivariateSpline(P_grid_ppv,y_grid,rho_sol_ppv)
+cdef object alpha_Py_sol_ppv=eos_tables.alpha_Py_sol_ppv#interpolate.RectBivariateSpline(P_grid_ppv,y_grid,alpha_sol_ppv)
+cdef object dTdP_Py_sol_ppv=eos_tables.dTdP_Py_sol_ppv#interpolate.RectBivariateSpline(P_grid_ppv,y_grid,dTdP_sol_ppv)
+cdef object dqdy_Py_sol_ppv=eos_tables.dqdy_Py_sol_ppv#interpolate.RectBivariateSpline(P_grid_ppv,y_grid,dqdy_sol_ppv)
 
-T_sol_pv=np.loadtxt('EoS/mantle/T_sol_pv_Py.txt')
-rho_sol_pv=np.loadtxt('EoS/mantle/rho_sol_pv_Py.txt')
-alpha_sol_pv=np.loadtxt('EoS/mantle/alpha_sol_pv_Py.txt')
-dTdP_sol_pv=np.loadtxt('EoS/mantle/dTdP_sol_pv_Py.txt')
-dqdy_sol_pv=np.loadtxt('EoS/mantle/dqdy_sol_pv_Py.txt')
+cdef object T_Py_mix_en=eos_tables.T_Py_mix_en#interpolate.RectBivariateSpline(P_grid_en,y_grid,T_mix_en)
+cdef object rho_Py_mix_en=eos_tables.rho_Py_mix_en#interpolate.RectBivariateSpline(P_grid_en,y_grid,rho_mix_en)
+cdef object CP_Py_mix_en=eos_tables.CP_Py_mix_en#interpolate.RectBivariateSpline(P_grid_en,y_grid,CP_mix_en)
+cdef object alpha_Py_mix_en=eos_tables.alpha_Py_mix_en#interpolate.RectBivariateSpline(P_grid_en,y_grid,alpha_mix_en)
+cdef object dTdP_Py_mix_en=eos_tables.dTdP_Py_mix_en#interpolate.RectBivariateSpline(P_grid_en,y_grid,dTdP_mix_en)
+cdef object dqdy_Py_mix_en=eos_tables.dqdy_Py_mix_en#interpolate.RectBivariateSpline(P_grid_en,y_grid,dqdy_mix_en)
 
-T_sol_ppv=np.loadtxt('EoS/mantle/T_sol_ppv_Py.txt')
-rho_sol_ppv=np.loadtxt('EoS/mantle/rho_sol_ppv_Py.txt')
-alpha_sol_ppv=np.loadtxt('EoS/mantle/alpha_sol_ppv_Py.txt')
-dTdP_sol_ppv=np.loadtxt('EoS/mantle/dTdP_sol_ppv_Py.txt')
-dqdy_sol_ppv=np.loadtxt('EoS/mantle/dqdy_sol_ppv_Py.txt')
+cdef object T_Py_mix_ppv=eos_tables.T_Py_mix_ppv#interpolate.RectBivariateSpline(P_grid_ppv,y_grid,T_mix_ppv)
+cdef object rho_Py_mix_ppv=eos_tables.rho_Py_mix_ppv#interpolate.RectBivariateSpline(P_grid_ppv,y_grid,rho_mix_ppv)
+cdef object alpha_Py_mix_ppv=eos_tables.alpha_Py_mix_ppv#interpolate.RectBivariateSpline(P_grid_ppv,y_grid,alpha_mix_ppv)
+cdef object dTdP_Py_mix_ppv=eos_tables.dTdP_Py_mix_ppv#interpolate.RectBivariateSpline(P_grid_ppv,y_grid,dTdP_mix_ppv)
+cdef object dqdy_Py_mix_ppv=eos_tables.dqdy_Py_mix_ppv#interpolate.RectBivariateSpline(P_grid_ppv,y_grid,dqdy_mix_ppv)
 
-T_sol_en=np.loadtxt('EoS/mantle/T_sol_en_Py.txt')
-rho_sol_en=np.loadtxt('EoS/mantle/rho_sol_en_Py.txt')
-alpha_sol_en=np.loadtxt('EoS/mantle/alpha_sol_en_Py.txt')
-dTdP_sol_en=np.loadtxt('EoS/mantle/dTdP_sol_en_Py.txt')
-dqdy_sol_en=np.loadtxt('EoS/mantle/dqdy_sol_en_Py.txt')
-
-T_mix_pv=np.loadtxt('EoS/mantle/T_mix_pv_Py.txt')
-rho_mix_pv=np.loadtxt('EoS/mantle/rho_mix_pv_Py.txt')
-alpha_mix_pv=np.loadtxt('EoS/mantle/alpha_mix_pv_Py.txt')
-dTdP_mix_pv=np.loadtxt('EoS/mantle/dTdP_mix_pv_Py.txt')
-dqdy_mix_pv=np.loadtxt('EoS/mantle/dqdy_mix_pv_Py.txt')
-CP_mix_pv=np.loadtxt('EoS/mantle/CP_mix_pv_Py.txt')
-
-T_mix_ppv=np.loadtxt('EoS/mantle/T_mix_ppv_Py.txt')
-rho_mix_ppv=np.loadtxt('EoS/mantle/rho_mix_ppv_Py.txt')
-alpha_mix_ppv=np.loadtxt('EoS/mantle/alpha_mix_ppv_Py.txt')
-dTdP_mix_ppv=np.loadtxt('EoS/mantle/dTdP_mix_ppv_Py.txt')
-dqdy_mix_ppv=np.loadtxt('EoS/mantle/dqdy_mix_ppv_Py.txt')
-CP_mix_ppv=np.loadtxt('EoS/mantle/CP_mix_ppv_Py.txt')
-
-T_mix_en=np.loadtxt('EoS/mantle/T_mix_en_Py.txt')
-rho_mix_en=np.loadtxt('EoS/mantle/rho_mix_en_Py.txt')
-alpha_mix_en=np.loadtxt('EoS/mantle/alpha_mix_en_Py.txt')
-dTdP_mix_en=np.loadtxt('EoS/mantle/dTdP_mix_en_Py.txt')
-dqdy_mix_en=np.loadtxt('EoS/mantle/dqdy_mix_en_Py.txt')
-CP_mix_en=np.loadtxt('EoS/mantle/CP_mix_en_Py.txt')
-
-S_liq_P=interpolate.interp1d(P_grid,S_liq_array)
-S_sol_P=interpolate.interp1d(P_grid,S_sol_array)
-T_Py_liq=interpolate.RectBivariateSpline(P_grid,y_grid,T_liq)
-rho_Py_liq=interpolate.RectBivariateSpline(P_grid,y_grid,rho_liq)
-CP_Py_liq=interpolate.RectBivariateSpline(P_grid,y_grid,CP_liq)
-alpha_Py_liq=interpolate.RectBivariateSpline(P_grid,y_grid,alpha_liq)
-dTdP_Py_liq=interpolate.RectBivariateSpline(P_grid,y_grid,dTdP_liq)
-dqdy_Py_liq=interpolate.RectBivariateSpline(P_grid,y_grid,dqdy_liq)
-
-T_Py_sol_pv=interpolate.RectBivariateSpline(P_grid_pv,y_grid,T_sol_pv)
-rho_Py_sol_pv=interpolate.RectBivariateSpline(P_grid_pv,y_grid,rho_sol_pv)
-alpha_Py_sol_pv=interpolate.RectBivariateSpline(P_grid_pv,y_grid,alpha_sol_pv)
-dTdP_Py_sol_pv=interpolate.RectBivariateSpline(P_grid_pv,y_grid,dTdP_sol_pv)
-dqdy_Py_sol_pv=interpolate.RectBivariateSpline(P_grid_pv,y_grid,dqdy_sol_pv)
-
-T_Py_sol_en=interpolate.RectBivariateSpline(P_grid_en,y_grid,T_sol_en)
-rho_Py_sol_en=interpolate.RectBivariateSpline(P_grid_en,y_grid,rho_sol_en)
-alpha_Py_sol_en=interpolate.RectBivariateSpline(P_grid_en,y_grid,alpha_sol_en)
-dTdP_Py_sol_en=interpolate.RectBivariateSpline(P_grid_en,y_grid,dTdP_sol_en)
-dqdy_Py_sol_en=interpolate.RectBivariateSpline(P_grid_en,y_grid,dqdy_sol_en)
-
-T_Py_sol_ppv=interpolate.RectBivariateSpline(P_grid_ppv,y_grid,T_sol_ppv)
-rho_Py_sol_ppv=interpolate.RectBivariateSpline(P_grid_ppv,y_grid,rho_sol_ppv)
-alpha_Py_sol_ppv=interpolate.RectBivariateSpline(P_grid_ppv,y_grid,alpha_sol_ppv)
-dTdP_Py_sol_ppv=interpolate.RectBivariateSpline(P_grid_ppv,y_grid,dTdP_sol_ppv)
-dqdy_Py_sol_ppv=interpolate.RectBivariateSpline(P_grid_ppv,y_grid,dqdy_sol_ppv)
-
-T_Py_mix_en=interpolate.RectBivariateSpline(P_grid_en,y_grid,T_mix_en)
-rho_Py_mix_en=interpolate.RectBivariateSpline(P_grid_en,y_grid,rho_mix_en)
-CP_Py_mix_en=interpolate.RectBivariateSpline(P_grid_en,y_grid,CP_mix_en)
-alpha_Py_mix_en=interpolate.RectBivariateSpline(P_grid_en,y_grid,alpha_mix_en)
-dTdP_Py_mix_en=interpolate.RectBivariateSpline(P_grid_en,y_grid,dTdP_mix_en)
-dqdy_Py_mix_en=interpolate.RectBivariateSpline(P_grid_en,y_grid,dqdy_mix_en)
-
-T_Py_mix_ppv=interpolate.RectBivariateSpline(P_grid_ppv,y_grid,T_mix_ppv)
-rho_Py_mix_ppv=interpolate.RectBivariateSpline(P_grid_ppv,y_grid,rho_mix_ppv)
-alpha_Py_mix_ppv=interpolate.RectBivariateSpline(P_grid_ppv,y_grid,alpha_mix_ppv)
-dTdP_Py_mix_ppv=interpolate.RectBivariateSpline(P_grid_ppv,y_grid,dTdP_mix_ppv)
-dqdy_Py_mix_ppv=interpolate.RectBivariateSpline(P_grid_ppv,y_grid,dqdy_mix_ppv)
-
-T_Py_mix_pv=interpolate.RectBivariateSpline(P_grid_pv,y_grid,T_mix_pv)
-rho_Py_mix_pv=interpolate.RectBivariateSpline(P_grid_pv,y_grid,rho_mix_pv)
-alpha_Py_mix_pv=interpolate.RectBivariateSpline(P_grid_pv,y_grid,alpha_mix_pv)
-dTdP_Py_mix_pv=interpolate.RectBivariateSpline(P_grid_pv,y_grid,dTdP_mix_pv)
-dqdy_Py_mix_pv=interpolate.RectBivariateSpline(P_grid_pv,y_grid,dqdy_mix_pv)
+cdef object T_Py_mix_pv=eos_tables.T_Py_mix_pv#interpolate.RectBivariateSpline(P_grid_pv,y_grid,T_mix_pv)
+cdef object rho_Py_mix_pv=eos_tables.rho_Py_mix_pv#interpolate.RectBivariateSpline(P_grid_pv,y_grid,rho_mix_pv)
+cdef object alpha_Py_mix_pv=eos_tables.alpha_Py_mix_pv#interpolate.RectBivariateSpline(P_grid_pv,y_grid,alpha_mix_pv)
+cdef object dTdP_Py_mix_pv=eos_tables.dTdP_Py_mix_pv#interpolate.RectBivariateSpline(P_grid_pv,y_grid,dTdP_mix_pv)
+cdef object dqdy_Py_mix_pv=eos_tables.dqdy_Py_mix_pv#interpolate.RectBivariateSpline(P_grid_pv,y_grid,dqdy_mix_pv)
 
 #import a grid of Pc and Tc values. Using interpolated values as initial guesses for Pc and Tc
 load_Pc=np.loadtxt('EoS/Guess_initial/Pc.txt')
@@ -228,8 +140,8 @@ cdef double m_array_start=ms_array_0+(load_file[1]-0.1)*1.0#ms_array[int((load_f
 cdef double P_c=f_Pc_i(load_file[0],load_file[1]*100.0)[0][0]+20e9#1000e9 # initial guess of the central pressure in Pa. Subsequent update in the code is the actual central pressure in Pa.
 cdef double T_c=f_Tc_i(load_file[0],load_file[1]*100.0)[0][0]#10500.0 # Central temperature in K
 cdef double T_an_c_i=7000.0 # initial guess of the entropy temperature of the core in K.
-if load_file[0]<1.5 and load_file[1]<0.3:
-    T_c=T_c+500.0
+#if load_file[0]<1.5 and load_file[1]<0.3:
+T_c=T_c+500.0
 #T_c=T_c-400.0
 #P_c=P_c+0.2e9
 cdef double MMF=1.0-CMF # mantle mass fraction
