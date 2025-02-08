@@ -8,4 +8,6 @@ venv
 .venv
 old_code_results/
 code_edit/
-EoS/binary/
+EoS/binary
+__pycache__
+Untitled.ipynb
