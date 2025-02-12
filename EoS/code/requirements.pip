@@ -1,0 +1,6 @@
+Cython==3.0.10
+matplotlib==3.8.4
+numpy==1.26.4
+python-dateutil==2.9.0.post0
+scipy==1.13.0
+setuptools==75.1.0
