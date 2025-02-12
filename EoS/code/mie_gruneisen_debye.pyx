@@ -190,6 +190,15 @@ cpdef bint is_not_nan(double value):
     """Returns True if value is NOT NaN"""
     return not isnan(value)
 
+# Function to copy values from one 2D memoryview to another
+cpdef void copy_memoryview(double[:, :] src, double[:, :] dest):
+    """Copies values from one 2D memoryview to another of the same shape."""
+    cdef Py_ssize_t i, j, rows = src.shape[0], cols = src.shape[1]
+
+    for i in range(rows):
+        for j in range(cols):
+            dest[i, j] = src[i, j]  # Assign value
+
 # initialize required eos parameters 
 
 cdef double n, Theta_D0, gamma0, q, v0, K0, K0_prime, T0
@@ -235,6 +244,12 @@ DATAFILE = 'binary_file/' + mineral + '.npz'
 if os.path.exists(DATAFILE):
     print('Fe-16Si table exists')
     data_alloy = np.load(DATAFILE)
+    copy_memoryview(data_alloy['cV_PT_grid_J_K_kg'], cV_Fea_grid) 
+    copy_memoryview(data_alloy['cP_PT_grid_J_K_kg'], cP_Fea_grid) 
+    copy_memoryview(data_alloy['s_PT_grid_J_K_kg'], s_Fea_grid) 
+    copy_memoryview(data_alloy['eth_PT_grid_J_kg'], eth_Fea_grid)
+    copy_memoryview(data_alloy['alpha_PT_grid__K'], alpha_Fea_grid)  
+    copy_memoryview(data_alloy['rho_PT_grid_kg_m3'], rho_Fea_grid)
 else:
     print('Fe-16Si table does not exist. Computing EoS tables')
     # parameters for Fe16Si (Fischer et al.)
@@ -297,6 +312,13 @@ DATAFILE = 'binary_file/' + mineral + '.npz'
 if os.path.exists(DATAFILE):
     print('Liquid Fe table exists')
     data_liq = np.load(DATAFILE)
+
+    copy_memoryview(data_liq['cV_PT_grid_J_K_kg'], cV_Fel_grid) 
+    copy_memoryview(data_liq['cP_PT_grid_J_K_kg'], cP_Fel_grid) 
+    copy_memoryview(data_liq['s_PT_grid_J_K_kg'], s_Fel_grid) 
+    copy_memoryview(data_liq['eth_PT_grid_J_kg'], eth_Fel_grid)
+    copy_memoryview(data_liq['alpha_PT_grid__K'], alpha_Fel_grid)  
+    copy_memoryview(data_liq['rho_PT_grid_kg_m3'], rho_Fel_grid)
 else:
     print('Liquid Fe table does not exist. Computing EoS tables')
 
@@ -356,22 +378,25 @@ cdef double v_mix, v_alloy, v_liquid
 mineral = 'Fe_Si_mix'
 DATAFILE = 'binary_file/' + mineral + '.npz'
 
+cdef double[:] x_Si_grid = x_grid.copy()
+
 for i in range(x_len):
+    x_Si_grid[i] = x_grid[i] * 0.16
     for j in range(P_len):
         for k in range(T_len):
-            v_alloy = 1.0 / data_alloy['rho_PT_grid_kg_m3'][j][k]
-            v_liquid = 1.0 / data_liq['rho_PT_grid_kg_m3'][j][k]
+            v_alloy = 1.0 / rho_Fea_grid[j][k]
+            v_liquid = 1.0 / rho_Fel_grid[j][k]
             v_mix = x_grid[i] * v_alloy + (1.0 - x_grid[i]) * v_liquid
-            cV_grid[i][j][k] = data_alloy['cV_PT_grid_J_K_kg'][j][k] * x_grid[i] + data_liq['cV_PT_grid_J_K_kg'][j][k] * (1.0 - x_grid[i])
-            cP_grid[i][j][k] = data_alloy['cP_PT_grid_J_K_kg'][j][k] * x_grid[i] + data_liq['cP_PT_grid_J_K_kg'][j][k] * (1.0 - x_grid[i])
-            s_grid[i][j][k] = data_alloy['s_PT_grid_J_K_kg'][j][k] * x_grid[i] + data_liq['s_PT_grid_J_K_kg'][j][k] * (1.0 - x_grid[i])
-            eth_grid[i][j][k] = data_alloy['eth_PT_grid_J_kg'][j][k] * x_grid[i] + data_liq['eth_PT_grid_J_kg'][j][k] * (1.0 - x_grid[i])
-            alpha_grid[i][j][k] = (data_alloy['alpha_PT_grid__K'][j][k] * x_grid[i] * v_alloy + data_liq['alpha_PT_grid__K'][j][k] * (1.0 - x_grid[i]) * v_liquid) / v_mix
+            cV_grid[i][j][k] = cV_Fea_grid[j][k] * x_grid[i] + cV_Fel_grid[j][k] * (1.0 - x_grid[i])
+            cP_grid[i][j][k] = cP_Fea_grid[j][k] * x_grid[i] + cP_Fel_grid[j][k] * (1.0 - x_grid[i])
+            s_grid[i][j][k] = s_Fea_grid[j][k] * x_grid[i] + s_Fel_grid[j][k] * (1.0 - x_grid[i])
+            eth_grid[i][j][k] = eth_Fea_grid[j][k] * x_grid[i] + eth_Fel_grid[j][k] * (1.0 - x_grid[i])
+            alpha_grid[i][j][k] = (alpha_Fea_grid[j][k] * x_grid[i] * v_alloy + alpha_Fel_grid[j][k] * (1.0 - x_grid[i]) * v_liquid) / v_mix
             rho_grid[i][j][k] = 1.0 / v_mix
             if i % 3 == 0 and j % 25 == 0 and k % 25 == 0:
                 print(i, j, k, rho_grid[i][j][k], cV_grid[i][j][k])
 data_mix = dict(
-    x_grid = x_grid,
+    x_grid = x_Si_grid,
     P_grid_Pa = P_grid,
     T_grid_K = T_grid,
     cV_PT_grid_J_K_kg = cV_grid,
