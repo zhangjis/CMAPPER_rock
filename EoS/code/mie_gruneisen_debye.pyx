@@ -38,7 +38,7 @@ cpdef double debye_integral_1(double z):
     I1(z) = ∫₀ᶻ x³/(eˣ - 1) dx.
     """
     cdef double val, err
-    cdef int limit = 200
+    cdef int limit = 100
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", IntegrationWarning)
         val, err = quad(_integrand_debye_1, 0.0, z, limit=limit)
@@ -49,7 +49,7 @@ cpdef double debye_integral_2(double z):
     I2(z) = ∫₀ᶻ x⁴ eˣ/(eˣ - 1)² dx.
     """
     cdef double val, err
-    cdef int limit = 200
+    cdef int limit = 100
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", IntegrationWarning)
         val, err = quad(_integrand_debye_2, 0.0, z, limit=limit)
@@ -196,117 +196,182 @@ cdef double n, Theta_D0, gamma0, q, v0, K0, K0_prime, T0
 cdef double n_coeff, V0, M 
 
 cdef int P_len = 401
-cdef int T_len = 501
+cdef int T_len = 251
+cdef int x_len = 21
 cdef double[:] P_grid = np.linspace(0.0, 10000.0, P_len) * 1e9
-cdef double[:] T_grid = np.linspace(1.0, 50001.0, T_len)
+cdef double[:] T_grid = np.linspace(100.0, 50100.0, T_len)
+cdef double[:] x_grid = np.linspace(0.0, 1.0, x_len) # x = 1.0 -> all Fe-16Si, 16% Si by mass; x = 0.0 -> all liquid Fe, 0% Si by mass
 
-cdef double[:,:] cV_grid = np.zeros((P_len, T_len))
-cdef double[:,:] cP_grid = np.zeros((P_len, T_len))
-cdef double[:,:] s_grid = np.zeros((P_len, T_len))
-cdef double[:,:] eth_grid = np.zeros((P_len, T_len))
-cdef double[:,:] alpha_grid = np.zeros((P_len, T_len))
-cdef double[:,:] rho_grid = np.zeros((P_len, T_len))
+cdef double[:,:,:] cV_grid = np.zeros((x_len, P_len, T_len))
+cdef double[:,:,:] cP_grid = np.zeros((x_len, P_len, T_len))
+cdef double[:,:,:] s_grid = np.zeros((x_len, P_len, T_len))
+cdef double[:,:,:] eth_grid = np.zeros((x_len, P_len, T_len))
+cdef double[:,:,:] alpha_grid = np.zeros((x_len, P_len, T_len))
+cdef double[:,:,:] rho_grid = np.zeros((x_len, P_len, T_len))
 
-cdef Py_ssize_t i, j
+cdef double[:,:] cV_Fel_grid = np.zeros((P_len, T_len))
+cdef double[:,:] cP_Fel_grid = np.zeros((P_len, T_len))
+cdef double[:,:] s_Fel_grid = np.zeros((P_len, T_len))
+cdef double[:,:] eth_Fel_grid = np.zeros((P_len, T_len))
+cdef double[:,:] alpha_Fel_grid = np.zeros((P_len, T_len))
+cdef double[:,:] rho_Fel_grid = np.zeros((P_len, T_len))
 
-print('Computing EoS tables of Fe-16Si (Fischer)')
+cdef double[:,:] cV_Fea_grid = np.zeros((P_len, T_len))
+cdef double[:,:] cP_Fea_grid = np.zeros((P_len, T_len))
+cdef double[:,:] s_Fea_grid = np.zeros((P_len, T_len))
+cdef double[:,:] eth_Fea_grid = np.zeros((P_len, T_len))
+cdef double[:,:] alpha_Fea_grid = np.zeros((P_len, T_len))
+cdef double[:,:] rho_Fea_grid = np.zeros((P_len, T_len))
+
+cdef Py_ssize_t i, j, k
+
+print('Compute eos tables of endmember minerals')
+
+print('Check if Fe-16Si tables (Fischer) exist')
 
 mineral = 'Fe16Si'
 DATAFILE = 'binary_file/' + mineral + '.npz'
 
-# parameters for Fe16Si (Fischer et al.)
-n        = 0.1257e26      # atoms/kg
-n_coeff  = n * k_B / R
-Theta_D0 = 417.0   # Debye temperature (K)
-gamma0   = 1.8     # Grüneisen parameter
-q        = 1.0     # Exponent
-V0       = 6.799e-6  # Reference volume (m³/mol)
-M        = 0.04825
-v0       = V0 / M
-K0       = 206.5e9
-K0_prime = 4.0
-T0       = 300.0
+if os.path.exists(DATAFILE):
+    print('Fe-16Si table exists')
+    data_alloy = np.load(DATAFILE)
+else:
+    print('Fe-16Si table does not exist. Computing EoS tables')
+    # parameters for Fe16Si (Fischer et al.)
+    n        = 0.1257e26      # atoms/kg
+    n_coeff  = n * k_B / R
+    Theta_D0 = 417.0   # Debye temperature (K)
+    gamma0   = 1.8     # Grüneisen parameter
+    q        = 1.0     # Exponent
+    V0       = 6.799e-6  # Reference volume (m³/mol)
+    M        = 0.04825
+    v0       = V0 / M
+    K0       = 206.5e9
+    K0_prime = 4.0
+    T0       = 300.0
 
-guess = v0
+    guess = v0
 
-for i in range(P_len):
-    for j in range(T_len):
-        volume = volume_from_pressure(P_grid[i], T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime, guess,
-                         v_min_factor=0.001, v_max_factor=10.0)
-        if is_not_nan(volume):
-            cV_grid[i][j] = c_V(volume, T_grid[j], Theta_D0, gamma0, q, v0)
-            cP_grid[i][j] = c_P(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
-            s_grid[i][j] = s(volume, T_grid[j], Theta_D0, gamma0, q, v0)
-            eth_grid[i][j] = e_th(volume, T_grid[j], Theta_D0, gamma0, q, v0)
-            alpha_grid[i][j] = thermal_expansion(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
-            rho_grid[i][j] = 1.0 / volume
-        else:
-            volume = v0
-            cV_grid[i][j] = c_V(volume, T_grid[j], Theta_D0, gamma0, q, v0)
-            cP_grid[i][j] = c_P(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
-            s_grid[i][j] = s(volume, T_grid[j], Theta_D0, gamma0, q, v0)
-            eth_grid[i][j] = e_th(volume, T_grid[j], Theta_D0, gamma0, q, v0)
-            alpha_grid[i][j] = thermal_expansion(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
-            rho_grid[i][j] = 1.0 / volume
-    if i % 10 == 0:
-        print('Density at P =', int(P_grid[i]/1e9), 'GPa and T =', int(T_grid[100]), 'K is', round(rho_grid[i][100]*100.0)/100.0, 'kg/m^3')
+    for i in range(P_len):
+        for j in range(T_len):
+            volume = volume_from_pressure(P_grid[i], T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime, guess,
+                             v_min_factor=0.001, v_max_factor=10.0)
+            if is_not_nan(volume):
+                cV_Fea_grid[i][j] = c_V(volume, T_grid[j], Theta_D0, gamma0, q, v0)
+                cP_Fea_grid[i][j] = c_P(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
+                s_Fea_grid[i][j] = s(volume, T_grid[j], Theta_D0, gamma0, q, v0)
+                eth_Fea_grid[i][j] = e_th(volume, T_grid[j], Theta_D0, gamma0, q, v0)
+                alpha_Fea_grid[i][j] = thermal_expansion(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
+                rho_Fea_grid[i][j] = 1.0 / volume
+            else:
+                volume = v0
+                cV_Fea_grid[i][j] = c_V(volume, T_grid[j], Theta_D0, gamma0, q, v0)
+                cP_Fea_grid[i][j] = c_P(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
+                s_Fea_grid[i][j] = s(volume, T_grid[j], Theta_D0, gamma0, q, v0)
+                eth_Fea_grid[i][j] = e_th(volume, T_grid[j], Theta_D0, gamma0, q, v0)
+                alpha_Fea_grid[i][j] = thermal_expansion(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
+                rho_Fea_grid[i][j] = 1.0 / volume
+        if i % 10 == 0:
+            print('Density at P =', int(P_grid[i]/1e9), 'GPa and T =', int(T_grid[100]), 'K is', round(rho_Fea_grid[i][100]*100.0)/100.0, 'kg/m^3')
 
-data = dict(
-    P_grid_Pa = P_grid,
-    T_grid_K = T_grid,
-    cV_PT_grid_J_K_kg = cV_grid,
-    cP_PT_grid_J_K_kg = cP_grid,
-    s_PT_grid_J_K_kg = s_grid,
-    eth_PT_grid_J_kg = eth_grid,
-    alpha_PT_grid__K = alpha_grid,
-    rho_PT_grid_kg_m3 = rho_grid
-    )
-np.savez(DATAFILE , **data) 
+    data_alloy = dict(
+        P_grid_Pa = P_grid,
+        T_grid_K = T_grid,
+        cV_PT_grid_J_K_kg = cV_Fea_grid,
+        cP_PT_grid_J_K_kg = cP_Fea_grid,
+        s_PT_grid_J_K_kg = s_Fea_grid,
+        eth_PT_grid_J_kg = eth_Fea_grid,
+        alpha_PT_grid__K = alpha_Fea_grid,
+        rho_PT_grid_kg_m3 = rho_Fea_grid
+        )
+    np.savez(DATAFILE , **data_alloy) 
 
 
 ###################################################################################################################
 
-print('Computing EoS tables of liquid Fe (Dorogokupets 2017)')
+print('Check if liquid Fe table (Dorogokupets 2017) exists')
 
 mineral = 'liquidFe'
 DATAFILE = 'binary_file/' + mineral + '.npz'
 
-# parameters for liquid Fe (2017)
-K0       = 83.7e9
-K0_prime = 5.97
-v0       = 1.0 / 7037.8
-Theta_D0 = 263.0
-gamma0   = 2.033
-q        = 1.168
-T0       = 1181.0
-n        = 1.078e25
+if os.path.exists(DATAFILE):
+    print('Liquid Fe table exists')
+    data_liq = np.load(DATAFILE)
+else:
+    print('Liquid Fe table does not exist. Computing EoS tables')
 
-guess = v0
+    # parameters for liquid Fe (2017)
+    K0       = 83.7e9
+    K0_prime = 5.97
+    v0       = 1.0 / 7037.8
+    Theta_D0 = 263.0
+    gamma0   = 2.033
+    q        = 1.168
+    T0       = 1181.0
+    n        = 1.078e25
 
-for i in range(P_len):
-    for j in range(T_len):
-        volume = volume_from_pressure(P_grid[i], T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime, guess,
-                         v_min_factor=0.001, v_max_factor=10.0)
-        if is_not_nan(volume):
-            cV_grid[i][j] = c_V(volume, T_grid[j], Theta_D0, gamma0, q, v0)
-            cP_grid[i][j] = c_P(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
-            s_grid[i][j] = s(volume, T_grid[j], Theta_D0, gamma0, q, v0)
-            eth_grid[i][j] = e_th(volume, T_grid[j], Theta_D0, gamma0, q, v0)
-            alpha_grid[i][j] = thermal_expansion(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
-            rho_grid[i][j] = 1.0 / volume
-        else:
-            volume = v0
-            cV_grid[i][j] = c_V(volume, T_grid[j], Theta_D0, gamma0, q, v0)
-            cP_grid[i][j] = c_P(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
-            s_grid[i][j] = s(volume, T_grid[j], Theta_D0, gamma0, q, v0)
-            eth_grid[i][j] = e_th(volume, T_grid[j], Theta_D0, gamma0, q, v0)
-            alpha_grid[i][j] = thermal_expansion(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
-            rho_grid[i][j] = 1.0 / volume
-    if i % 10 == 0:
-        #print(int(P_grid[i]/1e9), rho_grid[i][50], rho_grid[i][150], rho_grid[i][250], rho_grid[i][350])
-        print('Density at P =', int(P_grid[i]/1e9), 'GPa and T =', T_grid[100], 'K is', round(rho_grid[i][100]*100.0)/100.0, 'kg/m^3')
+    guess = v0
 
-data = dict(
+    for i in range(P_len):
+        for j in range(T_len):
+            volume = volume_from_pressure(P_grid[i], T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime, guess,
+                             v_min_factor=0.001, v_max_factor=10.0)
+            if is_not_nan(volume):
+                cV_Fel_grid[i][j] = c_V(volume, T_grid[j], Theta_D0, gamma0, q, v0)
+                cP_Fel_grid[i][j] = c_P(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
+                s_Fel_grid[i][j] = s(volume, T_grid[j], Theta_D0, gamma0, q, v0)
+                eth_Fel_grid[i][j] = e_th(volume, T_grid[j], Theta_D0, gamma0, q, v0)
+                alpha_Fel_grid[i][j] = thermal_expansion(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
+                rho_Fel_grid[i][j] = 1.0 / volume
+            else:
+                volume = v0
+                cV_Fel_grid[i][j] = c_V(volume, T_grid[j], Theta_D0, gamma0, q, v0)
+                cP_Fel_grid[i][j] = c_P(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
+                s_Fel_grid[i][j] = s(volume, T_grid[j], Theta_D0, gamma0, q, v0)
+                eth_Fel_grid[i][j] = e_th(volume, T_grid[j], Theta_D0, gamma0, q, v0)
+                alpha_Fel_grid[i][j] = thermal_expansion(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
+                rho_Fel_grid[i][j] = 1.0 / volume
+        if i % 10 == 0:
+            #print(int(P_grid[i]/1e9), rho_grid[i][50], rho_grid[i][150], rho_grid[i][250], rho_grid[i][350])
+            print('Density at P =', int(P_grid[i]/1e9), 'GPa and T =', T_grid[100], 'K is', round(rho_Fel_grid[i][100]*100.0)/100.0, 'kg/m^3')
+
+    data_liq = dict(
+        P_grid_Pa = P_grid,
+        T_grid_K = T_grid,
+        cV_PT_grid_J_K_kg = cV_Fel_grid,
+        cP_PT_grid_J_K_kg = cP_Fel_grid,
+        s_PT_grid_J_K_kg = s_Fel_grid,
+        eth_PT_grid_J_kg = eth_Fel_grid,
+        alpha_PT_grid__K = alpha_Fel_grid,
+        rho_PT_grid_kg_m3 = rho_Fel_grid
+        )
+    np.savez(DATAFILE , **data_liq) 
+
+###################################################################################################################
+
+print('Compute EoS tables for liquid Fe + Fe-16Si, assuming linear averaging mixing rules')
+
+cdef double v_mix, v_alloy, v_liquid
+
+mineral = 'Fe_Si_mix'
+DATAFILE = 'binary_file/' + mineral + '.npz'
+
+for i in range(x_len):
+    for j in range(P_len):
+        for k in range(T_len):
+            v_alloy = 1.0 / data_alloy['rho_PT_grid_kg_m3'][j][k]
+            v_liquid = 1.0 / data_liq['rho_PT_grid_kg_m3'][j][k]
+            v_mix = x_grid[i] * v_alloy + (1.0 - x_grid[i]) * v_liquid
+            cV_grid[i][j][k] = data_alloy['cV_PT_grid_J_K_kg'][j][k] * x_grid[i] + data_liq['cV_PT_grid_J_K_kg'][j][k] * (1.0 - x_grid[i])
+            cP_grid[i][j][k] = data_alloy['cP_PT_grid_J_K_kg'][j][k] * x_grid[i] + data_liq['cP_PT_grid_J_K_kg'][j][k] * (1.0 - x_grid[i])
+            s_grid[i][j][k] = data_alloy['s_PT_grid_J_K_kg'][j][k] * x_grid[i] + data_liq['s_PT_grid_J_K_kg'][j][k] * (1.0 - x_grid[i])
+            eth_grid[i][j][k] = data_alloy['eth_PT_grid_J_kg'][j][k] * x_grid[i] + data_liq['eth_PT_grid_J_kg'][j][k] * (1.0 - x_grid[i])
+            alpha_grid[i][j][k] = (data_alloy['alpha_PT_grid__K'][j][k] * x_grid[i] * v_alloy + data_liq['alpha_PT_grid__K'][j][k] * (1.0 - x_grid[i]) * v_liquid) / v_mix
+            rho_grid[i][j][k] = 1.0 / v_mix
+            if i % 3 == 0 and j % 25 == 0 and k % 25 == 0:
+                print(i, j, k, rho_grid[i][j][k], cV_grid[i][j][k])
+data_mix = dict(
+    x_grid = x_grid,
     P_grid_Pa = P_grid,
     T_grid_K = T_grid,
     cV_PT_grid_J_K_kg = cV_grid,
@@ -316,6 +381,8 @@ data = dict(
     alpha_PT_grid__K = alpha_grid,
     rho_PT_grid_kg_m3 = rho_grid
     )
-np.savez(DATAFILE , **data) 
 
-###################################################################################################################
+np.savez(DATAFILE , **data_mix) 
+             
+
+
