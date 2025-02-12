@@ -10,7 +10,7 @@ from scipy.integrate import quad, IntegrationWarning
 import os
 
 # Import C math functions for performance
-from libc.math cimport exp, log, pow, isnan
+from libc.math cimport exp, log, pow, isnan, round
 
 os.makedirs('binary_file/', exist_ok=True)
 
@@ -249,8 +249,7 @@ for i in range(P_len):
             alpha_grid[i][j] = thermal_expansion(volume, T_grid[j], Theta_D0, gamma0, q, v0, K0, K0_prime)
             rho_grid[i][j] = 1.0 / volume
     if i % 10 == 0:
-        #print(int(P_grid[i]/1e9), rho_grid[i][100], rho_grid[i][200], rho_grid[i][300], rho_grid[i][400])
-        print('Density at P =', int(P_grid[i]/1e9), 'GPa and T =', int(T_grid[100]), 'K is', rho_grid[i][100], 'kg/m^3')
+        print('Density at P =', int(P_grid[i]/1e9), 'GPa and T =', int(T_grid[100]), 'K is', round(rho_grid[i][100]*100.0)/100.0, 'kg/m^3')
 
 data = dict(
     P_grid_Pa = P_grid,
@@ -305,7 +304,7 @@ for i in range(P_len):
             rho_grid[i][j] = 1.0 / volume
     if i % 10 == 0:
         #print(int(P_grid[i]/1e9), rho_grid[i][50], rho_grid[i][150], rho_grid[i][250], rho_grid[i][350])
-        print('Density at P =', int(P_grid[i]/1e9), 'GPa and T =', T_grid[100], 'K is', rho_grid[i][100], 'kg/m^3')
+        print('Density at P =', int(P_grid[i]/1e9), 'GPa and T =', T_grid[100], 'K is', round(rho_grid[i][100]*100.0)/100.0, 'kg/m^3')
 
 data = dict(
     P_grid_Pa = P_grid,
