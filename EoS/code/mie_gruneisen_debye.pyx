@@ -195,7 +195,7 @@ cpdef bint is_not_nan(double value):
 cdef double n, Theta_D0, gamma0, q, v0, K0, K0_prime, T0
 cdef double n_coeff, V0, M 
 
-cdef int P_len = 401
+cdef int P_len = 201
 cdef int T_len = 251
 cdef int x_len = 21
 cdef double[:] P_grid = np.linspace(0.0, 10000.0, P_len) * 1e9
