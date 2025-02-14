@@ -10,6 +10,7 @@ from scipy.optimize import fsolve
 from libc cimport math
 cimport cython
 import eos_tables
+import time
 
 ### TODO @Jisheng this needs updating
 ###### Overall structure of the code.
@@ -741,7 +742,7 @@ cdef class c_henyey:
             dqdy_l=f_dqdy_Fel(self.P_c,self.T_an_c)[0][0]
             dqdy_a=f_dqdy_Fea(self.P_c,self.T_an_c)[0][0]
             self.dqdy_c=self.dqdy_mix(x_alloy,self.rho_c,rho_a,rho_l,dqdy_a,dqdy_l,self.P_c)
-
+            
             iteration=iteration+1
 
         for i in range(zone):
@@ -786,7 +787,6 @@ cdef c_initial_profile initial_profile=c_initial_profile(M_pl, c_z, m_z, CMF, MM
                                     P_c, P_surf, T_c, x_c,
                                     dsdr_c, d_Pc, rtol, T_an_c_i, c_array_start, m_array_start)
 cdef dict ri=initial_profile.RK4()
-
 # improve the solution by RK4 using a henyey code
 rtol=1e-3
 cdef c_henyey henyey_obj=c_henyey(ri['mass'], ri['radius'], ri['logr'], ri['pressure'], ri['logp'],
@@ -833,7 +833,7 @@ np.savetxt(results_foldername+'/profile/t0/henyey0.txt',np.transpose([rh['radius
                                        rh['radius'],rh['pressure'],rh['r_cell'],rh['p_cell'],rh['rho'], rh['gravity'],
                                        new_V,new_EG,new_v_top,rh['Area']]))
 np.savetxt(results_foldername+'/profile/t0/structure0.txt',np.transpose([ri['temperature'],ri['T_cell'],melt_frac,ri['s_array'],rh['s_cell'],
-                                         dsdr_array,ri['s_array'],rh['s_cell'],ri['mass'],x_cell,x_cell]))
+                                         dsdr_array,ri['s_array'],rh['s_cell'],ri['mass'],x_cell,x_cell, ri['dm']]))
 np.savetxt(results_foldername+'/profile/t0/property0.txt',np.transpose([ri['alpha'],ri['cP'],kappa,ri['dTdP'],dPdr,dxdr]))
 np.savetxt(results_foldername+'/profile/t0/previous0.txt',np.transpose([0.0, 1.0, rh['P_c'], 0.0, ri['temperature'][c_z-1], ri['T_an_c'], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0.0, c_z, m_z]))
 

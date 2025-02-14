@@ -11,3 +11,11 @@ code_edit/
 EoS/binary
 __pycache__
 Untitled.ipynb
+modular_code/__pycache__/
+modular_code/.ipynb_checkpoints/
+modular_code/need_to_update/
+modular_code/old/
+modular_code/build/
+modular_code/*.so
+modular_code/*.c
+modular_code/Untitled.ipynb

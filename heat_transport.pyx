@@ -9,20 +9,12 @@ from scipy.signal import savgol_filter
 from scipy.optimize import fsolve
 from scipy.interpolate import CubicSpline
 from libc cimport math
-from libc.math cimport fabs
 cimport cython
 import eos_tables
-import time
 
 # # suppress certain warnings
 # import warnings
 # warnings.filterwarnings('ignore', 'The iteration is not making good progress')
-
-## -- Module-level constants --
-#cdef double SIGMA = 5.670373e-08
-#cdef double G = 6.674e-11
-#cdef double CP_s = 1265.0
-
 
 cpdef double sigma_silicate(double P,double T):
     cdef double E_ion=131000.0
@@ -394,6 +386,7 @@ cdef double[:] mass=mass_profile[:,8]
 cdef double[:] melt_pressure=P_profile[:,1]
 cdef double[:] melt_pressure_cell=P_profile[:,3]
 #cdef double[:] mass_cell=mass_profile[:,9]
+cdef double[:] h=mass_profile[:,11]
 
 Fe_melt_file=np.loadtxt(results_foldername+'/profile/t0/Fe_melt.txt')
 cdef double[:] melt_pressure_Fe=Fe_melt_file[:,0]
@@ -916,9 +909,9 @@ cdef int i_dy_magma_top,i_dy_magma_bot
 cdef double[:] GMms=np.zeros(zone)
 for i in range(zone):
     if i<core_outer_index+1:
-        GMms[i]=mass[i]*h_core*G
+        GMms[i]=mass[i]*h[i]*G
     else:
-        GMms[i]=mass[i]*h_mantle*G
+        GMms[i]=mass[i]*h[i]*G
 
 cdef int iteration=0
 
@@ -979,14 +972,6 @@ testing_delta_r=[]
 testing_t=[]
 testing_dt=[]
 testing_x=[]
-
-rdiff0_list=[]
-rdiff1_list=[]
-rdiff2_list=[]
-rdiff3_list=[]
-rdiff4_list=[]
-
-
 
 #while iteration<end_ite:
 #while solid_index<core_outer_index:
@@ -1070,11 +1055,11 @@ while t<end_time:
     i=core_outer_index+1
     aa[i]=0.0
     bb[i]=0.0
-    cc[i]=1.0/dt-Area[i]/(h_mantle*temperature_cell[i])*initial_density[i]*initial_temperature[i]*(kappa[i]+eddy_k[i])/(radius_cell[i]-radius_cell[i+1])
-    dd[i]=Area[i]/(h_mantle*temperature_cell[i])*initial_density[i]*initial_temperature[i]*(kappa[i]+eddy_k[i])/(radius_cell[i]-radius_cell[i+1])
+    cc[i]=1.0/dt-Area[i]/(h[i]*temperature_cell[i])*initial_density[i]*initial_temperature[i]*(kappa[i]+eddy_k[i])/(radius_cell[i]-radius_cell[i+1])
+    dd[i]=Area[i]/(h[i]*temperature_cell[i])*initial_density[i]*initial_temperature[i]*(kappa[i]+eddy_k[i])/(radius_cell[i]-radius_cell[i+1])
     ee[i]=0.0
-    v1=Area[i-1]*Fcmb/h_mantle/temperature_cell[i]
-    v2=Area[i]/(h_mantle*temperature_cell[i])*k_array[i]*dTdP[i]*dPdr[i]
+    v1=Area[i-1]*Fcmb/h[i]/temperature_cell[i]
+    v2=Area[i]/(h[i]*temperature_cell[i])*k_array[i]*dTdP[i]*dPdr[i]
     v3=0.0
     ff[i]=S_cell[i]/dt+v1+v2+v3+Q_rad_m/temperature_cell[i]
 
@@ -1098,34 +1083,34 @@ while t<end_time:
     #if surf_flag==1.0:
     if S_cell[-1]>sgrid[-1]:# and surf_flag==1.0:
         aa[i]=0.0
-        bb[i]=Area[i-1]/(h_mantle*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])
-        cc[i]=1.0/dt-Area[i-1]/(h_mantle*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])+dFds*Area[i]/(h_mantle*temperature_cell[i])
+        bb[i]=Area[i-1]/(h[i]*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])
+        cc[i]=1.0/dt-Area[i-1]/(h[i]*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])+dFds*Area[i]/(h[i]*temperature_cell[i])
         dd[i]=0.0
         ee[i]=0.0
         v1=0.0
-        v2=-Area[i-1]/(h_mantle*temperature_cell[i])*k_array[i]*dTdP[i-1]*dPdr[i-1]
-        v3=-Fsurf*Area[i]/(h_mantle*temperature_cell[i])+dFds*S_cell[i]*Area[i]/(h_mantle*temperature_cell[i])
+        v2=-Area[i-1]/(h[i]*temperature_cell[i])*k_array[i]*dTdP[i-1]*dPdr[i-1]
+        v3=-Fsurf*Area[i]/(h[i]*temperature_cell[i])+dFds*S_cell[i]*Area[i]/(h[i]*temperature_cell[i])
         ff[i]=S_cell[i]/dt+v1+v2+v3+Q_rad_m/temperature_cell[i]
     else:
         aa[i]=0.0
-        bb[i]=Area[i-1]/(h_mantle*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])
-        cc[i]=1.0/dt-Area[i-1]/(h_mantle*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])
+        bb[i]=Area[i-1]/(h[i]*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])
+        cc[i]=1.0/dt-Area[i-1]/(h[i]*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])
         dd[i]=0.0
         ee[i]=0.0
         v1=0.0
-        v2=-Area[i-1]/(h_mantle*temperature_cell[i])*k_array[i]*dTdP[i-1]*dPdr[i-1]
-        v3=-Fsurf*Area[i]/(h_mantle*temperature_cell[i])
+        v2=-Area[i-1]/(h[i]*temperature_cell[i])*k_array[i]*dTdP[i-1]*dPdr[i-1]
+        v3=-Fsurf*Area[i]/(h[i]*temperature_cell[i])
         ff[i]=S_cell[i]/dt+v1+v2+v3+Q_rad_m/temperature_cell[i]
 
 
     for i in range(core_outer_index+2,zone-1):
         aa[i]=0.0
-        bb[i]=Area[i-1]/(h_mantle*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])
-        cc[i]=1.0/dt-Area[i-1]/(h_mantle*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])-Area[i]/(h_mantle*temperature_cell[i])*initial_density[i]*initial_temperature[i]*(kappa[i]+eddy_k[i])/(radius_cell[i]-radius_cell[i+1])
-        dd[i]=Area[i]/(h_mantle*temperature_cell[i])*initial_density[i]*initial_temperature[i]*(kappa[i]+eddy_k[i])/(radius_cell[i]-radius_cell[i+1])
+        bb[i]=Area[i-1]/(h[i]*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])
+        cc[i]=1.0/dt-Area[i-1]/(h[i]*temperature_cell[i])*initial_density[i-1]*initial_temperature[i-1]*(kappa[i-1]+eddy_k[i-1])/(radius_cell[i-1]-radius_cell[i])-Area[i]/(h[i]*temperature_cell[i])*initial_density[i]*initial_temperature[i]*(kappa[i]+eddy_k[i])/(radius_cell[i]-radius_cell[i+1])
+        dd[i]=Area[i]/(h[i]*temperature_cell[i])*initial_density[i]*initial_temperature[i]*(kappa[i]+eddy_k[i])/(radius_cell[i]-radius_cell[i+1])
         ee[i]=0.0
-        v1=-Area[i-1]/(h_mantle*temperature_cell[i])*k_array[i]*dTdP[i-1]*dPdr[i-1]
-        v2=Area[i]/(h_mantle*temperature_cell[i])*k_array[i]*dTdP[i]*dPdr[i]
+        v1=-Area[i-1]/(h[i]*temperature_cell[i])*k_array[i]*dTdP[i-1]*dPdr[i-1]
+        v2=Area[i]/(h[i]*temperature_cell[i])*k_array[i]*dTdP[i]*dPdr[i]
         v3=0.0
         ff[i]=S_cell[i]/dt+v1+v2+v3+Q_rad_m/temperature_cell[i]
     solution=penta_solver(aa[core_outer_index+1:],bb[core_outer_index+1:],cc[core_outer_index+1:],dd[core_outer_index+1:],ee[core_outer_index+1:],ff[core_outer_index+1:])#,zone-core_outer_index-1)
@@ -1351,22 +1336,22 @@ while t<end_time:
     i=0
     aa[i]=0.0
     bb[i]=0.0
-    cc[i]=1.0/dt+(k_array[i]*Area[i])/(h_core*CP[i])/(radius_cell[i+1]-radius_cell[i])
-    dd[i]=-(k_array[i]*Area[i])/(h_core*CP[i])/(radius_cell[i+1]-radius_cell[i])
+    cc[i]=1.0/dt+(k_array[i]*Area[i])/(h[i]*CP[i])/(radius_cell[i+1]-radius_cell[i])
+    dd[i]=-(k_array[i]*Area[i])/(h[i]*CP[i])/(radius_cell[i+1]-radius_cell[i])
     ee[i]=0.0
     ff[i]=temperature_cell[i]/dt+alpha[i]*initial_temperature[i]/initial_density[i]/CP[i]*(initial_pressure[i]-old_pressure[i])/dt
     i=core_outer_index
     aa[i]=0.0
-    bb[i]=-(k_array[i-1]*Area[i-1])/(h_core*CP[i-1])/(radius_cell[i]-radius_cell[i-1])
-    cc[i]=1.0/dt+(k_array[i-1]*Area[i-1])/(h_core*CP[i-1])/(radius_cell[i]-radius_cell[i-1])
+    bb[i]=-(k_array[i-1]*Area[i-1])/(h[i]*CP[i-1])/(radius_cell[i]-radius_cell[i-1])
+    cc[i]=1.0/dt+(k_array[i-1]*Area[i-1])/(h[i]*CP[i-1])/(radius_cell[i]-radius_cell[i-1])
     dd[i]=0.0
     ee[i]=0.0
     ff[i]=temperature_cell[i]/dt+alpha[i]*initial_temperature[i]/initial_density[i]/CP[i]*(initial_pressure[i]-old_pressure[i])/dt
     for i in range(1,core_outer_index):
         aa[i]=0.0
-        bb[i]=-(k_array[i-1]*Area[i-1])/(h_core*CP[i-1])/(radius_cell[i]-radius_cell[i-1])
-        cc[i]=1.0/dt+(k_array[i]*Area[i])/(h_core*CP[i])/(radius_cell[i+1]-radius_cell[i])+(k_array[i-1]*Area[i-1])/(h_core*CP[i-1])/(radius_cell[i]-radius_cell[i-1])
-        dd[i]=-(k_array[i]*Area[i])/(h_core*CP[i])/(radius_cell[i+1]-radius_cell[i])
+        bb[i]=-(k_array[i-1]*Area[i-1])/(h[i]*CP[i-1])/(radius_cell[i]-radius_cell[i-1])
+        cc[i]=1.0/dt+(k_array[i]*Area[i])/(h[i]*CP[i])/(radius_cell[i+1]-radius_cell[i])+(k_array[i-1]*Area[i-1])/(h[i]*CP[i-1])/(radius_cell[i]-radius_cell[i-1])
+        dd[i]=-(k_array[i]*Area[i])/(h[i]*CP[i])/(radius_cell[i+1]-radius_cell[i])
         ee[i]=0.0
         ff[i]=temperature_cell[i]/dt+alpha[i]*initial_temperature[i]/initial_density[i]/CP[i]*(initial_pressure[i]-old_pressure[i])/dt
     solution_T=penta_solver(aa[:core_outer_index+1],bb[:core_outer_index+1],cc[:core_outer_index+1],dd[:core_outer_index+1],ee[:core_outer_index+1],ff[:core_outer_index+1])#,core_outer_index+1)
@@ -1402,7 +1387,7 @@ while t<end_time:
         pressure_np[:core_outer_index+1],
     ))
     for i in range(core_outer_index+1):
-        outer_adiabat_value=h_core*C_P_Fe*dTdT0_array[i]
+        outer_adiabat_value=h[i]*C_P_Fe*dTdT0_array[i]
         outer_adiabat_array[i]=outer_adiabat_value/dTdT0_cmb
         outer_adiabat_Pcmb_array[i]=outer_adiabat_value*dT0dPcmb
     outer_adiabat=np.sum(outer_adiabat_array[solid_index:])
@@ -1610,7 +1595,7 @@ while t<end_time:
     if initial_phase[0]==ph_Fe_sol:
         for i in range(core_outer_index+1):
             if Mic>mass[i] and Mic<=mass[i+1]:
-                x=(mass[i+1]-Mic)/h_core
+                x=(mass[i+1]-Mic)/h[i]
                 rho_liquid=f_rho_Fel(new_T[i],initial_pressure[i])[0]
                 rho_alloy=f_rho_Fea(new_T[i],initial_pressure[i])[0]
                 dqdy_liquid=f_dqdy_Fel(new_T[i],initial_pressure[i])[0]
@@ -1910,20 +1895,10 @@ while t<end_time:
         else:
             dt=dt*0.9
 
-    if dt>1e6*86400.0*365.0:    
-        dt=1e6*86400.0*365.0
+    if dt>5e6*86400.0*365.0:    
+        dt=5e6*86400.0*365.0
     if dt<86400.0*365.0*0.1:
         dt=86400.0*365.0*0.1
-
-    #if iteration%10==0:
-    #    rdiff0_list.append(rdiff[0])
-    #    rdiff1_list.append(rdiff[1])
-    #    rdiff2_list.append(rdiff[2])
-    #    rdiff3_list.append(rdiff[3])
-    #    rdiff4_list.append(rdiff[4])
-    #    testing_t.append(t)
-    #if t<1.35e9*86400.0*365.0 and t>1e8*86400.0*365.0:
-    #    np.savetxt(results_foldername+'/profile/testProfile_'+str(int(iteration))+'.txt',np.transpose([initial_radius[core_outer_index+1:],initial_pressure[core_outer_index+1:],Fconv[core_outer_index+1:],Fcond[core_outer_index+1:],Ftot[core_outer_index+1:],viscosity[core_outer_index+1:], mass[core_outer_index+1:],alpha[core_outer_index+1:]]))
 
     if iteration%50==0:
         if t/86400.0/365.0<1e3:
@@ -1948,8 +1923,7 @@ while t<end_time:
     if iteration%10000==0:
         np.savetxt(results_foldername+'/evolution.txt',np.transpose([t_array,dt_array,average_Tm,average_Tc,Tsurf_array,Tcmb_array,T_center_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,Q_ICB_array,Buoy_T,Buoy_x,core_dipole_m,Qsurf_array,Qcmb_array,L_Fe_array,Urey_array]),
             header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature,surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment, surface heat flow, CMB heat flow, core latent heat release, Urey ratio ')      
-        #np.savetxt(results_foldername+'/testing.txt',np.transpose([testing_t,rdiff0_list,rdiff1_list,rdiff2_list,rdiff3_list,rdiff4_list]))#np.transpose([testing_t,testing_dt,testing_delta_r,testing_delta_T_ra,testing_x]))
-    
+        
     iteration=iteration+1
     t=t+dt
    

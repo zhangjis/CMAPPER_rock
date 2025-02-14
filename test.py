@@ -2,6 +2,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
+import time
 
 def plot_for_index(args):
     (
@@ -312,13 +313,13 @@ def run():
         # Set EOS_TABLES_VERBOSE to '0' for the subprocess
         env['EOS_TABLES_VERBOSE'] = '0'
         for program in program_list:
-            print("Start:" + program)
+            print("Start:" + program, time.time())
             subprocess.check_call(['python3', program],env=env)
             if program==program_list[0]:
                 print("Initial profiles obtained")
             else:
                 print("Simulation finished")
-        
+        print(time.time())
         def f_axis_max_min(v_min,v_max,axis_scale):
             if axis_scale=='log':
                 v_max=np.log10(v_max)
