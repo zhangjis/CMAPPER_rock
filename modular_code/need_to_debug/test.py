@@ -265,7 +265,6 @@ def update_input_parameters():
     print("Input parameters have been updated and written to 'input.txt'.")
 
 def prompt_new_simulation():
-    
     if not hasattr(prompt_new_simulation, "first_time"):
         prompt_new_simulation.first_time = True
 
@@ -286,7 +285,6 @@ def prompt_new_simulation():
             return True
         else:
             return False
-
 
 def run():
     while prompt_new_simulation():
@@ -657,12 +655,6 @@ def run():
             # Determine the width and height from the first image
             image_path = os.path.join(dir_path, images[0])
             frame = cv2.imread(image_path)
-
-            # Create a named window and move it to a non-intrusive position.
-            cv2.namedWindow('video', cv2.WINDOW_NORMAL)
-            cv2.moveWindow('video', 700, 700)  # Adjust these coordinates as needed
-
-
             cv2.imshow('video',frame)
             height, width, channels = frame.shape
 
@@ -689,7 +681,7 @@ def run():
             source_path = os.path.join(filefolders[0][:len(results_foldername+'/image')],out_names[i]+'.mp4')
             destination_path = os.path.join(filefolders[0][:len(results_foldername)],'movie/'+out_names[i]+'.mp4')
             shutil.move(source_path, destination_path)
-            
+        
 if __name__ == '__main__':
     from multiprocessing import Pool
     import subprocess

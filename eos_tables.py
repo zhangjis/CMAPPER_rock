@@ -430,12 +430,13 @@ f_alpha_Fea60_structure=interpolate.RectBivariateSpline(Pag,Tag,alpha_Fea60)
 f_dqdy_Fel60_structure=interpolate.RectBivariateSpline(Plg,Tlg,dqdy_Fel60)
 f_dqdy_Fea60_structure=interpolate.RectBivariateSpline(Pag,Tag,dqdy_Fea60)
 
+interp_kwargs = dict(bounds_error=False, fill_value=None)
+
 f_adiabat=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, P_core_grid), load_original_T)
 f_dT0dP=interpolate.RegularGridInterpolator((x_core_grid, Tref_core_grid, Tgrid_core_grid), load_original_dT0dP)
 f_adiabat60=interpolate.RegularGridInterpolator((x_core_grid60, Tref_core_grid60, P_core_grid60), load_original_T60)
 f_dT0dP60=interpolate.RegularGridInterpolator((x_core_grid60, Tref_core_grid60, Tgrid_core_grid60), load_original_dT0dP60)
 
-interp_kwargs = dict(bounds_error=False, fill_value=None)
 dTdT0_cmb_interp = interpolate.RegularGridInterpolator(
     (
         x_core_grid,

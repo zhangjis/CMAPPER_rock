@@ -435,7 +435,7 @@ cdef double ds_thres_dr=1.0#1e-3
 cdef double ds_thres_MO=2.0#2e-2
 cdef double ds_thres_cmb=3.0
 cdef double ds_thres_Fs=4.0#2e-2
-rdiff=np.zeros(6)
+rdiff=np.zeros(5)
 
 cdef double[:] initial_radius=initial_henyey[:,0]
 cdef double[:] radius_cell=initial_henyey[:,2]
@@ -678,7 +678,6 @@ Urey_array=[]
 Qsurf_array=[]
 Qcmb_array=[]
 L_Fe_array=[]
-test=[]
 
 
 cdef double[:] viscosity=np.zeros(zone)
@@ -1042,7 +1041,7 @@ while t<end_time:
         delta_r=initial_radius[core_outer_index+1]-initial_radius[core_outer_index]
         delta_T_ra=initial_temperature[core_outer_index]-initial_temperature[core_outer_index+1]
         Ra_T=initial_temperature[core_outer_index+1]
-    old_Fcmb=Fcmb
+
     Fcmb=-10.0*(delta_T_ra)/(-delta_r)
     Q_rad_m=Q_radm_Th*math.exp(math.log(2.0)*(4.5-t/86400.0/365.0/10.0**9.0)/tau_m_Th)+Q_radm_K*math.exp(math.log(2.0)*(4.5-t/86400.0/365.0/10.0**9.0)/tau_m_K)+Q_radm_U5*math.exp(math.log(2.0)*(4.5-t/86400.0/365.0/10.0**9.0)/tau_m_U5)+Q_radm_U8*math.exp(math.log(2.0)*(4.5-t/86400.0/365.0/10.0**9.0)/tau_m_U8)
 
@@ -1066,7 +1065,6 @@ while t<end_time:
 
     old_vis_surf_value=vis_surf_value
     old_Fsurf=Fsurf
-    #if iteration%5.0==0.0:
     if S_cell[-1]>sgrid[-1] and surf_flag==1.0:
     #if surf_flag==1.0:
         Fsurf=f_Fsurf_s(S_cell[-1]).tolist()
@@ -1381,6 +1379,7 @@ while t<end_time:
         [min_pre_adia_T],
         [initial_pressure[core_outer_index]],
     ))[0]
+    #print(x_alloy,min_pre_adia_T,initial_temperature[core_outer_index])
     dT0dPcmb=f_dT0dP([x_alloy,min_pre_adia_T,initial_temperature[core_outer_index]])[0]
     delta_Pcmb=initial_pressure[core_outer_index]-old_pressure[core_outer_index]
     dTdT0_array=dTdT0_cmb_interp((
@@ -1666,7 +1665,6 @@ while t<end_time:
         v_m2_array.append(viscosity[-2])
         P_m2_array.append(initial_pressure[-2])
 
-
     old_S=initial_S.copy()
     old_Scell=S_cell.copy()
     old_density=initial_density.copy()
@@ -1874,15 +1872,8 @@ while t<end_time:
     rdiff[1]=np.abs(old_delta_r-delta_r)/old_delta_r
     rdiff[2]=np.abs(old_vis_surf_value-vis_surf_value)/old_vis_surf_value
     rdiff[3]=np.abs(delta_Tcmb)/T_cmb
-    rdiff[5]=np.abs(old_Fcmb-Fcmb)/Fcmb
-    if surf_flag==1.0:
-        if T_s>Teq+0.03:
-            rdiff[4]=np.abs(old_Fsurf-Fsurf)/Fsurf
-        else:
-            rdiff[4]=np.abs(old_Fsurf-Fsurf)/Fsurf*10
-    else:
-        rdiff[4]=np.abs(old_Fsurf-Fsurf)/Fsurf*200
-    test.append([t,rdiff[0],rdiff[1],rdiff[2],rdiff[3],rdiff[4],rdiff[5],surf_flag])
+    rdiff[4]=np.abs(old_Fsurf-Fsurf)/Fsurf
+
     dt_thres=np.max(rdiff)
     ds_thres=ds_thres_xl
 
@@ -1905,8 +1896,8 @@ while t<end_time:
         else:
             dt=dt*0.9
 
-    if dt>1e6*86400.0*365.0:    
-        dt=1e6*86400.0*365.0
+    if dt>5e6*86400.0*365.0:    
+        dt=5e6*86400.0*365.0
     if dt<86400.0*365.0*0.1:
         dt=86400.0*365.0*0.1
 
@@ -1923,7 +1914,7 @@ while t<end_time:
         else:
             t_val=t/86400.0/365.0/1e9
             print('time:%2.2fGyrs Fcmb:%2.2fW/m^2 Fsurf:%2.2fW/m^2 Ric:%2.2fkm Tcmb:%2.2fK Pc:%2.2fGPa Pcmb:%2.2fGPa T_surface:%2.2fK' %(t_val,Fcmb,Fsurf,Ric/1e3,new_T[core_outer_index-1],initial_pressure[0]/1e9,initial_pressure[core_outer_index-1]/1e9, T_s))
-        np.savetxt('test.txt',test)
+        
     for ind in range(len(t_save)):
         if t<t_save[ind]*86400.0*365.0+dt and t>t_save[ind]*86400.0*365.0-dt:
             np.savetxt(results_foldername+'/profile/StructureProfile_'+str(int(t_save[ind]))+'.txt',np.transpose([initial_radius,initial_pressure,initial_density,initial_gravity,
@@ -1944,8 +1935,6 @@ elif solid_core_flag==0.0:
     np.savetxt(results_foldername+'/profile/files_saved_at_these_time_list.txt',t_save[:t_end_ind+1])
 
 cdef Py_ssize_t start_ind
-cdef int smooth_length_flag=0
-cdef int smooth_oddity_flag=0
 if sum(Buoy_x)>0.0:
     for i in range(1,len(t_array)):
         if Ric_array[i-1]==0.0 and Ric_array[i]>0.0:
@@ -1957,15 +1946,7 @@ if sum(Buoy_x)>0.0:
     log10_dRicdt=dRicdt.copy()
     log10_dRicdt_hat=dRicdt.copy()
     log10_dRicdt[start_ind:]=np.log10(dRicdt[start_ind:])
-    if len(log10_dRicdt[start_ind:])<99:
-        smooth_length_flag=1
-        if len(log10_dRicdt[start_ind:])%2.0==0.0:
-            log10_dRicdt_hat[start_ind:]=savgol_filter(log10_dRicdt[start_ind:], window_length=int(len(log10_dRicdt[start_ind:])-1),polyorder=9) 
-        else:
-            smooth_oddity_flag=1
-            log10_dRicdt_hat[start_ind:]=savgol_filter(log10_dRicdt[start_ind:], window_length=int(len(log10_dRicdt[start_ind:])-2),polyorder=9) 
-    else:
-        log10_dRicdt_hat[start_ind:]=savgol_filter(log10_dRicdt[start_ind:], window_length=99,polyorder=9)
+    log10_dRicdt_hat[start_ind:]=savgol_filter(log10_dRicdt[start_ind:], window_length=99,polyorder=9) 
     for i in range(len(t_array)):
         Buoy_x[i]=Buoy_x[i]*10.0**log10_dRicdt_hat[i]
         if Buoy_x[i]+Buoy_T[i]>0.0:
@@ -1981,16 +1962,8 @@ else:
             core_dipole_m[i]=0.0   
 smooth_QICB=np.asarray(Q_ICB_array).copy()
 smooth_L=np.asarray(L_Fe_array).copy()
-if len(Q_ICB_array[start_ind:])<99:
-    if smooth_oddity_flag==1:
-        smooth_QICB[start_ind:]=savgol_filter(Q_ICB_array[start_ind:], window_length=int(len(Q_ICB_array[start_ind:])-1),polyorder=1)
-        smooth_L[start_ind:]=savgol_filter(L_Fe_array[start_ind:], window_length=int(len(L_Fe_array[start_ind:])-1),polyorder=1)
-    else:
-        smooth_QICB[start_ind:]=savgol_filter(Q_ICB_array[start_ind:], window_length=int(len(Q_ICB_array[start_ind:])-2),polyorder=1)
-        smooth_L[start_ind:]=savgol_filter(L_Fe_array[start_ind:], window_length=int(len(L_Fe_array[start_ind:])-2),polyorder=1)
-else:
-    smooth_QICB[start_ind:]=savgol_filter(Q_ICB_array[start_ind:], window_length=99,polyorder=1)
-    smooth_L[start_ind:]=savgol_filter(L_Fe_array[start_ind:], window_length=99,polyorder=1)
+smooth_QICB[start_ind:]=savgol_filter(Q_ICB_array[start_ind:], window_length=99,polyorder=1)
+smooth_L[start_ind:]=savgol_filter(L_Fe_array[start_ind:], window_length=99,polyorder=1)
 
 np.savetxt(results_foldername+'/evolution.txt',np.transpose([t_array,dt_array,average_Tm,average_Tc,Tsurf_array,Tcmb_array,T_center_array,Fsurf_array,Fcmb_array,Fcond_cmb,Rp,Rc,P_center_array,P_cmb_array,Ric_array,Mic_array,D_MO_dynamo_array,Qrad_array,Qrad_c_array,smooth_QICB,Buoy_T,Buoy_x,core_dipole_m,Qsurf_array,Qcmb_array,smooth_L,Urey_array]),
     header='time, time stepsize, mass averaged mantle temperature, mass averaged core temperature, surface temperature, core mantle boundary temperature, central temperature, surface heat flux, core mantle boundary heat flux, conductive heat flux along core adiabat, planet radius, core radius, central pressure, core mantle boundary pressure, inner core radius, inner core mass, thickness of dynamo source region in magma ocean, mantle radiogenic heating, core radiogenic heating, inner core conductive heat flow, core thermal buoyancy flux, core compositional buouyancy flux, core magnetic dipole moment, surface heat flow, CMB heat flow, core latent heat release, Urey ratio ')

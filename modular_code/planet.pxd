@@ -3,7 +3,7 @@
 
 import numpy as np
 cimport numpy as np
-
+    
 cdef class Planet:
     cdef public double M_pl, CMF, Teq, t_end
     cdef public double x_c, T_an_c, P_c, T_c, rho_c, dqdy_c, P_surf
@@ -20,3 +20,10 @@ cdef class Planet:
     cdef public double[:] T_Fe_melt, P_Fe_melt
 
     cdef public double inner_core_radius
+
+
+    #scalar
+    cdef double ppv_rheology
+
+    #1D array
+    cdef double[:] dsdr, viscosity, convection, l_mlt, eddy_k

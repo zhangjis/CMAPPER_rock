@@ -126,10 +126,10 @@ cdef double Teq=load_file[8] # equilibrium temperature in K.
 cdef double Q_rad_c_0=0.0 # Current day core radiogenic heating in W/kg.
 cdef double P_surf=1e5 # Surface pressure in Pa.
 
-cdef int c_z=int(100*load_file[0]+(load_file[1]-0.1)*250)#int(load_file[11])#int(load_file[1]*zone) # zones in the core
+cdef int c_z=int(200*load_file[0]+(load_file[1]-0.1)*250)#int(load_file[11])#int(load_file[1]*zone) # zones in the core
 cdef int m_z=int((200+10*load_file[0])*load_file[10])#int(load_file[10])#int(zone-c_z) # zones in the mantle
 cdef int zone=int(c_z+m_z)#int(((load_file[0]-1.0)*80.0+600.0)) # total number of zones in the planet
-cdef double c_array_start=2.0#load_file[13]
+cdef double c_array_start=4.0#load_file[13]
 
 cdef double ms_array_0=0.0
 if load_file[0]>=3.0:
@@ -1009,7 +1009,7 @@ for i in range(0, len(s_grid)):
         
         rerr=abs(delta_BL-old_delta_BL)/old_delta_BL
         
-        if iteration>1000:
+        if iteration>5:
             if abs(delta_BL-delta_BL_grid[i-1])<abs(old_delta_BL-delta_BL_grid[i-1]):
                 break 
             else:
@@ -1019,32 +1019,24 @@ for i in range(0, len(s_grid)):
         if delta_BL>R[-1]-R_cell[-1]:
             i_r=i+1
             break_flag=1.0
-            break
-        if T_s<Teq:
+            break    
+        if T_s<Teq+0.01:
             i_r=i+1
             break_flag=1.0
-            break    
-        
+            break
+
         iteration=iteration+1
-    #if T_s<Teq:
-    #    Fsurf_grid[i]=Fsurf_grid[i-1]/2.0
-    #    delta_BL_grid[i]=delta_BL_grid[i-1]
-    #    Tsurf_grid[i]=Teq
-    #    vissurf_grid[i]=vissurf_grid[i-1]
-    #else:
     Fsurf_grid[i]=k_en*delta_T_BL/delta_BL
     delta_BL_grid[i]=delta_BL
     Tsurf_grid[i]=T_s
     vissurf_grid[i]=nu_BL
-    #print(Fsurf_grid[i], T_s)
 
     if break_flag==1.0:
         break
 
-"""
 from scipy.interpolate import UnivariateSpline
 dFds=np.zeros(len(s_grid))
-s_array=np.linspace(5080.0,2800.0,57001)
+s_array=np.linspace(5080.0,2800.0,114001)
 Fsurf_array=np.zeros(len(s_array))
 for i in range(len(s_array)):
     Fsurf_array[i]=Fsurf_grid[i]
@@ -1053,35 +1045,5 @@ F_of_s=UnivariateSpline(s_array[::-1], Fsurf_array[::-1])
 f_dFds=F_of_s.derivative()
 for i in range(len(dFds)):
     dFds[i]=f_dFds(s_grid[i]).tolist()
-"""
 
-
-x = np.asarray(s_grid[:i_r])
-y = np.asarray(Fsurf_grid[:i_r])
-
-# Compute the raw derivative using finite differences
-raw_dy = np.gradient(y, x)
-
-# Apply the Savitzky–Golay filter to compute a smoothed derivative.
-# window_length must be a positive odd integer; polyorder must be less than window_length.
-# Note: delta is the spacing between x values; here we assume roughly constant spacing.
-# If x is non-uniform, you might need to adjust this approach.
-window_length = 29  # adjust depending on your data
-polyorder = 2       # adjust for the desired smoothing
-smoothed_dy = np.zeros(len(x))
-smoothed_y = np.zeros(len(x))
-
-if y[-1]<0.0 and y[-2]>0.0:
-    smoothed_y[:-1] = savgol_filter(y[:-1], window_length, polyorder, deriv=0)
-    smoothed_dy[:-1] = savgol_filter(y[:-1], window_length, polyorder, deriv=1, delta=x[1]-x[0])
-    smoothed_y[-1] = y[-1]
-    smoothed_dy[-1] = raw_dy[-1]
-else:
-    smoothed_y = savgol_filter(y, window_length, polyorder, deriv=0)
-    smoothed_dy = savgol_filter(y, window_length, polyorder, deriv=1, delta=x[1]-x[0])
-
-
-#np.savetxt(results_foldername+'/profile/t0/Fsurf.txt',np.transpose([s_grid[:i_r],Fsurf_grid[:i_r],delta_BL_grid[:i_r],Tsurf_grid[:i_r], dFds[:i_r], vissurf_grid[:i_r]]),header='surface entropy, surface flux, surface boundary layer thickness, surface temperature, dFsurf/ds, viscosity')
-#np.savetxt(results_foldername+'/profile/t0/Fsurf.txt',np.transpose([s_grid[:i_r],smoothed_y,delta_BL_grid[:i_r],Tsurf_grid[:i_r], smoothed_dy, vissurf_grid[:i_r], raw_dy, y]),header='surface entropy, surface flux, surface boundary layer thickness, surface temperature, dFsurf/ds, viscosity')
-
-np.savetxt(results_foldername+'/profile/t0/Fsurf.txt',np.transpose([s_grid[:i_r],y,delta_BL_grid[:i_r],Tsurf_grid[:i_r], raw_dy, vissurf_grid[:i_r]]),header='surface entropy, surface flux, surface boundary layer thickness, surface temperature, dFsurf/ds, viscosity')
+np.savetxt(results_foldername+'/profile/t0/Fsurf.txt',np.transpose([s_grid[:i_r],Fsurf_grid[:i_r],delta_BL_grid[:i_r],Tsurf_grid[:i_r], dFds[:i_r], vissurf_grid[:i_r]]),header='surface entropy, surface flux, surface boundary layer thickness, surface temperature, dFsurf/ds, viscosity')
